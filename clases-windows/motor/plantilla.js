@@ -29,7 +29,7 @@ try {
     json(`${base}/salida/boca.json`),
   ]);
 
-  await armarMarco(clase);
+  await armarMarco(clase, tiempos);
   const robot = crearRobot($('#robot'));
   if (archivoAvatar) document.body.classList.add('con-avatar');
 
@@ -112,15 +112,18 @@ try {
   box.hidden = false;
 }
 
-async function armarMarco(clase) {
-  const nombre = clase.avatar || 'Avatar';
+async function armarMarco(clase, tiempos) {
+  // con camara.mp4 el que aparece es el docente, no el avatar
+  const enCamara = !!(tiempos.camara && clase.docente);
+  const nombre = enCamara ? clase.docente : (clase.avatar || 'Avatar');
   document.querySelectorAll('.nombre-avatar').forEach(n => { n.textContent = nombre; });
-  $('#rol').textContent = clase.rol_avatar || '';
+  $('#rol').textContent = enCamara ? 'Docente' : (clase.rol_avatar || '');
   $('#curso').textContent = clase.curso || '';
   $('#tema').textContent = clase.tema || '';
   $('#banda-der').textContent = clase.banda || clase.curso || '';
   if (clase.institucion) $('#pie-inst').textContent = clase.institucion;
-  $('#pie-der').textContent = clase.docente ? `Clase generada con IA · Revisó: ${clase.docente}` : 'Clase generada con IA';
+  $('#pie-der').textContent = tiempos.camara ? 'Diapositivas generadas con IA'
+    : clase.docente ? `Clase generada con IA · Revisó: ${clase.docente}` : 'Clase generada con IA';
   document.title = `${clase.tema || 'Clase'} · ${nombre}`;
   // logo opcional: marca/logo.png (el motor avisa con ?logo=1 si existe)
   if (q.get('logo') === '1') {

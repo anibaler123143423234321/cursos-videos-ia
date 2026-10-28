@@ -6,6 +6,7 @@ agenda de la clase.
 
 Que hay en esta carpeta
   FICHA-CLASE.txt      la plantilla fija que llenas para cada clase (nombre del avatar, tema...)
+  TEXTO-PARA-CLONAR-VOZ.txt  lo que lees para clonar tu voz en ElevenLabs
   CLAUDE.md            el PROMPT MAESTRO: Claude Code lo lee solo, no hace falta pegarlo
   CREAR-VIDEO.bat      menu para crear los videos (doble clic)
   .env.ejemplo         plantilla para tus claves de ElevenLabs
@@ -60,29 +61,42 @@ Por Terminal (opcional), dentro de la carpeta:
    node motor\crear-video.mjs html-semantico-w3c
 
 
-PASO 4 - TU VOZ CLONADA CON ELEVENLABS
---------------------------------------
-(Si ya lo hiciste en la Mac, solo copia el mismo .env a esta carpeta.)
-1. Graba 1 o 2 minutos de tu voz con la app "Grabadora de sonido" de Windows.
-   - Usa un lugar silencioso, sin musica.
-   - Lee con tu tono de clase normal.
-2. Crea tu cuenta en https://elevenlabs.io y elige el plan Starter (incluye Instant Voice Cloning).
-3. Ve a Voices > Create / Add a new voice > Instant Voice Clone. Sube tu grabacion, confirma que es
-   TU voz y guardala con un nombre.
-4. En tu voz pulsa el menu (...) > Copy voice ID.
-5. Crea tu API key en Developers (o Settings) > API Keys > Create API key, con permiso Text to Speech, y copiala.
-6. En PowerShell, dentro de la carpeta:
+PASO 4 - UNA VOZ NATURAL (elige una opcion)
+--------------------------------------------
+La voz de Windows de la prueba es sintetica: sirve para probar, no para publicar.
 
-   copy .env.ejemplo .env
-   notepad .env
+4A) TU VOZ GRABADA (gratis, la mas natural; recomendada para empezar)
+    1. En CREAR-VIDEO.bat elige la clase y la opcion 5 (Guion para grabar TU voz).
+       Se abren el guion (Bloc de notas) y la carpeta voz de la clase.
+    2. Graba el guion de corrido con la app Grabadora de sonido y CALLA 2 SEGUNDOS ENTRE
+       BLOQUE Y BLOQUE.
+    3. Guarda la grabacion como  clases\<clase>\voz\completa.m4a
+    4. Crea el video (opcion 1). El programa corta tu grabacion en bloques solo, le quita el
+       ruido de fondo y sincroniza cada diapositiva con tu voz.
+    Si un bloque te sale mal, graba solo ese bloque como voz\05.m4a (por ejemplo) y listo.
 
-   Pega la API key en ELEVENLABS_API_KEY= y el Voice ID en ELEVENLABS_VOICE_ID=, y guarda.
-7. Vuelve a crear el video con CREAR-VIDEO.bat. Ahora SIPANCITOBOT habla con tu voz.
-   Los audios quedan guardados: si no cambias el texto, NO se gastan creditos al renderizar
-   otra vez.
+4B) TU VOZ CLONADA CON ELEVENLABS (unos US$6 al mes; ya no tienes que grabar cada clase)
+    (Si ya lo hiciste en la Mac, solo copia el mismo .env a esta carpeta.)
+    1. Graba 1 o 2 minutos leyendo TEXTO-PARA-CLONAR-VOZ.txt (ahi estan los consejos).
+       Un audio de WhatsApp de 5 segundos NO alcanza.
+    2. Crea tu cuenta en https://elevenlabs.io y elige el plan Starter (incluye Instant Voice Cloning).
+    3. Ve a Voices > Create / Add a new voice > Instant Voice Clone. Sube tu grabacion, confirma que
+       es TU voz y guardala con un nombre.
+    4. En tu voz pulsa el menu (...) > Copy voice ID.
+    5. Crea tu API key en Developers (o Settings) > API Keys > Create API key, con permiso
+       Text to Speech, y copiala.
+    6. En PowerShell, dentro de la carpeta:
+
+       copy .env.ejemplo .env
+       notepad .env
+
+       Pega la API key en ELEVENLABS_API_KEY= y el Voice ID en ELEVENLABS_VOICE_ID=, y guarda.
+    7. Crea el video de nuevo. Si no cambias el texto, NO se gastan creditos al renderizar otra vez.
+    Nota: si existe voz\completa.m4a o camara.mp4, se usa eso antes que ElevenLabs.
 
 IMPORTANTE: clona solo TU voz, o la de alguien que te de su permiso por escrito.
-Nunca subas .env a GitHub ni lo compartas (ya esta excluido en .gitignore).
+Nunca subas .env, tus grabaciones (voz\) ni tus videos (camara.mp4) a GitHub: ya estan
+excluidos en .gitignore.
 
 
 PASO 5 - CREAR CLASES NUEVAS CON CLAUDE CODE
@@ -106,8 +120,14 @@ PASO 5 - CREAR CLASES NUEVAS CON CLAUDE CODE
    la clase, revisara las capturas y generara el video en salidas\.
 
 
-PASO 6 (OPCIONAL) - AVATAR REALISTA EN VEZ DEL ROBOT
-----------------------------------------------------
+PASO 6 (OPCIONAL) - TU CARA O UN AVATAR REALISTA EN VEZ DEL ROBOT
+------------------------------------------------------------------
+TU EN CAMARA (gratis, clase Zoom real): grabate con la app Camara de Windows (modo video)
+leyendo el guion de la opcion 5, con 2 segundos de pausa entre bloques. Guarda el video como
+clases\<clase>\camara.mp4. Tu video va al recuadro de camara, tu voz es la del video y las
+diapositivas cambian solas en cada pausa. Pon tu nombre en "docente" de clase.json.
+
+AVATAR REALISTA (HeyGen / Hedra, de pago):
 1. En CREAR-VIDEO.bat elige la opcion 4 (Solo la voz).
 2. En HeyGen (Avatar IV / foto avatar) o en Hedra, sube una imagen de tu avatar y el audio
    clases\<clase>\salida\voz-completa.mp3. Descarga el video.

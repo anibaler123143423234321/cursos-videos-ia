@@ -45,6 +45,8 @@ Otros comandos útiles:
 - `--rapido`: borrador liviano para revisar el ritmo.
 - `--vista`: vista previa con sonido en el navegador. Es para el docente: espera un Enter, así que no lo uses tú.
 - `--solo-voz`: solo genera `salida/voz-completa.mp3`, por ejemplo para crear el avatar en HeyGen o Hedra.
+- `--guion`: escribe `GUION-PARA-GRABAR.txt` para que el docente grabe su voz de corrido.
+  Genéralo siempre al terminar una clase nueva.
 
 ---
 
@@ -165,11 +167,23 @@ export default function ({ b, p, u, tl, gsap, clase }) {
 
 ## Voz
 
-El orden de prioridad es:
-1. **Grabaciones propias** en `clases/<nombre-corto>/voz/01.m4a`, `02.m4a`… (wav, mp3, m4a, aiff).
-2. **ElevenLabs**, si `.env` tiene `ELEVENLABS_API_KEY` y `ELEVENLABS_VOICE_ID`. Los audios se guardan en
+El orden de prioridad es (modo `auto`):
+1. **`clases/<nombre-corto>/camara.mp4`**: el docente grabado con su cámara. Su video va en el
+   recuadro y su audio es la voz. Se respeta la línea de tiempo del video y los bloques se
+   detectan por las pausas.
+2. **`clases/<nombre-corto>/voz/completa.m4a`**: una sola grabación de corrido, con 2 s de silencio
+   entre bloques. El motor la corta sola en los N bloques (busca las N-1 pausas más largas)
+   y le quita ruido.
+3. **`clases/<nombre-corto>/voz/01.m4a`, `02.m4a`…**: grabaciones por bloque. Reemplazan ese bloque
+   de la grabación completa (sirven para corregir un bloque).
+4. **ElevenLabs**, si `.env` tiene `ELEVENLABS_API_KEY` y `ELEVENLABS_VOICE_ID`. Los audios se guardan en
    caché y solo se regenera el bloque cuyo texto cambió, así no se gastan créditos de más.
-3. **Voz del sistema** (macOS `say` / Windows SAPI).
+5. **Voz del sistema** (macOS `say` / Windows SAPI). Es el último recurso y suena sintética.
+
+Si el docente graba su voz y el motor avisa que «las pausas no son muy claras» o que un bloque
+«dura raro», revisa con `--capturas` que cada diapositiva cambie a tiempo.
+Si no cambia a tiempo, pide al docente que regrabe ese bloque como `voz/NN.m4a`.
+Las carpetas `voz/`, `camara.*` y `avatar.*` tienen la voz y la cara del docente: nunca las subas a GitHub.
 
 ## Prohibido
 

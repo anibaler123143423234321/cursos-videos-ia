@@ -6,6 +6,7 @@ agenda de la clase.
 
 Que hay en esta carpeta
   FICHA-CLASE.txt      la plantilla fija que llenas para cada clase (nombre del avatar, tema...)
+  TEXTO-PARA-CLONAR-VOZ.txt  lo que lees para clonar tu voz en ElevenLabs
   CLAUDE.md            el PROMPT MAESTRO: Claude Code lo lee solo, no hace falta pegarlo
   CREAR-VIDEO.command  menu para crear los videos (doble clic)
   .env.ejemplo         plantilla para tus claves de ElevenLabs
@@ -61,40 +62,56 @@ Tambien puedes hacer todo con doble clic en CREAR-VIDEO.command.
 La primera vez macOS lo bloquea: clic derecho > Abrir > Abrir. Si no te deja, usa la Terminal:
    bash CREAR-VIDEO.command
 
-Si la voz sale en ingles o no hay voz en espanol: Ajustes del Sistema > Accesibilidad >
-Contenido leido > Voz del sistema > Gestionar voces > Espanol (descarga Paulina o Monica).
+Esta prueba usa la voz de macOS, que suena sintetica. En el PASO 4 la cambias por TU voz.
+Si sale en ingles o no hay voz en espanol: Ajustes del Sistema > Accesibilidad >
+Contenido leido > Voz del sistema > Gestionar voces > Espanol (descarga Paulina o Monica Premium).
 
 
-PASO 4 - TU VOZ CLONADA CON ELEVENLABS
---------------------------------------
-1. Graba 1 o 2 minutos de tu voz: en QuickTime Player usa Archivo > Nueva grabacion de audio,
-   o la app Notas de voz.
-   - Usa un lugar silencioso, sin musica, con el microfono a un palmo.
-   - Lee con tu tono de clase normal; por ejemplo, lee el guion de clases/html-semantico-w3c/clase.json.
-2. Crea tu cuenta en https://elevenlabs.io y elige el plan Starter (incluye Instant Voice Cloning).
-3. Ve a Voices > Create / Add a new voice > Instant Voice Clone. Sube tu grabacion, confirma que es
-   TU voz y guardala con un nombre (ej.: "Mi voz clases").
-4. En tu voz pulsa el menu (...) > Copy voice ID.
-5. Crea tu API key en Developers (o Settings) > API Keys > Create API key, con permiso Text to Speech, y copiala.
-6. En la Terminal, dentro de la carpeta:
+PASO 4 - UNA VOZ NATURAL (elige una opcion)
+--------------------------------------------
+La voz de macOS de la prueba es sintetica: sirve para probar, no para publicar.
+Tienes tres opciones, de la mas simple a la mas comoda.
 
-   cp .env.ejemplo .env
-   open -e .env
+4A) TU VOZ GRABADA (gratis, la mas natural; recomendada para empezar)
+    1. Abre CREAR-VIDEO.command, elige la clase y la opcion 5 (Guion para grabar TU voz).
+       Se abren el guion y la carpeta voz de la clase.
+    2. Graba el guion de corrido con QuickTime Player (Archivo > Nueva grabacion de audio) o con
+       Notas de voz, y CALLA 2 SEGUNDOS ENTRE BLOQUE Y BLOQUE.
+    3. Guarda la grabacion como  clases/<clase>/voz/completa.m4a
+    4. Crea el video (opcion 1). El programa corta tu grabacion en bloques solo, le quita el
+       ruido de fondo y sincroniza cada diapositiva con tu voz. SIPANCITOBOT habla con tu voz.
+    Si un bloque te sale mal, graba solo ese bloque como voz/05.m4a (por ejemplo) y listo.
 
-   Pega la API key en ELEVENLABS_API_KEY= y el Voice ID en ELEVENLABS_VOICE_ID=, y guarda.
-   (.env es un archivo oculto: en Finder se ve con Cmd + Shift + punto.)
-7. Vuelve a crear el video:
+4B) TU VOZ CLONADA CON ELEVENLABS (unos US$6 al mes; ya no tienes que grabar cada clase)
+    1. Graba 1 o 2 minutos leyendo TEXTO-PARA-CLONAR-VOZ.txt (ahi estan los consejos).
+       Un audio de WhatsApp de 5 segundos NO alcanza: hace falta 1-2 minutos de buena calidad.
+    2. Crea tu cuenta en https://elevenlabs.io y elige el plan Starter (incluye Instant Voice Cloning).
+    3. Ve a Voices > Create / Add a new voice > Instant Voice Clone. Sube tu grabacion, confirma que
+       es TU voz y guardala con un nombre (ej.: "Mi voz clases").
+    4. En tu voz pulsa el menu (...) > Copy voice ID.
+    5. Crea tu API key en Developers (o Settings) > API Keys > Create API key, con permiso
+       Text to Speech, y copiala.
+    6. En la Terminal, dentro de la carpeta:
 
-   node motor/crear-video.mjs html-semantico-w3c
+       cp .env.ejemplo .env
+       open -e .env
 
-   Ahora SIPANCITOBOT habla con tu voz. Los audios quedan guardados: si vuelves a renderizar
-   sin cambiar el texto, NO se gastan creditos. Solo se regenera el bloque que cambies.
+       Pega la API key en ELEVENLABS_API_KEY= y el Voice ID en ELEVENLABS_VOICE_ID=, y guarda.
+       (.env es un archivo oculto: en Finder se ve con Cmd + Shift + punto.)
+    7. Crea el video de nuevo. Ahora toda clase nueva sale con tu voz clonada, sin grabar nada.
+       Si vuelves a renderizar sin cambiar el texto, NO se gastan creditos.
+       Una clase de 2:30 son unos 2.200 caracteres; el plan Starter (30.000 creditos al mes)
+       alcanza para unas 10-13 clases nuevas al mes.
+    Nota: si existe voz/completa.m4a o camara.mp4, se usa eso antes que ElevenLabs.
 
-   Una clase de 2:30 son unos 2.200 caracteres; el plan Starter (30.000 creditos al mes)
-   alcanza para unas 10-13 clases nuevas al mes.
+4C) MEJOR VOZ DE macOS (gratis, sigue siendo sintetica)
+    Ajustes del Sistema > Accesibilidad > Contenido leido > Voz del sistema > Gestionar voces >
+    Espanol: descarga "Paulina (Premium)" o "Monica (Premium)". El programa usa sola la mejor que
+    encuentre y evita las voces roboticas (Eddy, Flo, Rocko...).
 
 IMPORTANTE: clona solo TU voz, o la de alguien que te de su permiso por escrito.
-Nunca subas .env a GitHub ni lo compartas (ya esta excluido en .gitignore).
+Nunca subas .env, tus grabaciones (voz/) ni tus videos (camara.mp4) a GitHub: ya estan
+excluidos en .gitignore.
 
 
 PASO 5 - CREAR CLASES NUEVAS CON CLAUDE CODE
@@ -118,9 +135,16 @@ PASO 5 - CREAR CLASES NUEVAS CON CLAUDE CODE
    la clase, revisara las capturas y generara el video en salidas/.
 
 
-PASO 6 (OPCIONAL) - AVATAR REALISTA EN VEZ DEL ROBOT
-----------------------------------------------------
-El robot incluido es gratis y mueve la boca con tu voz. Si quieres un avatar mas realista:
+PASO 6 (OPCIONAL) - TU CARA O UN AVATAR REALISTA EN VEZ DEL ROBOT
+------------------------------------------------------------------
+El robot incluido es gratis y mueve la boca con tu voz. Otras opciones:
+
+TU EN CAMARA (gratis, clase Zoom real): grabate con Photo Booth o QuickTime (Archivo > Nueva
+grabacion de video) leyendo el guion de la opcion 5, con 2 segundos de pausa entre bloques.
+Guarda el video como clases/<clase>/camara.mp4. Tu video va al recuadro de camara, tu voz es la
+del video y las diapositivas cambian solas en cada pausa. Pon tu nombre en "docente" de clase.json.
+
+AVATAR REALISTA (HeyGen / Hedra, de pago):
 1. Genera solo la voz (opcion 4 del menu, o):  node motor/crear-video.mjs <clase> --solo-voz
 2. En HeyGen (Avatar IV / foto avatar) o en Hedra, sube una imagen de tu avatar y el audio
    clases/<clase>/salida/voz-completa.mp3. Descarga el video.

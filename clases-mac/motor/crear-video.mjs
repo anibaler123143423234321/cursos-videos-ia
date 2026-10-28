@@ -7,7 +7,15 @@
 //   node motor/crear-video.mjs <nombre-corto> --capturas   solo imagenes de cada bloque (para revisar)
 //   node motor/crear-video.mjs <nombre-corto> --vista      vista previa con sonido en el navegador
 //   node motor/crear-video.mjs <nombre-corto> --solo-voz   solo genera la voz (voz-completa.mp3)
+//   node motor/crear-video.mjs <nombre-corto> --guion      escribe GUION-PARA-GRABAR.txt para grabar tu voz
 //   Opcional: --voz=elevenlabs | --voz=sistema   (por defecto: auto)
+//
+// Voz, en este orden (modo auto):
+//   1. clases/<clase>/camara.mp4        tu video de camara: tu cara en el recuadro + tu voz
+//   2. clases/<clase>/voz/completa.m4a  una sola grabacion con pausas de 2 s entre bloques (se corta sola)
+//   3. clases/<clase>/voz/01.m4a ...    grabaciones por bloque (reemplazan al bloque de la grabacion completa)
+//   4. ElevenLabs (voz clonada) si .env tiene ELEVENLABS_API_KEY y ELEVENLABS_VOICE_ID
+//   5. voz del sistema (macOS / Windows)
 //
 // NO editar para una clase concreta: cada clase vive en clases/<nombre-corto>/.
 
@@ -42,6 +50,9 @@ const RAPIDO = flags.has('--rapido');
 const CAPTURAS = flags.has('--capturas');
 const VISTA = flags.has('--vista');
 const SOLO_VOZ = flags.has('--solo-voz');
+const GUION = flags.has('--guion');
+const EXT_AUDIO = ['m4a', 'mp3', 'wav', 'aiff', 'aif', 'ogg', 'opus', 'flac', 'aac', 'webm', 'mp4', 'mov'];
+const LIMPIAR_GRABACION = 'highpass=f=70,afftdn=nr=10:nf=-45';
 
 cargarEnv();
 
@@ -71,11 +82,11 @@ try {
 // ---------------------------------------------------------------- flujo
 async function principal() {
   if (!fs.existsSync(path.join(DIR, 'clase.json'))) throw new Error(`No existe clases/${slug}/clase.json`);
-  if (!fs.existsSync(path.join(DIR, 'diapositivas.js'))) throw new Error(`No existe clases/${slug}/diapositivas.js`);
-  if (!hay('ffmpeg') || !hay('ffprobe')) throw new Error('No encuentro ffmpeg/ffprobe. Instalalo (ver LEEME) y vuelve a intentar.');
-
   const clase = JSON.parse(fs.readFileSync(path.join(DIR, 'clase.json'), 'utf8').replace(/^\uFEFF/, ''));
   validar(clase);
+  if (GUION) return escribirGuion(clase);
+  if (!fs.existsSync(path.join(DIR, 'diapositivas.js'))) throw new Error(`No existe clases/${slug}/diapositivas.js`);
+  if (!hay('ffmpeg') || !hay('ffprobe')) throw new Error('No encuentro ffmpeg/ffprobe. Instalalo (ver LEEME) y vuelve a intentar.');
   fs.mkdirSync(SAL, { recursive: true });
 
   console.log(`\n== Clase: ${clase.tema || slug}  (${clase.bloques.length} bloques)`);
@@ -86,7 +97,8 @@ async function principal() {
     return;
   }
 
-  const avatar = buscarAvatar(tiempos.total);
+  const avatar = tiempos.camara ? path.join(DIR, tiempos.camara) : buscarAvatar(tiempos.total);
+  if (tiempos.camara) console.log(`[OK] Recuadro de camara: ${tiempos.camara} (tu video)`);
 
   if (VISTA) {
     const srv = await servidor();
@@ -160,23 +172,37 @@ async function prepararVoz(clase) {
     if (!/\.elevenlabs\.mp3$|^firmas-elevenlabs\.json$/.test(f)) fs.rmSync(path.join(dirVoz, f), { force: true });
   }
   const pref = (opcion('voz') || process.env.VOZ || 'auto').toLowerCase();
+  const usarGrabaciones = pref === 'auto' || pref === 'grabacion';
   const hayEleven = !!(process.env.ELEVENLABS_API_KEY && process.env.ELEVENLABS_VOICE_ID);
   if (pref === 'elevenlabs' && !hayEleven) {
     console.log('[!] Pediste ElevenLabs pero falta ELEVENLABS_API_KEY o ELEVENLABS_VOICE_ID en .env');
   }
 
-  // 1) grabaciones propias: clases/<slug>/voz/<id>.(wav|mp3|m4a|aiff|ogg)
+  // 1) tu video de camara: se respeta su linea de tiempo (imagen y voz quedan sincronizadas)
+  const camara = ['camara.mp4', 'camara.mov', 'camara.m4v', 'camara.webm'].map(n => path.join(DIR, n)).find(f => fs.existsSync(f));
+  if (camara && usarGrabaciones) return vozDeCamara(clase, camara, dirVoz);
+
+  // 2) tus grabaciones: voz/completa.* (se corta sola) y/o voz/<id>.* por bloque
   const propias = {};
-  for (const b of clase.bloques) {
-    for (const ext of ['wav', 'mp3', 'm4a', 'aiff', 'ogg', 'flac']) {
-      const f = path.join(DIR, 'voz', `${b.id}.${ext}`);
-      if (fs.existsSync(f)) { propias[b.id] = f; break; }
+  const dirGrab = path.join(DIR, 'voz');
+  if (usarGrabaciones) {
+    const completa = buscarAudio(dirGrab, 'completa');
+    if (completa) {
+      console.log(`   tu grabacion completa: ${path.basename(completa)} (la corto en ${clase.bloques.length} bloques por las pausas)`);
+      Object.assign(propias, cortarGrabacion(clase, completa, dirVoz));
+    }
+    for (const b of clase.bloques) {
+      const f = buscarAudio(dirGrab, b.id);
+      if (f) propias[b.id] = f;
     }
   }
   const faltan = clase.bloques.filter(b => !propias[b.id]);
+  if (Object.keys(propias).length && faltan.length) {
+    console.log(`[!] No hay grabacion tuya para los bloques ${faltan.map(b => b.id).join(', ')}: esos usaran voz sintetica.`);
+  }
 
-  // 2) voz sintetica para lo que falte
-  let proveedor = Object.keys(propias).length ? 'grabaciones propias' : '';
+  // 3) voz sintetica para lo que falte
+  let proveedor = Object.keys(propias).length ? 'tu voz grabada' : '';
   let fuentes = { ...propias };
   if (faltan.length) {
     let usado = null;
@@ -205,7 +231,8 @@ async function prepararVoz(clase) {
   const dur = {};
   for (const b of clase.bloques) {
     const wav = path.join(dirVoz, `${b.id}.norm.wav`);
-    ff('-i', fuentes[b.id], '-ac', '1', '-ar', '48000', '-c:a', 'pcm_s16le', wav);
+    const limpiar = propias[b.id] ? ['-af', LIMPIAR_GRABACION] : [];
+    ff('-i', fuentes[b.id], '-vn', ...limpiar, '-ac', '1', '-ar', '48000', '-c:a', 'pcm_s16le', wav);
     dur[b.id] = duracion(wav);
   }
 
@@ -237,6 +264,149 @@ async function prepararVoz(clase) {
   fs.writeFileSync(path.join(SAL, 'tiempos.json'), JSON.stringify(tiempos, null, 2));
   fs.writeFileSync(path.join(SAL, 'boca.json'), JSON.stringify(envolvente(final)));
   return { tiempos, proveedor };
+}
+
+function buscarAudio(dir, nombre) {
+  for (const ext of EXT_AUDIO) {
+    const f = path.join(dir, `${nombre}.${ext}`);
+    if (fs.existsSync(f)) return f;
+  }
+  return null;
+}
+
+// Encuentra los bloques en una grabacion de corrido: las N-1 pausas mas largas separan los N bloques.
+function detectarBloques(wav, clase) {
+  const n = clase.bloques.length;
+  const r = spawnSync('ffmpeg', ['-v', 'error', '-i', wav, '-f', 's16le', '-ac', '1', '-ar', '16000', '-'], { maxBuffer: 1 << 30 });
+  if (r.status !== 0) throw new Error('No pude leer tu grabacion');
+  const pcm = r.stdout;
+  const muestras = pcm.length >> 1;
+  const db = [];
+  for (let a = 0; a + 160 <= muestras; a += 160) { // ventanas de 10 ms
+    let s = 0;
+    for (let i = a; i < a + 160; i++) { const v = pcm.readInt16LE(i * 2) / 32768; s += v * v; }
+    db.push(10 * Math.log10(s / 160 + 1e-12));
+  }
+  const orden = [...db].sort((x, y) => x - y);
+  const ruido = orden[Math.floor(orden.length * 0.1)];
+  const voz = orden[Math.floor(orden.length * 0.95)];
+  if (!(voz - ruido >= 12)) throw new Error('No distingo tu voz del ruido de fondo: graba mas cerca del microfono o en un lugar mas silencioso.');
+  const umbral = ruido + Math.max(8, (voz - ruido) * 0.3);
+  const activo = db.map(v => v > umbral);
+  const primero = activo.indexOf(true);
+  const ultimo = activo.lastIndexOf(true);
+  const pausas = [];
+  for (let i = primero; i <= ultimo;) {
+    if (activo[i]) { i++; continue; }
+    let j = i;
+    while (j <= ultimo && !activo[j]) j++;
+    if (j - i >= 25) pausas.push({ a: i / 100, z: j / 100, dur: (j - i) / 100 });
+    i = j;
+  }
+  if (pausas.length < n - 1) {
+    throw new Error(`Tu grabacion tiene ${pausas.length + 1} partes y la clase ${n} bloques. Graba otra vez con una pausa de 2 segundos entre bloque y bloque (ver GUION-PARA-GRABAR.txt).`);
+  }
+  const porLargo = [...pausas].sort((x, y) => y.dur - x.dur);
+  const elegidas = porLargo.slice(0, n - 1).sort((x, y) => x.a - y.a);
+  const menor = Math.min(...elegidas.map(p => p.dur), Infinity);
+  const siguiente = porLargo[n - 1];
+  if (n > 1 && (menor < 0.8 || (siguiente && siguiente.dur > menor * 0.8))) {
+    console.log('[!] Las pausas entre bloques no son muy claras: revisa con --capturas que cada diapositiva cambie a tiempo.\n    Lo ideal es callar 2 segundos entre bloque y bloque.');
+  }
+  const fin = ultimo / 100 + 0.01;
+  const segs = [];
+  let ini = primero / 100;
+  elegidas.forEach(p => { segs.push([ini, p.a]); ini = p.z; });
+  segs.push([ini, fin]);
+  // margen para no cortar consonantes, sin pasar de la mitad de la pausa vecina
+  const res = segs.map(([a, z], k) => ({
+    inicio: r3(Math.max(a - 0.12, k > 0 ? (elegidas[k - 1].a + elegidas[k - 1].z) / 2 : 0)),
+    fin: r3(Math.min(z + 0.18, k < n - 1 ? (elegidas[k].a + elegidas[k].z) / 2 : z + 0.18)),
+  }));
+  // control: la duracion de cada parte deberia parecerse a lo largo de su texto
+  const palabras = clase.bloques.map(b => b.texto.split(/\s+/).filter(Boolean).length);
+  const totP = palabras.reduce((x, y) => x + y, 0);
+  const totD = res.reduce((x, s) => x + (s.fin - s.inicio), 0);
+  res.forEach((s, k) => {
+    const razon = ((s.fin - s.inicio) / totD) / (palabras[k] / totP);
+    if (razon < 0.45 || razon > 2.2) console.log(`[!] El bloque ${clase.bloques[k].id} dura ${(s.fin - s.inicio).toFixed(1)} s, raro para su texto: ¿pausa larga a mitad de bloque o bloque saltado?`);
+  });
+  return res;
+}
+
+function cortarGrabacion(clase, archivo, dirVoz) {
+  const base = path.join(dirVoz, 'completa.wav');
+  ff('-i', archivo, '-vn', '-ac', '1', '-ar', '48000', '-c:a', 'pcm_s16le', base);
+  const segs = detectarBloques(base, clase);
+  const archivos = {};
+  clase.bloques.forEach((b, i) => {
+    const f = path.join(dirVoz, `${b.id}.grabacion.wav`);
+    ff('-ss', String(segs[i].inicio), '-t', String(r3(segs[i].fin - segs[i].inicio)), '-i', base, '-c:a', 'pcm_s16le', f);
+    archivos[b.id] = f;
+  });
+  return archivos;
+}
+
+function vozDeCamara(clase, archivo, dirVoz) {
+  console.log(`   tu video de camara: ${path.basename(archivo)} (tu imagen + tu voz; los bloques salen de las pausas)`);
+  const base = path.join(dirVoz, 'completa.wav');
+  ff('-i', archivo, '-vn', '-ac', '1', '-ar', '48000', '-c:a', 'pcm_s16le', base);
+  const segs = detectarBloques(base, clase);
+  const total = r3(Math.min(duracion(archivo), segs[segs.length - 1].fin + COLA));
+  const bloques = {};
+  clase.bloques.forEach((b, i) => { bloques[b.id] = segs[i]; });
+  const final = path.join(SAL, 'voz-completa.wav');
+  ff('-i', base, '-af', `${LIMPIAR_GRABACION},loudnorm=I=-16:TP=-1.5:LRA=11`, '-ar', '48000', '-ac', '1', '-t', String(total), final);
+  ff('-i', final, '-c:a', 'libmp3lame', '-b:a', '192k', path.join(SAL, 'voz-completa.mp3'));
+  const proveedor = 'tu video de camara';
+  const tiempos = { total, fps_boca: FPS_BOCA, proveedor, camara: path.basename(archivo), bloques };
+  fs.writeFileSync(path.join(SAL, 'tiempos.json'), JSON.stringify(tiempos, null, 2));
+  fs.writeFileSync(path.join(SAL, 'boca.json'), JSON.stringify(envolvente(final)));
+  return { tiempos, proveedor };
+}
+
+// Guion para que el docente grabe su voz (o se grabe en video) de corrido.
+function escribirGuion(clase) {
+  const envolver = (t, ancho = 78) => {
+    const lineas = [];
+    let l = '';
+    for (const w of t.split(/\s+/)) {
+      if ((l + ' ' + w).trim().length > ancho) { lineas.push(l); l = w; } else l = (l + ' ' + w).trim();
+    }
+    if (l) lineas.push(l);
+    return lineas.map(x => '    ' + x);
+  };
+  const palabras = clase.bloques.reduce((n, b) => n + b.texto.split(/\s+/).length, 0);
+  const salida = [
+    `GUION PARA GRABAR TU VOZ - ${clase.tema || slug}`,
+    '='.repeat(70),
+    `${clase.bloques.length} bloques, ${palabras} palabras (unos ${formatoMin(palabras / 2.4)} minutos).`,
+    '',
+    'COMO GRABAR (una sola toma, de corrido)',
+    '  1. Lugar silencioso, sin musica ni ventilador; microfono o celular a un palmo.',
+    '  2. Lee cada bloque con tu tono de clase normal, sin apurarte.',
+    '  3. ENTRE BLOQUE Y BLOQUE CALLA 2 SEGUNDOS (cuenta mentalmente "uno, dos").',
+    '     Asi el programa sabe donde cambia cada diapositiva.',
+    '  4. Si un bloque te sale mal, sigue igual hasta el final. Despues graba SOLO ese',
+    `     bloque y guardalo como clases/${slug}/voz/<numero>.m4a (ej.: voz/05.m4a).`,
+    '',
+    'DONDE GUARDARLA',
+    `  Solo audio (SIPANCITOBOT habla con tu voz):  clases/${slug}/voz/completa.m4a`,
+    `  Video con tu camara (tu cara en el recuadro): clases/${slug}/camara.mp4`,
+    '  (sirven .m4a, .mp3, .wav, .opus, .mp4, .mov ...)',
+    '  Luego crea el video como siempre (menu CREAR-VIDEO, opcion 1).',
+    '',
+    '-'.repeat(70),
+  ];
+  clase.bloques.forEach((b, i) => {
+    const seg = Math.round(b.texto.split(/\s+/).length / 2.4);
+    salida.push('', `[BLOQUE ${b.id}]  (~${seg} s)`, ...envolver(b.texto));
+    if (i < clase.bloques.length - 1) salida.push('', '        . . .  pausa de 2 segundos  . . .');
+  });
+  salida.push('', '-'.repeat(70), 'FIN', '');
+  const f = path.join(DIR, 'GUION-PARA-GRABAR.txt');
+  fs.writeFileSync(f, salida.join(process.platform === 'win32' ? '\r\n' : '\n'), 'utf8');
+  console.log(`[OK] Guion listo: clases/${slug}/GUION-PARA-GRABAR.txt`);
 }
 
 function textoVoz(clase, t) {
@@ -359,14 +529,21 @@ function vozSistema(clase, bloques, dirVoz) {
 function elegirVozMac() {
   if (process.env.VOZ_SISTEMA) return process.env.VOZ_SISTEMA;
   const lineas = correr('say', ['-v', '?']).split('\n');
-  const voces = lineas.map(l => l.match(/^(.+?)\s+([a-z]{2}[_-][A-Z]{2,3})\s+#/)).filter(Boolean).map(m => ({ nombre: m[1].trim(), idioma: m[2] }));
-  for (const pref of ['es_MX', 'es_US', 'es_419', 'es_ES']) {
-    const v = voces.find(x => x.idioma.replace('-', '_') === pref);
-    if (v) return v.nombre;
+  const voces = lineas.map(l => l.match(/^(.+?)\s+([a-z]{2}[_-][A-Z0-9]{2,3})\s+#/)).filter(Boolean)
+    .map(m => ({ nombre: m[1].trim(), idioma: m[2].replace('-', '_') }))
+    .filter(v => v.idioma.startsWith('es'));
+  // Eddy, Flo, Rocko, Abuela... suenan muy roboticas: solo como ultimo recurso
+  const robotica = /^(Eddy|Flo|Grandma|Grandpa|Abuela|Abuelo|Reed|Rocko|Sandy|Shelley)\b/i;
+  const puntaje = v => (/premium/i.test(v.nombre) ? 100 : /enhanced|mejorad/i.test(v.nombre) ? 80 : 0)
+    - (robotica.test(v.nombre) ? 200 : 0)
+    + ({ es_MX: 5, es_US: 4, es_419: 4, es_ES: 3 }[v.idioma] || 1);
+  const mejor = voces.sort((a, b) => puntaje(b) - puntaje(a))[0];
+  if (!mejor) throw new Error('macOS no tiene voces en espanol (Ajustes > Accesibilidad > Contenido leido > Voz del sistema > Gestionar voces)');
+  if (puntaje(mejor) < 80) {
+    console.log('   Consejo: para una voz mas natural descarga "Paulina (Premium)" o "Monica (Premium)" en Ajustes del Sistema >\n' +
+      '   Accesibilidad > Contenido leido > Voz del sistema > Gestionar voces > Espanol. O mejor: usa tu voz (LEEME, PASO 4).');
   }
-  const v = voces.find(x => x.idioma.startsWith('es'));
-  if (v) return v.nombre;
-  throw new Error('macOS no tiene voces en espanol (Ajustes > Accesibilidad > Contenido leido > Voz del sistema > Gestionar voces)');
+  return mejor.nombre;
 }
 
 function vozSilencio(clase, bloques, dirVoz) {

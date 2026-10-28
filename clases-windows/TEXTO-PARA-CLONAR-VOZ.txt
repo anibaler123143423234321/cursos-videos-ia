@@ -1,0 +1,42 @@
+TEXTO PARA GRABAR LA MUESTRA DE TU VOZ (para clonarla en ElevenLabs)
+====================================================================
+ElevenLabs copia TODO lo que oye en la muestra: tu tono, tu ritmo, y tambien el ruido y el eco.
+Una buena grabacion da una buena voz clonada.
+
+ANTES DE GRABAR
+- Graba de 1 a 2 minutos. Un audio de WhatsApp de 5 segundos es muy poco y sale comprimido.
+- Usa un cuarto pequeño y silencioso, con cortinas o muebles (menos eco), sin ventilador ni musica.
+- Pon el microfono o el celular a un palmo de tu boca, siempre a la misma distancia.
+- Usa tu voz de clase: clara, amable, sin apurarte, como si explicaras a tus alumnos.
+- Mac: QuickTime Player > Archivo > Nueva grabacion de audio (o la app Notas de voz).
+  Windows: app Grabadora de sonido. Guarda en .m4a, .mp3 o .wav.
+- Si te equivocas, sigue leyendo con naturalidad. Luego borra ese pedazo o graba otra toma.
+
+TEXTO (leelo completo; dura alrededor de un minuto y medio)
+-------------------------------------------------------------------------------------
+Hola, ¿cómo están? Bienvenidos a una nueva sesión. Hoy vamos a trabajar con calma, paso a
+paso, y al final les dejaré un pequeño reto para practicar en casa.
+
+Empecemos con una pregunta: ¿qué pasa cuando abrimos una página web? El navegador recibe un
+archivo HTML, lo lee de arriba hacia abajo y construye lo que vemos en la pantalla. Después,
+el CSS le da color, tamaño y posición a cada elemento. Y JavaScript le agrega movimiento e
+interacción.
+
+Piensen en una casa. El HTML son las paredes y las habitaciones; el CSS es la pintura y la
+decoración; y JavaScript es la instalación eléctrica, la que hace que todo funcione cuando
+presionamos un botón.
+
+Ahora, un consejo importante: siempre revisen su diseño en pantallas pequeñas, medianas y
+grandes. Lo que se ve bien en una laptop de quince pulgadas puede verse muy mal en un celular.
+
+¡Muy bien! Hagamos un repaso rápido. Primero, la estructura. Segundo, el estilo. Tercero, la
+interacción. ¿Fácil, verdad? Si tienen dudas, anótenlas y las revisaremos juntos la próxima
+clase.
+
+Recuerden: nadie aprende a programar solo leyendo; se aprende practicando, equivocándose y
+volviendo a intentar. Gracias por su atención, y nos vemos muy pronto.
+-------------------------------------------------------------------------------------
+
+DESPUES
+En ElevenLabs: Voices > Add a new voice > Instant Voice Clone. Sube la grabacion, confirma
+que es tu voz y copia el Voice ID al archivo .env (LEEME, PASO 4).

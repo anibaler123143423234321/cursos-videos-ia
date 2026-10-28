@@ -3,4 +3,9 @@ node_modules/
 salidas/*
 !salidas/.gitkeep
 clases/*/salida/
+clases/*/GUION-PARA-GRABAR.txt
+# tu voz y tu cara no se suben a GitHub
+clases/*/voz/
+clases/*/camara.*
+clases/*/avatar.*
 .DS_Store

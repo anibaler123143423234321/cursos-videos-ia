@@ -78,11 +78,13 @@ while true; do
   echo "  2) Borrador rapido (para revisar)"
   echo "  3) Vista previa con sonido en el navegador"
   echo "  4) Solo la voz (para crear el avatar en HeyGen/Hedra)"
+  echo "  5) Guion para grabar TU voz (la opcion mas natural)"
   read -r -p "Opcion: " m
   case "$m" in
     2) extra="--rapido" ;;
     3) extra="--vista" ;;
     4) extra="--solo-voz" ;;
+    5) extra="--guion" ;;
     *) extra="" ;;
   esac
 
@@ -91,6 +93,7 @@ while true; do
       "") open -R "salidas/$slug.mp4" ;;
       --rapido) open -R "salidas/$slug-borrador.mp4" ;;
       --solo-voz) open -R "clases/$slug/salida/voz-completa.mp3" ;;
+      --guion) mkdir -p "clases/$slug/voz"; open "clases/$slug/GUION-PARA-GRABAR.txt"; open "clases/$slug/voz" ;;
     esac
   else
     echo ""

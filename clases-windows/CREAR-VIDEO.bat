@@ -113,12 +113,14 @@ echo   1^) Video final 1920x1080           ^(Enter^)
 echo   2^) Borrador rapido ^(para revisar^)
 echo   3^) Vista previa con sonido en el navegador
 echo   4^) Solo la voz ^(para crear el avatar en HeyGen/Hedra^)
+echo   5^) Guion para grabar TU voz ^(la opcion mas natural^)
 set "m="
 set /p "m=Opcion: "
 set "extra="
 if "%m%"=="2" set "extra=--rapido"
 if "%m%"=="3" set "extra=--vista"
 if "%m%"=="4" set "extra=--solo-voz"
+if "%m%"=="5" set "extra=--guion"
 
 node motor\crear-video.mjs "%sel%" %extra%
 if errorlevel 1 (
@@ -130,5 +132,10 @@ if errorlevel 1 (
 if "%extra%"=="" explorer /select,"%CD%\salidas\%sel%.mp4"
 if "%extra%"=="--rapido" explorer /select,"%CD%\salidas\%sel%-borrador.mp4"
 if "%extra%"=="--solo-voz" explorer /select,"%CD%\clases\%sel%\salida\voz-completa.mp3"
+if "%extra%"=="--guion" (
+  if not exist "clases\%sel%\voz" mkdir "clases\%sel%\voz"
+  start "" notepad "clases\%sel%\GUION-PARA-GRABAR.txt"
+  start "" explorer "%CD%\clases\%sel%\voz"
+)
 pause
 goto menu
