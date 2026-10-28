@@ -1,0 +1,5 @@
+LOGO OPCIONAL
+=============
+Si pones aqui un archivo llamado  logo.png  (fondo transparente, unos 400 px de alto),
+se usara en la franja verde de las diapositivas en lugar del logo tipografico "USS".
+Usa solo el logo oficial que te entregue la universidad.
