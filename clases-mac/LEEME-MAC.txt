@@ -1,0 +1,141 @@
+CLASES EN VIDEO CON AVATAR - GUIA PARA MAC (chip M1/M2/M3/M4)
+==============================================================
+Cada clase es un video de 2-3 minutos con aspecto de clase por Zoom: la diapositiva con
+animaciones, el avatar (SIPANCITOBOT) en el recuadro de camara con tu voz clonada y la
+agenda de la clase.
+
+Que hay en esta carpeta
+  FICHA-CLASE.txt      la plantilla fija que llenas para cada clase (nombre del avatar, tema...)
+  CLAUDE.md            el PROMPT MAESTRO: Claude Code lo lee solo, no hace falta pegarlo
+  CREAR-VIDEO.command  menu para crear los videos (doble clic)
+  .env.ejemplo         plantilla para tus claves de ElevenLabs
+  clases/              una carpeta por clase (ya viene html-semantico-w3c de ejemplo)
+  salidas/             aqui aparecen los .mp4 terminados
+  motor/               el programa que arma el video (no tocar)
+  marca/               pon aqui logo.png si quieres el logo oficial
+
+
+PASO 1 - INSTALAR LO NECESARIO (solo la primera vez, unos 10 minutos)
+---------------------------------------------------------------------
+1. Abre la Terminal: Cmd + Espacio, escribe Terminal y Enter.
+2. Instala Homebrew (el instalador de programas). Pega esto y Enter; te pedira la clave de tu Mac:
+
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+3. Al terminar, pega estas 2 lineas (activan Homebrew en tu Mac con chip M):
+
+   echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+   eval "$(/opt/homebrew/bin/brew shellenv)"
+
+4. Instala Node.js y ffmpeg:
+
+   brew install node ffmpeg
+
+
+PASO 2 - TRAER ESTA CARPETA A TU MAC
+------------------------------------
+Opcion A (facil): en GitHub abre el repositorio, elige la rama, pulsa Code > Download ZIP,
+descomprime el ZIP y mueve la carpeta "clases-mac" a Documentos.
+Opcion B (git):   cd ~/Documents && git clone <url-del-repositorio>
+
+En los pasos siguientes se asume que la carpeta quedo en:  ~/Documents/clases-mac
+(si usaste git, sera ~/Documents/cursos-videos-ia/clases-mac)
+
+
+PASO 3 - PRIMERA PRUEBA GRATIS (sin cuentas, sin internet)
+----------------------------------------------------------
+En la Terminal:
+
+   cd ~/Documents/clases-mac
+   npm install
+   npx playwright install chromium
+   node motor/crear-video.mjs html-semantico-w3c --vista
+
+Se abre el navegador: pulsa "Reproducir clase con sonido". Es la clase de ejemplo con la voz de
+macOS y el robot SIPANCITOBOT. Para crear el MP4 final:
+
+   node motor/crear-video.mjs html-semantico-w3c
+
+El video queda en salidas/html-semantico-w3c.mp4 (en una M4 tarda unos minutos).
+Tambien puedes hacer todo con doble clic en CREAR-VIDEO.command.
+La primera vez macOS lo bloquea: clic derecho > Abrir > Abrir. Si no te deja, usa la Terminal:
+   bash CREAR-VIDEO.command
+
+Si la voz sale en ingles o no hay voz en espanol: Ajustes del Sistema > Accesibilidad >
+Contenido leido > Voz del sistema > Gestionar voces > Espanol (descarga Paulina o Monica).
+
+
+PASO 4 - TU VOZ CLONADA CON ELEVENLABS
+--------------------------------------
+1. Graba 1 o 2 minutos de tu voz: en QuickTime Player usa Archivo > Nueva grabacion de audio,
+   o la app Notas de voz.
+   - Usa un lugar silencioso, sin musica, con el microfono a un palmo.
+   - Lee con tu tono de clase normal; por ejemplo, lee el guion de clases/html-semantico-w3c/clase.json.
+2. Crea tu cuenta en https://elevenlabs.io y elige el plan Starter (incluye Instant Voice Cloning).
+3. Ve a Voices > Create / Add a new voice > Instant Voice Clone. Sube tu grabacion, confirma que es
+   TU voz y guardala con un nombre (ej.: "Mi voz clases").
+4. En tu voz pulsa el menu (...) > Copy voice ID.
+5. Crea tu API key en Developers (o Settings) > API Keys > Create API key, con permiso Text to Speech, y copiala.
+6. En la Terminal, dentro de la carpeta:
+
+   cp .env.ejemplo .env
+   open -e .env
+
+   Pega la API key en ELEVENLABS_API_KEY= y el Voice ID en ELEVENLABS_VOICE_ID=, y guarda.
+   (.env es un archivo oculto: en Finder se ve con Cmd + Shift + punto.)
+7. Vuelve a crear el video:
+
+   node motor/crear-video.mjs html-semantico-w3c
+
+   Ahora SIPANCITOBOT habla con tu voz. Los audios quedan guardados: si vuelves a renderizar
+   sin cambiar el texto, NO se gastan creditos. Solo se regenera el bloque que cambies.
+
+   Una clase de 2:30 son unos 2.200 caracteres; el plan Starter (30.000 creditos al mes)
+   alcanza para unas 10-13 clases nuevas al mes.
+
+IMPORTANTE: clona solo TU voz, o la de alguien que te de su permiso por escrito.
+Nunca subas .env a GitHub ni lo compartas (ya esta excluido en .gitignore).
+
+
+PASO 5 - CREAR CLASES NUEVAS CON CLAUDE CODE
+--------------------------------------------
+1. Instala Claude Code (en la Terminal):
+
+   curl -fsSL https://claude.ai/install.sh | bash
+
+   Cierra y abre la Terminal y comprueba con:  claude --version
+2. Claude Code necesita un plan de pago de Claude: Pro (unos US$20 al mes) o superior, o una
+   cuenta de Console con API key (pago por uso). El plan gratis de claude.ai NO incluye Claude Code.
+   Con el plan Pro no necesitas API key: solo inicias sesion la primera vez.
+3. Llena FICHA-CLASE.txt con tu tema y guardalo.
+4. En la Terminal:
+
+   cd ~/Documents/clases-mac
+   claude
+
+   y escribe:  crea la clase de la ficha
+5. Claude Code te hara las preguntas que falten y te mostrara el guion. Responde "ok" y creara
+   la clase, revisara las capturas y generara el video en salidas/.
+
+
+PASO 6 (OPCIONAL) - AVATAR REALISTA EN VEZ DEL ROBOT
+----------------------------------------------------
+El robot incluido es gratis y mueve la boca con tu voz. Si quieres un avatar mas realista:
+1. Genera solo la voz (opcion 4 del menu, o):  node motor/crear-video.mjs <clase> --solo-voz
+2. En HeyGen (Avatar IV / foto avatar) o en Hedra, sube una imagen de tu avatar y el audio
+   clases/<clase>/salida/voz-completa.mp3. Descarga el video.
+3. Guardalo como clases/<clase>/avatar.mp4 y vuelve a crear el video: aparecera en el recuadro
+   de camara en lugar del robot.
+Nota: LiveAvatar de HeyGen es para avatares EN VIVO (no guarda MP4); para clases grabadas usa
+el HeyGen normal o Hedra.
+
+
+PROBLEMAS FRECUENTES
+--------------------
+- "command not found: brew": repite el punto 3 del PASO 1.
+- "No encuentro ffmpeg": brew install ffmpeg
+- "Executable doesn't exist ... chromium": npx playwright install chromium
+- ElevenLabs "HTTP 401": la API key esta mal copiada o no tiene permiso de Text to Speech.
+- ElevenLabs "HTTP 404": el Voice ID no es de tu cuenta.
+- "sin creditos": se acabo el mes del plan; mientras tanto se usa la voz de macOS.
+- Algo fallo: copia el mensaje de la Terminal y pegaselo a Claude Code.

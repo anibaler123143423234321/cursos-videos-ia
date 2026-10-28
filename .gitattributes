@@ -1,0 +1,2 @@
+# El .bat se guarda tal cual, con CRLF (Windows lo necesita)
+clases-windows/*.bat -text

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>Clase en video</title>
+<link rel="stylesheet" href="/node_modules/@fontsource/inter/400.css">
+<link rel="stylesheet" href="/node_modules/@fontsource/inter/500.css">
+<link rel="stylesheet" href="/node_modules/@fontsource/inter/600.css">
+<link rel="stylesheet" href="/node_modules/@fontsource/inter/700.css">
+<link rel="stylesheet" href="/node_modules/@fontsource/inter/800.css">
+<link rel="stylesheet" href="/node_modules/@fontsource/inter/900.css">
+<link rel="stylesheet" href="/node_modules/@fontsource/instrument-serif/400.css">
+<link rel="stylesheet" href="/node_modules/@fontsource/instrument-serif/400-italic.css">
+<link rel="stylesheet" href="/node_modules/@fontsource/jetbrains-mono/400.css">
+<link rel="stylesheet" href="/node_modules/@fontsource/jetbrains-mono/600.css">
+<link rel="stylesheet" href="/motor/plantilla.css">
+<script src="/node_modules/gsap/dist/gsap.min.js"></script>
+</head>
+<body>
+<div id="lienzo">
+
+  <header id="barra">
+    <div class="barra-izq">
+      <span class="sello">USS</span>
+      <span>Aula virtual <b class="sep">·</b> <b id="curso">Curso</b></span>
+    </div>
+    <div id="tema">Tema</div>
+    <div class="barra-der">
+      <span class="rec"><i></i>GRABANDO</span>
+      <span id="reloj">00:00</span>
+    </div>
+  </header>
+
+  <div id="compartiendo">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="2.5" y="4" width="19" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <span><b class="nombre-avatar">Avatar</b> está compartiendo pantalla</span>
+  </div>
+
+  <main id="pantalla">
+    <div id="diapos"></div>
+    <div id="banda">
+      <div class="banda-logo">
+        <img id="logo" alt="" hidden>
+        <span class="logo-texto"><b>USS</b><small id="institucion">Universidad<br>Señor de Sipán</small></span>
+      </div>
+      <div id="banda-der">CURSO</div>
+    </div>
+  </main>
+
+  <aside id="lateral">
+    <div id="camara">
+      <div id="robot"></div>
+      <video id="avatar-video" muted playsinline hidden></video>
+      <div id="mascara"></div>
+      <div id="etiqueta">
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+        <span><b class="nombre-avatar">Avatar</b><small id="rol"></small></span>
+      </div>
+    </div>
+    <div id="agenda">
+      <div class="ag-tit">Agenda de la clase</div>
+      <ol id="ag-lista"></ol>
+      <div class="ag-prog">
+        <div class="ag-barra"><i id="ag-fill"></i></div>
+        <span id="ag-tiempo">0:00 / 0:00</span>
+      </div>
+    </div>
+  </aside>
+
+  <footer id="pie">
+    <div class="pie-izq">
+      <span class="boton"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span>
+      <span class="boton"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="2.5" y="6" width="13" height="12" rx="2.5" fill="currentColor"/><path d="M16.5 10.5l5-3v9l-5-3z" fill="currentColor"/></svg></span>
+    </div>
+    <div id="pie-centro">Clase grabada · <span id="pie-inst">Universidad Señor de Sipán</span></div>
+    <div id="pie-der">Clase generada con IA</div>
+  </footer>
+</div>
+
+<button id="play" hidden>▶&nbsp; Reproducir clase con sonido</button>
+<div id="error" hidden></div>
+
+<script type="module" src="/motor/plantilla.js"></script>
+</body>
+</html>

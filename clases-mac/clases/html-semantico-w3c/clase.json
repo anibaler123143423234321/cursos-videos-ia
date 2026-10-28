@@ -1,0 +1,63 @@
+{
+  "slug": "html-semantico-w3c",
+  "avatar": "SIPANCITOBOT",
+  "rol_avatar": "Asistente docente IA",
+  "docente": "",
+  "institucion": "Universidad Señor de Sipán",
+  "curso": "Diseño Web",
+  "banda": "Diseño Web",
+  "tema": "Introducción a la estructura semántica en HTML",
+  "nivel": "Básico",
+  "duracion_objetivo": 150,
+  "pronunciacion": {
+    "W3C": "doble u tres ce",
+    "validator.w3.org": "validator punto doble u tres punto org",
+    "SEO": "S E O",
+    "HTML": "hache te eme ele"
+  },
+  "agenda": [
+    { "titulo": "El problema de los div", "desde": "02" },
+    { "titulo": "¿Qué es el W3C?", "desde": "03" },
+    { "titulo": "Etiquetas semánticas", "desde": "04" },
+    { "titulo": "El esqueleto en código", "desde": "07" },
+    { "titulo": "Beneficios y reto", "desde": "08" }
+  ],
+  "bloques": [
+    {
+      "id": "01",
+      "texto": "¡Hola! Bienvenidos a una nueva clase de Diseño Web de la Universidad Señor de Sipán. Soy SIPANCITOBOT, su asistente virtual, y hoy vamos a aprender a darle estructura y significado a nuestras páginas con HTML semántico."
+    },
+    {
+      "id": "02",
+      "texto": "Imagina una página hecha solo con etiquetas div. Para ti puede verse bien, pero para el navegador, para Google o para un lector de pantalla es una caja llena de cajas sin nombre. No sabe dónde está el menú, cuál es el contenido principal ni dónde termina la página."
+    },
+    {
+      "id": "03",
+      "texto": "Para ponernos de acuerdo existe el W3C, el World Wide Web Consortium. Lo fundó en 1994 Tim Berners-Lee, el creador de la web, y define estándares abiertos como HTML, CSS y las pautas de accesibilidad. Gracias a esos estándares, tu página funciona en cualquier navegador."
+    },
+    {
+      "id": "04",
+      "texto": "Semántica significa significado. Una etiqueta semántica describe qué tipo de contenido tiene dentro, no cómo se ve. Por ejemplo, header no significa letras grandes: significa cabecera."
+    },
+    {
+      "id": "05",
+      "texto": "Veamos las principales. Header es la cabecera, con el logo y el título del sitio. Nav agrupa los enlaces de navegación. Y main contiene el contenido principal; debe haber solo uno por página."
+    },
+    {
+      "id": "06",
+      "texto": "Dentro de main usamos section para agrupar un tema y article para contenido que se entiende por sí solo, como una noticia. Aside guarda información complementaria, como una barra lateral. Y footer es el pie de página, con contactos y derechos."
+    },
+    {
+      "id": "07",
+      "texto": "Mira cómo queda el esqueleto en código: header con su nav arriba, main con una section y un article en el centro, aside al costado y footer al final. Se lee casi como el índice de un libro."
+    },
+    {
+      "id": "08",
+      "texto": "¿Y por qué vale la pena? Por tres razones. Accesibilidad: los lectores de pantalla pueden saltar directo al menú o al contenido. SEO: los buscadores entienden mejor tu página. Y mantenimiento: tú y tu equipo entienden el código de un vistazo."
+    },
+    {
+      "id": "09",
+      "texto": "Tu reto de hoy: toma una página tuya hecha con div, cambia esas cajas por etiquetas semánticas y revísala en el validador del W3C, en validator.w3.org. ¡Nos vemos en la próxima clase!"
+    }
+  ]
+}

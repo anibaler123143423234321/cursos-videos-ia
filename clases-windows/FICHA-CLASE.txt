@@ -1,0 +1,27 @@
+FICHA DE LA CLASE  (plantilla fija: cambia solo lo que va despues de los dos puntos y guarda)
+==========================================================================================
+Despues abre Claude Code en esta carpeta y escribe:  crea la clase de la ficha
+
+--- AVATAR ---
+NOMBRE DEL AVATAR: SIPANCITOBOT
+ROL DEL AVATAR: Asistente docente IA
+DOCENTE RESPONSABLE (aparece como revisor, opcional):
+
+--- CLASE ---
+UNIVERSIDAD: Universidad Señor de Sipán
+ESCUELA / PROGRAMA: Ingeniería de Sistemas
+CURSO: Diseño Web
+TEMA: Introducción a la estructura semántica en HTML y el W3C
+NIVEL: Básico
+DURACION: 2:30
+OBJETIVO DE APRENDIZAJE: Al terminar, el estudiante reconoce las etiquetas semánticas principales de HTML y sabe para qué sirve el W3C.
+PUNTOS QUE DEBE CUBRIR: problema de usar solo div · qué es el W3C · qué significa semántica · header, nav, main, section, article, aside, footer · beneficios (accesibilidad, SEO, mantenimiento)
+EJEMPLO O CODIGO A MOSTRAR: esqueleto de una página con etiquetas semánticas
+RETO / TAREA FINAL: cambiar una página hecha con div por etiquetas semánticas y validarla en validator.w3.org
+NOMBRE CORTO (sin espacios ni tildes): html-semantico-w3c
+
+--- PRODUCCION ---
+VOZ: auto   (auto = ElevenLabs si esta configurado en .env; si no, la voz del sistema)
+MUSICA: no
+SUBTITULOS: no
+NOTAS EXTRA:

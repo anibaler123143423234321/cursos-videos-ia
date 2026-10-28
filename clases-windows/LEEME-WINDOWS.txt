@@ -1,0 +1,126 @@
+CLASES EN VIDEO CON AVATAR - GUIA PARA WINDOWS 10/11
+====================================================
+Cada clase es un video de 2-3 minutos con aspecto de clase por Zoom: la diapositiva con
+animaciones, el avatar (SIPANCITOBOT) en el recuadro de camara con tu voz clonada y la
+agenda de la clase.
+
+Que hay en esta carpeta
+  FICHA-CLASE.txt      la plantilla fija que llenas para cada clase (nombre del avatar, tema...)
+  CLAUDE.md            el PROMPT MAESTRO: Claude Code lo lee solo, no hace falta pegarlo
+  CREAR-VIDEO.bat      menu para crear los videos (doble clic)
+  .env.ejemplo         plantilla para tus claves de ElevenLabs
+  clases\              una carpeta por clase (ya viene html-semantico-w3c de ejemplo)
+  salidas\             aqui aparecen los .mp4 terminados
+  motor\               el programa que arma el video (no tocar)
+  marca\               pon aqui logo.png si quieres el logo oficial
+
+
+PASO 1 - INSTALAR LO NECESARIO (solo la primera vez, unos 10 minutos)
+---------------------------------------------------------------------
+Abre PowerShell (tecla Windows, escribe PowerShell, Enter) y pega una linea a la vez:
+
+   winget install -e --id OpenJS.NodeJS.LTS
+   winget install -e --id Gyan.FFmpeg
+   winget install -e --id Git.Git
+
+Cierra PowerShell y abrelo de nuevo para que reconozca los programas nuevos.
+(CREAR-VIDEO.bat tambien ofrece instalar Node.js y ffmpeg si faltan.)
+
+
+PASO 2 - TRAER ESTA CARPETA A TU PC
+-----------------------------------
+Opcion A (facil): en GitHub abre el repositorio, elige la rama, pulsa Code > Download ZIP,
+descomprime el ZIP (clic derecho > Extraer todo) y mueve la carpeta "clases-windows" a Documentos.
+Opcion B (git):   cd $HOME\Documents ; git clone <url-del-repositorio>
+
+En los pasos siguientes se asume que la carpeta quedo en:  Documentos\clases-windows
+(si usaste git, sera Documentos\cursos-videos-ia\clases-windows)
+
+
+PASO 3 - PRIMERA PRUEBA GRATIS (sin cuentas)
+--------------------------------------------
+Doble clic en CREAR-VIDEO.bat:
+  - La primera vez instala el motor (unos minutos).
+  - Elige 1 (html-semantico-w3c) y luego:
+      3 = vista previa con sonido en el navegador
+      Enter = video final, que queda en salidas\html-semantico-w3c.mp4
+Si Windows dice "Windows protegio su PC": Mas informacion > Ejecutar de todas formas.
+
+Es la clase de ejemplo con la voz de Windows y el robot SIPANCITOBOT. Con tu Ryzen 5 5500
+el video final tarda algunos minutos.
+
+Para que la voz de Windows hable en espanol: Configuracion > Hora e idioma > Voz >
+Agregar voces > Espanol (Mexico o Espana). Si aun dice "Windows no tiene voz en espanol",
+no te preocupes: con ElevenLabs (PASO 4) ya no se usa la voz de Windows.
+
+Por Terminal (opcional), dentro de la carpeta:
+   npm install
+   npx playwright install chromium
+   node motor\crear-video.mjs html-semantico-w3c --vista
+   node motor\crear-video.mjs html-semantico-w3c
+
+
+PASO 4 - TU VOZ CLONADA CON ELEVENLABS
+--------------------------------------
+(Si ya lo hiciste en la Mac, solo copia el mismo .env a esta carpeta.)
+1. Graba 1 o 2 minutos de tu voz con la app "Grabadora de sonido" de Windows.
+   - Usa un lugar silencioso, sin musica.
+   - Lee con tu tono de clase normal.
+2. Crea tu cuenta en https://elevenlabs.io y elige el plan Starter (incluye Instant Voice Cloning).
+3. Ve a Voices > Create / Add a new voice > Instant Voice Clone. Sube tu grabacion, confirma que es
+   TU voz y guardala con un nombre.
+4. En tu voz pulsa el menu (...) > Copy voice ID.
+5. Crea tu API key en Developers (o Settings) > API Keys > Create API key, con permiso Text to Speech, y copiala.
+6. En PowerShell, dentro de la carpeta:
+
+   copy .env.ejemplo .env
+   notepad .env
+
+   Pega la API key en ELEVENLABS_API_KEY= y el Voice ID en ELEVENLABS_VOICE_ID=, y guarda.
+7. Vuelve a crear el video con CREAR-VIDEO.bat. Ahora SIPANCITOBOT habla con tu voz.
+   Los audios quedan guardados: si no cambias el texto, NO se gastan creditos al renderizar
+   otra vez.
+
+IMPORTANTE: clona solo TU voz, o la de alguien que te de su permiso por escrito.
+Nunca subas .env a GitHub ni lo compartas (ya esta excluido en .gitignore).
+
+
+PASO 5 - CREAR CLASES NUEVAS CON CLAUDE CODE
+--------------------------------------------
+1. Instala Claude Code (en PowerShell):
+
+   irm https://claude.ai/install.ps1 | iex
+
+   Cierra y abre PowerShell y comprueba con:  claude --version
+2. Claude Code necesita un plan de pago de Claude: Pro (unos US$20 al mes) o superior, o una
+   cuenta de Console con API key (pago por uso). El plan gratis de claude.ai NO incluye Claude Code.
+   Es la misma cuenta que usas en la Mac: solo inicias sesion.
+3. Llena FICHA-CLASE.txt con tu tema y guardalo.
+4. En PowerShell:
+
+   cd $HOME\Documents\clases-windows
+   claude
+
+   y escribe:  crea la clase de la ficha
+5. Claude Code te hara las preguntas que falten y te mostrara el guion. Responde "ok" y creara
+   la clase, revisara las capturas y generara el video en salidas\.
+
+
+PASO 6 (OPCIONAL) - AVATAR REALISTA EN VEZ DEL ROBOT
+----------------------------------------------------
+1. En CREAR-VIDEO.bat elige la opcion 4 (Solo la voz).
+2. En HeyGen (Avatar IV / foto avatar) o en Hedra, sube una imagen de tu avatar y el audio
+   clases\<clase>\salida\voz-completa.mp3. Descarga el video.
+3. Guardalo como clases\<clase>\avatar.mp4 y vuelve a crear el video.
+Nota: LiveAvatar de HeyGen es para avatares EN VIVO (no guarda MP4); para clases grabadas usa
+el HeyGen normal o Hedra.
+
+
+PROBLEMAS FRECUENTES
+--------------------
+- "Node.js / ffmpeg se instalo pero Windows aun no lo ve": cierra la ventana y abre de nuevo.
+- "Executable doesn't exist ... chromium": en la carpeta ejecuta  npx playwright install chromium
+- La voz habla en ingles: agrega voces en espanol (PASO 3) o configura ElevenLabs (PASO 4).
+- ElevenLabs "HTTP 401": la API key esta mal copiada o no tiene permiso de Text to Speech.
+- ElevenLabs "HTTP 404": el Voice ID no es de tu cuenta.
+- Algo fallo: haz captura de la ventana negra o copia el mensaje y pegaselo a Claude Code.
