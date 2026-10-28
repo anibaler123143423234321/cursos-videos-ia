@@ -515,11 +515,15 @@ function vozSistema(clase, bloques, dirVoz) {
       salida[b.id] = destino;
     }
   } else {
-    const motor = ['espeak-ng', 'espeak'].find(c => hay(c, '--version'));
+    // Linux (servidores de prueba): SVOX Pico suena mejor que espeak
+    const pico = spawnSync('pico2wave', ['--help'], { stdio: 'ignore' }).error ? null : 'pico2wave';
+    const motor = pico || ['espeak-ng', 'espeak'].find(c => hay(c, '--version'));
     if (!motor) throw new Error('este sistema no tiene voz (ni macOS ni Windows)');
+    console.log(`   voz del sistema (Linux): ${motor}`);
     for (const b of bloques) {
       const destino = path.join(dirVoz, `${b.id}.sistema.wav`);
-      correr(motor, ['-v', 'es-419', '-w', destino, textoVoz(clase, b.texto)]);
+      const args = pico ? ['-l', 'es-ES', '-w', destino, textoVoz(clase, b.texto)] : ['-v', 'es-419', '-w', destino, textoVoz(clase, b.texto)];
+      correr(motor, args);
       salida[b.id] = destino;
     }
   }

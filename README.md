@@ -8,6 +8,13 @@ Este repositorio tiene tres kits:
 | `clases-windows/` | El mismo kit de clases, con lanzador `.bat` | PC con Windows 10/11 |
 | raíz (`PROMPT-ANUNCIOS-30s.txt`, `CREAR-VIDEO.bat`, `LEEME-GUIA.txt`) | Anuncios de 30 s con Claude Design (kit anterior, sin cambios) | Windows |
 
+## Ver el demo
+
+`demo/clase-demo-html-semantico.mp4` es la clase de ejemplo generada en el servidor de pruebas
+con una voz sintética de prueba (SVOX Pico). En tu Mac o PC se usará tu voz grabada, tu voz
+clonada en ElevenLabs o la voz del sistema. Los videos que generes tú quedan en `salidas/` de
+cada kit y no se suben a GitHub.
+
 ## Empezar
 
 - En Mac, sigue `clases-mac/LEEME-MAC.txt`.
