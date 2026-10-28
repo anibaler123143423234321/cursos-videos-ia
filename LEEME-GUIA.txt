@@ -1,0 +1,39 @@
+VIDEOS ANUNCIOS - GUIA RAPIDA
+=============================
+Crea anuncios en video de 30 segundos (con musica, voz y subtitulos)
+para cualquier proyecto, usando Claude Design.
+
+
+1) SOLO LA PRIMERA VEZ
+   Pon CREAR-VIDEO.bat en la carpeta que quieras
+   (recomendado: Descargas\VideosAnuncios).
+   El .bat crea solo sus carpetas:
+     proyectos\  -> los anuncios que bajas de Design
+     salidas\    -> los videos .mp4 terminados
+
+2) CREA EL ANUNCIO EN CLAUDE DESIGN
+   - Copia todo PROMPT-ANUNCIOS-30s.txt y pegalo en Design.
+   - Completa "MI PROYECTO" con tu flujo y envialo.
+   - Responde sus preguntas y el "ok" del guion.
+   - Descarga el zip que te da (anuncio-nombre.zip) en Descargas.
+     NO lo descomprimas.
+
+3) CREA EL VIDEO
+   - Doble clic en CREAR-VIDEO.bat
+   - Encuentra solo los zips de Design en Descargas (y sus subcarpetas),
+     los descomprime y los muestra en una lista.
+   - Escribe el numero del video (o T para todos) y Enter.
+   - Al terminar se abre la carpeta salidas con el video listo para
+     WhatsApp, YouTube o Instagram.
+
+   La primera vez puede pedir instalar Node.js y ffmpeg: responde S.
+
+
+PROBLEMAS FRECUENTES
+- "Windows protegio su PC": "Mas informacion" > "Ejecutar de todas formas".
+- "Node.js / ffmpeg se instalo pero Windows aun no lo ve": cierra la
+  ventana y vuelve a abrir CREAR-VIDEO.bat.
+- Si un proyecto ya existe, pregunta si reemplazarlo: responde S.
+- Sin voz en espanol (sin internet): Configuracion > Hora e idioma >
+  Voz > Agregar voces > Espanol.
+- Algo fallo: haz captura de la ventana negra y enviala a Claude.

@@ -1,0 +1,87 @@
+PROMPT — ANUNCIO EN VIDEO DE 30 s CON MÚSICA, VOZ Y SUBTÍTULOS (listo para Windows)
+==================================================================================
+(Pega tu flujo o proyecto abajo. Claude te hará preguntas antes de crear el video.)
+
+MI PROYECTO
+- Empresa: [nombre]
+- Proyecto o producto: [nombre]
+- Flujo / descripción: [pega aquí tu flujo: qué hace, paso a paso, para quién es y qué problema resuelve]
+
+ANTES DE CREAR (OBLIGATORIO)
+No generes nada todavía. Lee "MI PROYECTO" y hazme en un solo mensaje, numeradas y con opciones, solo las preguntas que falten:
+1. Objetivo: lanzamiento / demo / captar clientes / feria o evento / institucional / redes.
+2. Público: quién lo verá.
+3. Formato: A) 16:9 1920x1080  B) 9:16 1080x1920 (TikTok, Reels, Estados).
+4. Voz: A) masculina  B) femenina.
+5. Acento: A) peruano  B) latino neutro  C) mexicano  D) español de España.
+6. Tono de voz: A) enérgico comercial  B) cercano  C) corporativo serio  D) inspirador  E) juvenil.
+7. Velocidad de voz: A) pausada  B) normal  C) rápida.
+8. Música: A) electrónica/tech  B) corporativa motivadora  C) pop alegre  D) latina/urbana suave  E) cinemática  F) lo-fi. Y energía: baja (90 BPM) / media (110) / alta (120-128).
+9. Colores, fuentes y si tengo logo (lo pondré como logo.png) o se hace un logo tipográfico.
+10. Frase principal, lema y llamada a la acción (botón, web, WhatsApp, stand...).
+11. Datos o cifras a destacar.
+12. Nombre corto del proyecto, sin espacios ni tildes (ej.: catastro-victoria).
+Si respondo "decide tú", elige lo mejor para el contexto. Luego muéstrame el guion (escenas, texto en pantalla, frases de voz con sus tiempos) y espera mi "ok".
+
+Crea un motion graphic de 30 segundos en el formato elegido para presentar el proyecto de arriba. 100 % con código: HTML + GSAP.
+
+ESTILO
+- Fondo, colores y resplandores suaves según mis respuestas.
+- Partículas flotando, viñeta y grano sutil.
+- Titulares en una fuente fuerte muy apretada (tipo Inter Display Black) y la palabra clave en una fuente de contraste (tipo Instrument Serif Italic).
+- El texto entra letra por letra, subiendo desde una máscara, con un desenfoque que se aclara.
+- Ritmo al BPM elegido: cada corte cae en el pulso.
+
+ESCENAS (adáptalas a mi flujo, sin inventar funciones que no existan)
+1. 0–3 s: Gancho visual + frase corta (el problema o la promesa).
+2. 3–8 s: Contexto o problema.
+3. 8–20 s: La solución en acción: 2 o 3 escenas que muestran mi flujo paso a paso (pantallas, formularios, mapas, chats o tarjetas recreadas con HTML).
+4. 20–25 s: Beneficios o cifras: frases de un golpe por pulso o contadores.
+5. 25–30 s: Logo, lema y botón de llamada a la acción.
+- Texto en pantalla: máximo 6–7 palabras por frase.
+
+VOZ DE PUBLICIDAD Y SUBTÍTULOS
+- Locución en español con el género, acento, tono y velocidad elegidos; una frase por escena, cada una con su tiempo de entrada, sin pisarse. Máximo 50 palabras en total y no más de 2 palabras por segundo de espacio de cada frase, para que la voz suene natural y NO haya que acelerarla (la voz de Windows es más lenta que la neural).
+- Para el acento peruano usa voz neural es-PE-AlexNeural (masculina) o es-PE-CamilaNeural (femenina); si no hay internet, usa la voz en español de Windows.
+- La voz neural debe ser opcional y a prueba de fallos: envuelve TODO el uso de la voz neural en try/catch y, si falla por cualquier motivo (paquete, versión, internet), usa la voz de Windows y sigue con el render; nunca detengas el render por la voz.
+- En los catch, nunca uses e.message directamente: usa String((e && e.message) || e) porque algunas librerías lanzan errores que no son Error y el propio catch se rompería.
+- En package.json fija versiones EXACTAS (sin ^ ni ~) de playwright y de cualquier paquete de voz, y verifica el código contra esas versiones.
+- Subtítulos con el mismo texto y los mismos tiempos, abajo y centrados, blancos con sombra, uno a la vez.
+- Guarda el guion en render/vo.json para usarlo en el render final.
+- Si existen grabaciones propias (render/vo/01.wav, 02.wav…), úsalas en lugar de la voz sintética.
+
+MÚSICA
+- Música sintetizada con código en el estilo y BPM elegidos, con subidas antes de cada corte y golpes en cada cambio de escena.
+- La música baja de volumen automáticamente cuando habla la voz.
+
+VISTA PREVIA
+- Botón "Activar sonido (música + voz)", porque el navegador bloquea el audio hasta el primer clic.
+- Panel de ajustes con interruptores para subtítulos, música, voz, partículas, grano y resplandor al pulso.
+
+CÓMO RENDERIZAR
+- Toda la animación va en una línea de tiempo de GSAP en pausa, controlada con una función seek(t). Nada de animaciones por reloj ni Math.random sin semilla.
+- Captura cuadro por cuadro con Playwright a 60 fps y únelos con ffmpeg a 30 fps, fundiendo cuadros para crear desenfoque de movimiento. Añade resplandor en las luces altas y grano fino.
+- Mezcla final: música + voz + subtítulos dentro del mismo MP4 (H.264 + AAC), listo para compartir por WhatsApp, YouTube o Instagram.
+
+ENTREGA (encaja con el kit VideosAnuncios que ya tengo en Descargas)
+- Ya tengo en Descargas\VideosAnuncios el lanzador CREAR-VIDEO.bat y la guía. NO generes .bat ni guía: entrega solo la carpeta del proyecto.
+- Estructura exacta del .zip:
+  VideosAnuncios\
+    proyectos\
+      [nombre-corto]\
+        index.html            (vista previa con sonido)
+        render\
+          all.mjs             (genera música, voz, subtítulos, cuadros y une el video)
+          package.json        (con playwright y lo que necesite all.mjs)
+          vo.json             (guion de la voz con sus tiempos)
+          vo\                 (opcional, para grabaciones propias)
+- El lanzador entra a proyectos\[nombre-corto]\render, ejecuta "npm install" la primera vez y luego "node all.mjs". Por eso all.mjs debe:
+  1. Funcionar en Windows con rutas que tengan espacios, usando rutas relativas a su propia carpeta.
+  2. Usar ffmpeg y ffprobe del PATH, y el Chromium de Playwright.
+  3. Mostrar el progreso (frame X/1800) y terminar con error (código 1) si algo falla.
+  4. Guardar el video final como proyectos\[nombre-corto]\[nombre-corto].mp4 y borrar los cuadros temporales.
+- Nombres de carpetas sin espacios ni tildes.
+- Al final, deja todo listo para descargar en un .zip llamado anuncio-[nombre-corto].zip y dime: "Deja el zip en Descargas sin descomprimir, abre VideosAnuncios y haz doble clic en CREAR-VIDEO.bat".
+
+ANTES DE ENTREGAR
+- Revisa una captura de cada escena y de cada cambio de escena, y que el video dure 30 s.
