@@ -17,20 +17,24 @@ REGLAS DEL GUION
 - 8 a 10 bloques. Cada bloque: 1 a 4 oraciones, 20 a 55 palabras, una idea. Ids "01", "02", ...
 - Estructura: 1) saludo y gancho (el avatar se presenta por su nombre y dice el tema), 2) el problema o pregunta,
   3) contexto o definición, 4-7) desarrollo con ejemplos concretos, 8) resumen o beneficios, 9) reto práctico y despedida.
-- Español claro y natural, oraciones cortas, trato de "tú", al nivel indicado. Escribe como se habla.
+- Español latinoamericano (Perú) claro y natural, oraciones cortas, trato de "tú" (nunca "vosotros": nada de
+  "recordad" ni "mirad"), al nivel indicado. Escribe como se habla. Cuida la ortografía y la concordancia (el/la, los/las).
+- El texto de cada bloque es SOLO lo que la voz dice en voz alta: sin comillas, sin código y sin símbolos sueltos.
+  Los símbolos se dicen con palabras: "un punto", "el numeral", "dos puntos", "las llaves". El código va en las diapositivas.
 - Exactitud: solo datos verificables. No inventes cifras, fechas, citas ni funciones.
 - "pronunciacion": siglas, URLs o palabras en inglés que una voz en español leería mal, con cómo deben sonar
-  (ej.: {"escrito": "CSS", "dice": "ce ese ese"}). Solo afecta a la voz.
+  (ej.: {"escrito": "CSS", "dice": "ce ese ese"}, {"escrito": "HTML", "dice": "hache te eme ele"}). Solo afecta a la voz.
 - "agenda": 3 a 6 puntos cortos (máx. 24 caracteres) con el bloque donde empieza cada uno ("desde").
 
-DIAPOSITIVAS (una por bloque, en el mismo orden; "bloque" = id del bloque donde aparece)
+DIAPOSITIVAS: EXACTAMENTE una por bloque, en el mismo orden (si hay 10 bloques, 10 diapositivas; "bloque" = id del bloque).
+La del último bloque es de tipo cierre.
 Tipos disponibles:
 - portada: kicker, titulo, sub, items (2-5 chips cortos, p. ej. etiquetas o conceptos). Úsala solo en el bloque 01.
 - idea: kicker, titulo, sub. Para una idea o pregunta clave.
 - lista: kicker, titulo, items (2-5 viñetas de máx. 10 palabras).
 - pasos: kicker, titulo, items (2-5 pasos numerados).
 - codigo: kicker, titulo, sub, codigo (máx. 14 líneas y 50 caracteres por línea; HTML, CSS o JS real y correcto).
-- comparacion: kicker, titulo, izq y der (etiqueta corta en mayúsculas, titulo, texto de máx. 15 palabras).
+- comparacion: kicker, titulo, izq y der, los DOS llenos (etiqueta corta en mayúsculas, titulo, texto de máx. 15 palabras).
 - tarjetas: kicker, titulo, tarjetas (2-4 con titulo y texto de máx. 12 palabras).
 - dato: kicker, dato (número o palabra corta, p. ej. "404" o "1994"), titulo, sub.
 - cierre: kicker, titulo, items (resumen y reto), despedida (ej.: "¡Nos vemos en la próxima clase! · NOMBRE DEL AVATAR").
@@ -38,7 +42,7 @@ Reglas de diapositivas:
 - titulo de máx. 7 palabras; marca la palabra clave entre asteriscos: "Semántica = *significado*".
 - kicker: 1 a 4 palabras en mayúsculas o tipo etiqueta ("El problema", "Paso 2 · La petición").
 - En pantalla van las ideas clave, no el texto de la voz.
-- "cuando": una palabra o frase corta que aparece TAL CUAL en el texto del bloque; el elemento aparece cuando la voz la dice.
+- "cuando": una palabra o frase corta copiada TAL CUAL (con tildes) del texto de ESE bloque; el elemento aparece cuando la voz la dice.
 - Usa variedad de tipos: al menos 1 codigo o comparacion o tarjetas cuando el tema lo permita.
 - Rellena con "" o [] los campos que no use el tipo elegido.`;
 
@@ -178,7 +182,8 @@ export function guionManual(textoGuion) {
   const bloques = [];
   for (const p of parrafos) {
     // un parrafo muy largo se parte por oraciones en trozos de ~45 palabras
-    const oraciones = p.match(/[^.!?]*[.!?]+["»”]?|[^.!?]+$/g) || [p];
+    // una oracion termina en . ! ? seguido de espacio o del final (asi "index.html" o "3.5" no se parten)
+    const oraciones = p.match(/.+?[.!?]+["»”]?(?=\s|$)|.+$/g) || [p];
     let actual = '';
     for (const o of oraciones.map(x => x.trim()).filter(Boolean)) {
       if (actual && (actual + ' ' + o).split(' ').length > 55) { bloques.push(actual); actual = o; } else actual = (actual + ' ' + o).trim();
@@ -188,15 +193,53 @@ export function guionManual(textoGuion) {
   return bloques.map((t, i) => ({ id: String(i + 1).padStart(2, '0'), texto: t }));
 }
 
-function diapositivasBasicas(ficha, bloques) {
+function diapositivasBasicas(ficha, bloques, agenda = []) {
   return bloques.map((bl, i) => {
     if (i === 0) return { bloque: bl.id, tipo: 'portada', kicker: [ficha.curso, ficha.nivel].filter(Boolean).join(' · '), titulo: ficha.tema || 'Nueva clase', sub: ficha.objetivo || '', items: [] };
-    const primera = (bl.texto.match(/[^.!?]+[.!?]?/) || [bl.texto])[0].trim().split(/\s+/).slice(0, 7).join(' ').replace(/[,;:]$/, '');
-    const ultimo = i === bloques.length - 1;
-    return ultimo
-      ? { bloque: bl.id, tipo: 'cierre', kicker: 'Resumen y reto', titulo: primera, items: [], despedida: `¡Nos vemos en la próxima clase! · ${ficha.avatar || 'SIPANCITOBOT'}` }
-      : { bloque: bl.id, tipo: 'idea', kicker: `Parte ${i}`, titulo: primera, sub: '' };
+    const oracion = (bl.texto.match(/^.*?[.!?](?=\s|$)/) || [bl.texto])[0].trim().replace(/^[¡¿]/, '').replace(/[.!?]$/, '');
+    const primera = oracion.split(/\s+/).slice(0, 7).join(' ').replace(/[,;:]$/, '');
+    const seccion = agenda.filter(a => a.desde <= bl.id).pop();
+    if (i < bloques.length - 1) {
+      // "Tu reto: toma un párrafo" -> título "Tu reto" y subtítulo "Toma un párrafo"
+      const [antes, ...resto] = oracion.split(':');
+      const n = antes.split(/\s+/).length;
+      const partido = resto.length && n >= 2 && n <= 7;
+      const sub = partido ? resto.join(':').trim().split(/\s+/).slice(0, 14).join(' ').replace(/[,;:]$/, '') : '';
+      return { bloque: bl.id, tipo: 'idea', kicker: seccion ? seccion.titulo : `Parte ${i}`,
+        titulo: partido ? antes.trim() : primera, sub: sub && sub[0].toUpperCase() + sub.slice(1) };
+    }
+    return {
+      bloque: bl.id, tipo: 'cierre', kicker: 'Resumen y reto',
+      titulo: agenda.length ? 'Lo que *aprendiste* hoy' : primera,
+      items: agenda.slice(0, 4).map(a => ({ texto: a.titulo, cuando: '' })),
+      despedida: `¡Nos vemos en la próxima clase! · ${ficha.avatar || 'SIPANCITOBOT'}`,
+    };
   });
+}
+
+// Los modelos abiertos a veces dejan bloques sin diapositiva (el video se queda medio minuto en la misma)
+// o plantillas a medio llenar (una comparación con un lado vacío). Se completa solo lo que falta.
+function completarDiapositivas(clase, ficha) {
+  const basicas = diapositivasBasicas(ficha, clase.bloques, clase.agenda);
+  const propias = {};
+  for (const d of clase.diapositivas) if (!propias[d.bloque]) propias[d.bloque] = arreglarPlantilla(d);
+  clase.diapositivas = clase.bloques.map((bl, i) => propias[bl.id] || basicas[i]);
+  return clase;
+}
+
+function arreglarPlantilla(d) {
+  const lleno = x => x && (x.titulo || x.texto);
+  const pareceCodigo = s => /[<{};]/.test(s || '');
+  if (d.tipo === 'comparacion' && !(lleno(d.izq) && lleno(d.der))) {
+    const lado = lleno(d.izq) ? d.izq : lleno(d.der) ? d.der : null;
+    if (lado && pareceCodigo(lado.texto)) return { ...d, tipo: 'codigo', codigo: lado.texto, sub: d.sub || lado.titulo };
+    return { ...d, tipo: 'idea', sub: d.sub || (lado ? [lado.titulo, lado.texto].filter(Boolean).join(': ') : '') };
+  }
+  if (['lista', 'pasos', 'cierre'].includes(d.tipo) && !d.items.length && !d.despedida) return { ...d, tipo: 'idea' };
+  if (d.tipo === 'tarjetas' && !d.tarjetas.length) return { ...d, tipo: 'idea' };
+  if (d.tipo === 'codigo' && !d.codigo.trim()) return { ...d, tipo: 'idea' };
+  if (d.tipo === 'dato' && !d.dato) return { ...d, tipo: 'idea' };
+  return d;
 }
 
 // ---------------------------------------------------------------- normalizacion
@@ -274,5 +317,5 @@ export async function generarClase({ ficha, modo, guion, env, base }) {
   const bloquesFijos = guion ? (Array.isArray(guion) ? guion : guionManual(guion)) : null;
   const { datos, uso } = modo === 'claude' ? await conClaude(ficha, bloquesFijos, env) : await conIaGratis(ficha, bloquesFijos, env);
   if (bloquesFijos) datos.bloques = bloquesFijos; // el guion del docente no se toca
-  return { clase: normalizar(datos, ficha, base), uso };
+  return { clase: completarDiapositivas(normalizar(datos, ficha, base), ficha), uso };
 }

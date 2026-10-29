@@ -34,7 +34,7 @@ const palabras = t => String(t || '').split(/\s+/).filter(Boolean).length;
 // ---------------------------------------------------------------- navegacion
 async function ir() {
   if (editor && editor.sucio) { try { await guardar(true); } catch { /* se avisa al guardar */ } }
-  clearInterval(sondeo);
+  clearTimeout(sondeo);
   const h = location.hash.replace(/^#/, '') || '/';
   try { estado = await api('/api/estado'); } catch { return; }
   $('#barra').hidden = false;
@@ -53,7 +53,7 @@ $('#salir').onclick = async () => { await api('/api/salir', { method: 'POST' }).
 
 function mostrarLogin() {
   editor = null;
-  clearInterval(sondeo);
+  clearTimeout(sondeo);
   $('#barra').hidden = true;
   app.innerHTML = `<form class="login tarjeta" id="f-login">
     <div class="marca"><b>USS</b><span>Estudio de clases</span></div>
@@ -134,6 +134,7 @@ function vistaNueva() {
   };
   f.addEventListener('input', actualizar);
   f.addEventListener('change', actualizar);
+  actualizar();
   f.onsubmit = async e => {
     e.preventDefault();
     const ficha = Object.fromEntries(new FormData(f));
@@ -159,7 +160,6 @@ async function vistaEditor(slug) {
   editor = { slug, ...d, sucio: false, pestana, esperoVista: false };
   prepararItems();
   pintarEditor();
-  sondeo = setInterval(actualizarTrabajos, 2000);
   actualizarTrabajos();
 }
 
@@ -506,11 +506,18 @@ async function lanzar(modo) {
   } catch (e) { aviso(e.message, true); }
 }
 
+// Mientras un video se crea, se pregunta cada 2 s; si no hay nada en marcha, cada 30 s
+// (por si alguien del equipo lanza uno) y nada mientras la pestaña está oculta.
 let ultimoEstado = {};
+function programarSondeo(ms) { clearTimeout(sondeo); sondeo = setTimeout(actualizarTrabajos, ms); }
+document.addEventListener('visibilitychange', () => { if (!document.hidden && editor && $('#trabajos')) actualizarTrabajos(); });
 async function actualizarTrabajos() {
   if (!editor || !$('#trabajos')) return;
+  if (document.hidden) return clearTimeout(sondeo);
   let lista;
-  try { lista = await api('/api/trabajos'); } catch { return; }
+  try { lista = await api('/api/trabajos'); } catch { return programarSondeo(10000); }
+  if (!editor || !$('#trabajos')) return;
+  programarSondeo(lista.some(t => t.estado === 'trabajando' || t.estado === 'en-cola') ? 2000 : 30000);
   const mios = lista.filter(t => t.slug === editor.slug).slice(0, 4);
   const otros = lista.filter(t => t.slug !== editor.slug && (t.estado === 'trabajando' || t.estado === 'en-cola')).length;
   if (!mios.length && !otros) return;

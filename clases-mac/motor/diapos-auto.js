@@ -31,9 +31,12 @@ export function construirAuto({ b, p, u, clase }) {
   const lista = clase.diapositivas || [];
   const ids = clase.bloques.map(x => x.id);
   const texto = id => (clase.bloques.find(x => x.id === id) || {}).texto || '';
-  // segundo en que aparece un elemento: la palabra "cuando" o escalonado en el bloque
+  // segundo en que aparece un elemento: la palabra "cuando" (sin importar tildes ni mayusculas) o escalonado en el bloque
+  const plano = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const momento = (bloque, cuando, i, n, desde = 0.12) => {
-    if (cuando && texto(bloque).toLowerCase().includes(String(cuando).toLowerCase())) return p(bloque, cuando);
+    const t = plano(texto(bloque));
+    const k = cuando ? t.indexOf(plano(cuando)) : -1;
+    if (k >= 0) return b(bloque, k / t.length);
     return b(bloque, Math.min(0.85, desde + (i / Math.max(1, n)) * 0.7));
   };
 
