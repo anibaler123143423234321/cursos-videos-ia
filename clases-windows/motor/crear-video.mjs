@@ -88,7 +88,9 @@ async function principal() {
   const clase = JSON.parse(fs.readFileSync(path.join(DIR, 'clase.json'), 'utf8').replace(/^\uFEFF/, ''));
   validar(clase);
   if (GUION) return escribirGuion(clase);
-  if (!fs.existsSync(path.join(DIR, 'diapositivas.js'))) throw new Error(`No existe clases/${slug}/diapositivas.js`);
+  if (!fs.existsSync(path.join(DIR, 'diapositivas.js')) && !(Array.isArray(clase.diapositivas) && clase.diapositivas.length)) {
+    throw new Error(`La clase ${slug} no tiene diapositivas (ni diapositivas.js ni "diapositivas" en clase.json)`);
+  }
   FFMPEG = programa('ffmpeg');
   if (!FFMPEG) {
     throw new Error(`No puedo usar ffmpeg. Probe: ${PROBADOS.ffmpeg.join(' | ')}\n` +
@@ -180,7 +182,10 @@ async function prepararVoz(clase) {
   for (const f of fs.readdirSync(dirVoz)) {
     if (!/\.elevenlabs\.mp3$|^firmas-elevenlabs\.json$/.test(f)) fs.rmSync(path.join(dirVoz, f), { force: true });
   }
-  const pref = (opcion('voz') || process.env.VOZ || 'auto').toLowerCase();
+  // la voz se puede elegir por clase (desde la web): clase.voz = { proveedor, elevenlabs_voz }
+  const vozClase = clase.voz || {};
+  if (vozClase.elevenlabs_voz) process.env.ELEVENLABS_VOICE_ID = vozClase.elevenlabs_voz;
+  const pref = (opcion('voz') || vozClase.proveedor || process.env.VOZ || 'auto').toLowerCase();
   const usarGrabaciones = pref === 'auto' || pref === 'grabacion';
   const hayEleven = !!(process.env.ELEVENLABS_API_KEY && process.env.ELEVENLABS_VOICE_ID);
   if (pref === 'elevenlabs' && !hayEleven) {

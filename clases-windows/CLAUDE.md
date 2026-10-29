@@ -154,6 +154,33 @@ export default function ({ b, p, u, tl, gsap, clase }) {
 
 ---
 
+## Diapositivas por plantillas (recomendado para clases nuevas)
+
+En vez de `diapositivas.js`, la clase puede describir sus diapositivas en `clase.json`, en el campo
+`"diapositivas": [...]`. Así se editan también desde la web del equipo. Hay una por bloque, y el
+bloque que no tiene diapositiva mantiene la anterior. Modelo: `clases/como-funciona-la-web/clase.json`.
+
+```json
+{ "bloque": "03", "tipo": "comparacion", "kicker": "Los protagonistas", "titulo": "Quién *pide* y quién *responde*",
+  "izq": { "etiqueta": "CLIENTE", "titulo": "Pide", "texto": "...", "cuando": "cliente es" },
+  "der": { "etiqueta": "SERVIDOR", "titulo": "Responde", "texto": "...", "cuando": "servidor es" } }
+```
+
+Tipos de diapositiva y sus campos:
+- `portada`: `items` son los chips.
+- `idea`: `titulo` y `sub`.
+- `lista` y `pasos`: `items: [{texto, cuando}]`.
+- `codigo`: `codigo`.
+- `comparacion`: `izq` y `der`.
+- `tarjetas`: `tarjetas: [{titulo, texto, cuando}]`.
+- `dato`: `dato`, `titulo` y `sub`.
+- `cierre`: `items` y `despedida`.
+
+Todos aceptan `kicker`, `titulo` (la palabra clave va entre `*asteriscos*`), `sub` y `nota`. Para el
+campo `cuando`, usa una palabra que aparezca tal cual en el texto de ese bloque. Si la clase tiene
+`"diapositivas"`, el motor ignora `diapositivas.js`. Usa `diapositivas.js` (código) solo si necesitas
+algo que las plantillas no ofrecen (maquetas o diagramas especiales).
+
 ## Avatar
 
 - Por defecto se usa el **robot incluido**: mueve la boca con la voz, es gratis y funciona sin internet.

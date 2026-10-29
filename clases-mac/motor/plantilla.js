@@ -55,9 +55,15 @@ try {
   };
   const escena = $('#diapos');
   const u = crearUtil({ tl, gsap, escena });
-  const mod = await import(`${base}/diapositivas.js`);
-  if (typeof mod.default !== 'function') throw new Error('diapositivas.js debe tener "export default function ({ tl, b, p, u, ... }) { ... }"');
-  await mod.default({ tl, gsap, escena, b, fin, p, u, clase, tiempos });
+  if (Array.isArray(clase.diapositivas) && clase.diapositivas.length) {
+    // diapositivas por plantillas (las que se editan desde la web)
+    const { construirAuto } = await import('./diapos-auto.js');
+    construirAuto({ tl, gsap, escena, b, fin, p, u, clase, tiempos });
+  } else {
+    const mod = await import(`${base}/diapositivas.js`);
+    if (typeof mod.default !== 'function') throw new Error('diapositivas.js debe tener "export default function ({ tl, b, p, u, ... }) { ... }"');
+    await mod.default({ tl, gsap, escena, b, fin, p, u, clase, tiempos });
+  }
   tl.set({}, {}, tiempos.total);
 
   // ----- agenda (columna derecha)

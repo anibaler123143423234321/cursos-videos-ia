@@ -8,9 +8,11 @@
     "node": ">=20"
   },
   "scripts": {
-    "video": "node motor/crear-video.mjs"
+    "video": "node motor/crear-video.mjs",
+    "web": "node web/servidor.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "0.134.0",
     "@fontsource/instrument-serif": "5.3.0",
     "@fontsource/inter": "5.3.0",
     "@fontsource/jetbrains-mono": "5.3.0",

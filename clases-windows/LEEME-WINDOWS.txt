@@ -139,6 +139,12 @@ Nota: LiveAvatar de HeyGen es para avatares EN VIVO (no guarda MP4); para clases
 el HeyGen normal o Hedra.
 
 
+WEB PARA EL EQUIPO
+------------------
+Para que tu equipo cree clases desde el navegador (sin terminal), mira LEEME-WEB.txt
+y usa INICIAR-WEB.bat.
+
+
 PROBLEMAS FRECUENTES
 --------------------
 - "Node.js / ffmpeg se instalo pero Windows aun no lo ve": cierra la ventana y abre de nuevo.

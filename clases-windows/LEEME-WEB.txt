@@ -1,0 +1,50 @@
+ESTUDIO DE CLASES USS - LA WEB PARA EL EQUIPO
+=============================================
+Tu equipo crea las clases desde el navegador, sin terminal. La web funciona en UNA PC (la del
+estudio, por ejemplo tu PC de la oficina) y los demas entran desde sus PCs por la red de la universidad.
+
+PARA ENCENDERLA (en la PC del estudio)
+1. Haz primero los pasos 1 a 3 de LEEME-WINDOWS.txt (instala Node.js, ffmpeg y prueba un video).
+2. Doble clic en INICIAR-WEB.bat. La primera vez prepara lo que falta (unos minutos).
+3. Si Windows pregunta por el Firewall: marca "Redes privadas" y pulsa "Permitir acceso".
+4. La ventana muestra las direcciones, por ejemplo:
+      En esta PC:     http://localhost:8080
+      Desde otra PC:  http://10.0.12.34:8080
+   Comparte la segunda con tu equipo. Deja la ventana abierta mientras la usen.
+5. La clave de entrada esta en el archivo .env (WEB_CLAVE). La primera vez se crea sola y se muestra
+   en la ventana. Puedes cambiarla en la web: Ajustes > Nueva clave del equipo.
+
+QUE PUEDE HACER TU EQUIPO EN LA WEB
+- Clases: ver todas las clases, abrirlas y descargar el MP4.
+- Nueva clase: llenar la ficha y elegir quien escribe el guion:
+    * "Pego mi guion" (gratis): el docente pega su texto, un parrafo por bloque.
+    * "IA gratis": un modelo abierto (Groq u Ollama) escribe guion y diapositivas.
+    * "Claude" (de pago): la mejor calidad, unos centavos de dolar por clase.
+- Editor de la clase:
+    * Guion y diapositivas: corregir el texto de cada bloque y elegir la diapositiva
+      (portada, idea, lista, pasos, codigo, comparacion, tarjetas, dato, cierre).
+    * Voz y avatar: elegir la voz (ElevenLabs, voz del sistema o grabacion propia), subir la grabacion
+      del docente, su video de camara o un avatar de HeyGen/Hedra.
+    * Botones: Vista previa (con sonido), Revisar diapositivas (capturas), Borrador rapido y Video final.
+  Los videos se crean de uno en uno en la PC del estudio (5 a 8 minutos cada uno). La web muestra el avance.
+- Ajustes: claves de ElevenLabs, Claude y la IA gratis (se guardan solo en la PC del estudio).
+
+CONFIGURAR LA IA (en la web: Ajustes)
+- Claude (de pago por uso): crea una API key en https://platform.claude.com (API Keys) y recarga saldo.
+  Una clase cuesta aproximadamente US$ 0,30 a 0,80 con el modelo recomendado (claude-opus-5-5).
+- IA gratis con Groq: crea una cuenta en https://console.groq.com, genera una API key y pega:
+    Direccion: https://api.groq.com/openai/v1    Modelo: openai/gpt-oss-120b
+  El plan gratis tiene limites por minuto y por dia; si sale "limite", espera un minuto.
+  Ojo: Groq (con q, gratis, modelos abiertos) no es Grok (con k, de xAI, de pago).
+- IA gratis sin internet con Ollama (https://ollama.com) instalado en la PC del estudio:
+    Direccion: http://localhost:11434/v1          Modelo: qwen2.5:7b (o el que descargues)
+  Funciona sin cuenta, pero en una PC sin tarjeta grafica es lento y escribe peor que Claude.
+
+SEGURIDAD
+- Todos los del equipo usan la misma clave; cualquiera con la clave puede cambiar los Ajustes.
+- La web solo esta disponible dentro de la red. No la publiques en internet sin hablar con TI de la USS.
+- Las claves (API keys) se guardan en .env de la PC del estudio y nunca se suben a GitHub.
+
+SI ALGO FALLA
+- "No se puede acceder al sitio" desde otra PC: revisa el Firewall (paso 3) y que esten en la misma red.
+- Un video falla: abre la clase, mira "Detalle del error" y pegaselo a Claude Code.

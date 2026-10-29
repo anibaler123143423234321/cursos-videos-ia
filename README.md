@@ -6,6 +6,7 @@ Este repositorio tiene tres kits:
 |---|---|---|
 | `clases-mac/` | **Clases de 2–3 min** tipo Zoom: diapositivas con motion graphics, avatar (SIPANCITOBOT) y voz clonada (ElevenLabs) | Mac (chip M) |
 | `clases-windows/` | El mismo kit de clases, con lanzador `.bat` | PC con Windows 10/11 |
+| `clases-*/web/` | **Web del equipo** (Estudio de clases): crear y editar clases y videos desde el navegador. Ver `LEEME-WEB.txt` | La PC del estudio sirve la web en la red |
 | raíz (`PROMPT-ANUNCIOS-30s.txt`, `CREAR-VIDEO.bat`, `LEEME-GUIA.txt`) | Anuncios de 30 s con Claude Design (kit anterior, sin cambios) | Windows |
 
 ## Ver el demo

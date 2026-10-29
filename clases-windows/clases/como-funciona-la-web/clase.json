@@ -1,0 +1,74 @@
+{
+  "slug": "como-funciona-la-web",
+  "avatar": "SIPANCITOBOT",
+  "rol_avatar": "Asistente docente IA",
+  "docente": "",
+  "institucion": "Universidad Señor de Sipán",
+  "curso": "Diseño Web",
+  "banda": "Diseño Web",
+  "tema": "¿Cómo funciona la web? Cliente, servidor y navegador",
+  "nivel": "Básico",
+  "duracion_objetivo": 150,
+  "voz": { "proveedor": "auto", "elevenlabs_voz": "" },
+  "pronunciacion": {
+    "uss.edu.pe": "u ese ese punto edu punto pe",
+    "HTTPS": "hache te te pe ese",
+    "HTTP": "hache te te pe",
+    "HTML": "hache te eme ele",
+    "CSS": "ce ese ese",
+    "DNS": "de ene ese",
+    "IP": "i pe",
+    "GET": "guet",
+    "F12": "efe doce"
+  },
+  "agenda": [
+    { "titulo": "Cliente y servidor", "desde": "02" },
+    { "titulo": "El DNS", "desde": "04" },
+    { "titulo": "Petición y respuesta", "desde": "05" },
+    { "titulo": "Errores y reto", "desde": "08" }
+  ],
+  "bloques": [
+    { "id": "01", "texto": "¡Hola! Bienvenidos a Diseño Web de la Universidad Señor de Sipán. Soy SIPANCITOBOT, su asistente virtual, y hoy vamos a descubrir qué pasa, paso a paso, cuando abres una página web en tu navegador." },
+    { "id": "02", "texto": "Escribes una dirección, presionas Enter y en un segundo aparece la página. Parece magia, pero detrás hay una conversación muy ordenada entre dos computadoras: tu dispositivo, al que llamamos cliente, y otra máquina que guarda el sitio, llamada servidor." },
+    { "id": "03", "texto": "El cliente es quien pide: tu celular o tu laptop con un navegador como Chrome, Firefox o Edge. El servidor es quien responde: una computadora conectada a internet todo el día, que guarda los archivos del sitio y los entrega cuando alguien los solicita." },
+    { "id": "04", "texto": "Pero las computadoras no entienden nombres como uss.edu.pe. Por eso existe el DNS, una especie de agenda de contactos de internet. El navegador le pregunta al DNS por el nombre del sitio y recibe a cambio su dirección IP, que es un número." },
+    { "id": "05", "texto": "Con esa dirección, el navegador envía una petición usando el protocolo HTTP, o su versión segura, HTTPS, la del candado en la barra. Es como decir: por favor, envíame la página de inicio." },
+    { "id": "06", "texto": "El servidor responde con varios archivos. El HTML trae la estructura y el contenido; el CSS, los colores, tipografías y la distribución; y JavaScript, la interactividad, como menús que se abren o formularios que revisan tus datos." },
+    { "id": "07", "texto": "Así se ve, de forma simplificada, esa conversación: una línea que pide la página con el método GET, y una respuesta que empieza con el código doscientos, que significa que todo salió bien." },
+    { "id": "08", "texto": "¿Y si algo falla? Seguro has visto el error cuatrocientos cuatro: significa que el servidor existe, pero no encontró la página que pediste. Cuando todo sale bien, el navegador junta los archivos y dibuja la página en tu pantalla." },
+    { "id": "09", "texto": "Resumen: el cliente pide, el DNS traduce, el servidor responde y el navegador muestra. Tu reto: presiona F12 para abrir las herramientas de desarrollador, entra a la pestaña Red y recarga una página para ver todas sus peticiones. ¡Nos vemos en la próxima clase!" }
+  ],
+  "diapositivas": [
+    { "bloque": "01", "tipo": "portada", "kicker": "Diseño Web · Nivel básico", "titulo": "¿Cómo funciona *la web*?", "sub": "Cliente, servidor y navegador, paso a paso.",
+      "items": [{ "texto": "Cliente" }, { "texto": "DNS" }, { "texto": "Servidor" }, { "texto": "HTTP" }] },
+    { "bloque": "02", "tipo": "idea", "kicker": "La pregunta", "titulo": "Detrás de cada página hay una *conversación*",
+      "sub": "Tu dispositivo (el cliente) habla con la máquina que guarda el sitio (el servidor)." },
+    { "bloque": "03", "tipo": "comparacion", "kicker": "Los protagonistas", "titulo": "Quién *pide* y quién *responde*",
+      "izq": { "etiqueta": "CLIENTE", "titulo": "Pide", "texto": "Tu celular o laptop con un navegador: Chrome, Firefox, Edge.", "cuando": "cliente es" },
+      "der": { "etiqueta": "SERVIDOR", "titulo": "Responde", "texto": "Una computadora conectada todo el día que guarda y entrega los archivos del sitio.", "cuando": "servidor es" } },
+    { "bloque": "04", "tipo": "lista", "kicker": "Paso 1 · El DNS", "titulo": "La *agenda* de internet",
+      "items": [
+        { "texto": "Tú escribes un nombre: uss.edu.pe", "cuando": "nombres" },
+        { "texto": "El navegador le pregunta al DNS", "cuando": "le pregunta" },
+        { "texto": "Recibe la dirección IP: un número", "cuando": "dirección IP" } ] },
+    { "bloque": "05", "tipo": "pasos", "kicker": "Paso 2 · La petición", "titulo": "El navegador *pide* la página",
+      "items": [
+        { "texto": "Usa el protocolo HTTP", "cuando": "protocolo" },
+        { "texto": "O HTTPS: la versión segura, la del candado", "cuando": "versión segura" },
+        { "texto": "«Por favor, envíame la página de inicio»", "cuando": "por favor" } ] },
+    { "bloque": "06", "tipo": "tarjetas", "kicker": "Paso 3 · La respuesta", "titulo": "Llegan *tres* tipos de archivos",
+      "tarjetas": [
+        { "titulo": "HTML", "texto": "La estructura y el contenido.", "cuando": "HTML" },
+        { "titulo": "CSS", "texto": "Colores, tipografías y distribución.", "cuando": "CSS" },
+        { "titulo": "JavaScript", "texto": "La interactividad: menús, formularios.", "cuando": "JavaScript" } ] },
+    { "bloque": "07", "tipo": "codigo", "kicker": "Así se ve", "titulo": "La conversación *en código*", "sub": "GET pide la página · 200 significa «todo bien»",
+      "codigo": "GET /index.html HTTP/1.1\nHost: www.uss.edu.pe\n\nHTTP/1.1 200 OK\nContent-Type: text/html\n\n<!DOCTYPE html>\n<html> ... </html>" },
+    { "bloque": "08", "tipo": "dato", "kicker": "¿Y si algo falla?", "dato": "404", "titulo": "Página *no encontrada*",
+      "sub": "El servidor existe, pero no tiene la página que pediste." },
+    { "bloque": "09", "tipo": "cierre", "kicker": "Resumen y reto", "titulo": "Pide, traduce, *responde* y muestra",
+      "items": [
+        { "texto": "Cliente pide → DNS traduce → servidor responde → navegador muestra", "cuando": "Resumen" },
+        { "texto": "Reto: presiona F12, abre la pestaña Red y recarga una página", "cuando": "reto" } ],
+      "despedida": "¡Nos vemos en la próxima clase! · SIPANCITOBOT" }
+  ]
+}
