@@ -19,6 +19,7 @@ QUE PUEDE HACER TU EQUIPO EN LA WEB
 - Nueva clase: llenar la ficha y elegir quien escribe el guion:
     * "Pego mi guion" (gratis): el docente pega su texto, un parrafo por bloque.
     * "IA gratis": un modelo abierto (Groq u Ollama) escribe guion y diapositivas.
+      Con IA basta con escribir el TEMA: objetivo, puntos, ejemplo y reto son opcionales.
     * "Claude" (de pago): la mejor calidad, unos centavos de dolar por clase.
 - Editor de la clase:
     * Guion y diapositivas: corregir el texto de cada bloque y elegir la diapositiva
@@ -33,7 +34,7 @@ CONFIGURAR LA IA (en la web: Ajustes)
 - Claude (de pago por uso): crea una API key en https://platform.claude.com (API Keys) y recarga saldo.
   Una clase cuesta aproximadamente US$ 0,30 a 0,80 con el modelo recomendado (claude-opus-5-5).
 - IA gratis con Groq: crea una cuenta en https://console.groq.com, genera una API key y pega:
-    Direccion: https://api.groq.com/openai/v1    Modelo: openai/gpt-oss-120b
+    Direccion: https://api.groq.com/openai/v1    Modelo: qwen/qwen3.8-27b (u openai/gpt-oss-120b)
   El plan gratis tiene limites por minuto y por dia; si sale "limite", espera un minuto.
   Ojo: Groq (con q, gratis, modelos abiertos) no es Grok (con k, de xAI, de pago).
 - IA gratis sin internet con Ollama (https://ollama.com) instalado en la PC del estudio:
