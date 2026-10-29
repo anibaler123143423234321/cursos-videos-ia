@@ -154,7 +154,20 @@ async function conIaGratis(ficha, bloquesFijos, env) {
   const j = JSON.parse(cuerpo);
   const contenido = j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
   if (!contenido) throw new Error('La IA gratis no devolvió contenido.');
-  return { datos: JSON.parse(contenido.replace(/^```(?:json)?\s*|\s*```$/g, '')), uso: j.usage };
+  return { datos: extraerJson(contenido), uso: j.usage };
+}
+
+// Algunos modelos abiertos (Qwen, DeepSeek...) escriben su razonamiento en <think>...</think> o envuelven el
+// JSON en ```json: nos quedamos solo con el objeto JSON.
+function extraerJson(contenido) {
+  const limpio = String(contenido).replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/```(?:json)?/gi, '').trim();
+  try { return JSON.parse(limpio); } catch { /* sigue */ }
+  const a = limpio.indexOf('{');
+  const z = limpio.lastIndexOf('}');
+  if (a >= 0 && z > a) {
+    try { return JSON.parse(limpio.slice(a, z + 1)); } catch { /* sigue */ }
+  }
+  throw new Error('La IA gratis no devolvió un JSON válido. Intenta de nuevo o usa otro modelo.');
 }
 
 // ---------------------------------------------------------------- modo manual (sin IA)
