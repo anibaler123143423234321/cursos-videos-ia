@@ -141,8 +141,11 @@ function resumen(slug) {
   if (!c) return null;
   const tiempos = path.join(dirClase(slug), 'salida', 'tiempos.json');
   const video = path.join(RAIZ, 'salidas', `${slug}.mp4`);
+  const portada = Array.isArray(c.diapositivas) && c.diapositivas[0];
   return {
-    slug, tema: c.tema || slug, curso: c.curso || '', avatar: c.avatar || '',
+    slug, tema: c.tema || slug, curso: c.curso || '', avatar: c.avatar || '', nivel: c.nivel || '', banda: c.banda || c.curso || '',
+    portada: portada ? { kicker: portada.kicker || '', titulo: portada.titulo || '' } : null,
+    editada: fs.statSync(path.join(dirClase(slug), 'clase.json')).mtimeMs,
     bloques: (c.bloques || []).length,
     palabras: (c.bloques || []).reduce((n, b) => n + String(b.texto || '').split(/\s+/).filter(Boolean).length, 0),
     duracion: fs.existsSync(tiempos) ? JSON.parse(fs.readFileSync(tiempos, 'utf8')).total : null,
@@ -358,9 +361,11 @@ function rutaEstatica(req, res, url) {
   if (p === '/') p = '/index.html';
   const publico = path.join(PUBLICO, path.normalize(p));
   if (publico.startsWith(PUBLICO + path.sep) && fs.existsSync(publico) && fs.statSync(publico).isFile()) return enviarArchivo(req, res, publico);
-  if (!sesionValida(req)) { res.writeHead(401); return res.end(); }
   const f = path.join(RAIZ, path.normalize(p));
   const rel = path.relative(RAIZ, f).split(path.sep);
+  // las fuentes se usan tambien en la pantalla de entrada (sin sesion): son archivos publicos
+  const fuente = rel[0] === 'node_modules' && rel[1] === '@fontsource' && /\.woff2?$/.test(f);
+  if (!fuente && !sesionValida(req)) { res.writeHead(401); return res.end(); }
   const permitido = rel[0] === 'motor' || rel[0] === 'marca' || (rel[0] === 'clases' && slugValido(rel[1])) ||
     (rel[0] === 'node_modules' && (rel[1] === 'gsap' || rel[1] === '@fontsource'));
   if (!permitido || rel.some(x => x.startsWith('.') || x === '..')) { res.writeHead(403); return res.end(); }

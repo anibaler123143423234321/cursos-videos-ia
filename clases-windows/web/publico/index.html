@@ -3,22 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
 <title>Estudio de clases · USS</title>
-<link rel="icon" href="data:,">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a6c61a'/%3E%3Ctext x='16' y='20.5' font-family='Arial' font-weight='900' font-size='11' text-anchor='middle' fill='%23141a00'%3EUSS%3C/text%3E%3C/svg%3E">
+<link rel="preload" href="/node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/estilos.css">
 </head>
 <body>
-<header id="barra" hidden>
-  <a href="#/" class="marca"><b>USS</b><span>Estudio de clases</span></a>
-  <nav>
-    <a href="#/">Clases</a>
-    <a href="#/nueva">Nueva clase</a>
-    <a href="#/ajustes">Ajustes</a>
-    <button id="salir" class="enlace">Salir</button>
-  </nav>
-</header>
-<main id="app"><p class="cargando">Cargando…</p></main>
-<div id="aviso" hidden></div>
+<aside id="barra" class="lateral" hidden>
+  <a href="#/" class="marca"><b>USS</b><span>Estudio de clases<small>Universidad Señor de Sipán</small></span></a>
+  <nav class="menu" id="menu" aria-label="Principal"></nav>
+  <div class="lateral-pie">
+    <p class="lateral-tit">Servicios</p>
+    <ul class="servicios" id="servicios"></ul>
+    <button id="salir" class="menu-item" type="button"></button>
+  </div>
+</aside>
+<main id="app"><div class="pantalla-carga"><span class="anillo-carga"></span></div></main>
+<div id="avisos" class="avisos" aria-live="polite"></div>
 <script type="module" src="/app.js"></script>
 </body>
 </html>
