@@ -498,7 +498,8 @@ async function vozElevenLabs(clase, bloques, dirVoz) {
     if (!r.ok) {
       console.log('');
       const detalle = (await r.text().catch(() => '')).slice(0, 300);
-      const pista = r.status === 401 ? ' (API key invalida o sin permiso de Text to Speech)'
+      const pista = /library|free.?users?/i.test(detalle) ? ' (en el plan Free solo funcionan las voces "Default" de ElevenLabs, no las de la biblioteca: elige otra voz o pasa a Starter)'
+        : r.status === 401 ? ' (API key invalida o sin permiso de Text to Speech)'
         : r.status === 404 ? ' (ELEVENLABS_VOICE_ID no existe en tu cuenta)'
         : r.status === 402 || /quota/i.test(detalle) ? ' (sin creditos en tu plan)' : '';
       throw new Error(`HTTP ${r.status}${pista}: ${detalle}`);
