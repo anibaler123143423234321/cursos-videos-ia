@@ -296,14 +296,34 @@ function detectarBloques(wav, clase) {
     for (let i = a; i < a + 160; i++) { const v = pcm.readInt16LE(i * 2) / 32768; s += v * v; }
     db.push(10 * Math.log10(s / 160 + 1e-12));
   }
-  const orden = [...db].sort((x, y) => x - y);
+  // Windows (supresion de ruido) deja silencio digital absoluto: no cuenta como "ruido de fondo"
+  const orden = db.filter(v => v > -100).sort((x, y) => x - y);
+  if (orden.length < 100) throw new Error('Tu grabacion esta en silencio: revisa que el microfono correcto este elegido.');
   const ruido = orden[Math.floor(orden.length * 0.1)];
   const voz = orden[Math.floor(orden.length * 0.95)];
   if (!(voz - ruido >= 12)) throw new Error('No distingo tu voz del ruido de fondo: graba mas cerca del microfono o en un lugar mas silencioso.');
-  const umbral = ruido + Math.max(8, (voz - ruido) * 0.3);
+  if (voz < -40) {
+    console.log('[!] Tu grabacion esta MUY BAJA de volumen. Para la proxima sube el microfono:\n' +
+      '    Windows: Configuracion > Sistema > Sonido > Entrada > Volumen (80-100).  Mac: Ajustes > Sonido > Entrada.');
+  }
+  // una pausa esta claramente por debajo del ruido + 8 dB y a mas de 25 dB por debajo de la voz
+  const umbral = Math.max(ruido + 8, voz - 25);
   const activo = db.map(v => v > umbral);
   const primero = activo.indexOf(true);
   const ultimo = activo.lastIndexOf(true);
+  // ¿la grabacion corresponde al guion? (la opcion de grabar NO clona: usa tu voz tal cual)
+  const palabrasGuion = clase.bloques.reduce((t, b) => t + b.texto.split(/\s+/).filter(Boolean).length, 0);
+  const esperado = palabrasGuion / 2.4;
+  const hablado = (ultimo - primero) / 100;
+  if (hablado < esperado * 0.75) {
+    throw new Error(`Tu grabacion dura ${formatoMin(hablado)} pero leer el guion de esta clase toma unos ${formatoMin(esperado)}.\n` +
+      '    ¿Grabaste otro texto (por ejemplo TEXTO-PARA-CLONAR-VOZ)? Esta opcion NO clona tu voz: usa tu\n' +
+      '    grabacion tal cual, asi que tienes que leer GUION-PARA-GRABAR.txt completo (opcion 5 del menu).\n' +
+      '    Para que la IA hable con tu voz sin leer cada clase, usa ElevenLabs (LEEME, PASO 4B) y borra voz/completa.');
+  }
+  if (hablado > esperado * 2.2) {
+    console.log(`[!] Tu grabacion (${formatoMin(hablado)}) es mucho mas larga que el guion (~${formatoMin(esperado)}): ¿leiste el texto correcto?`);
+  }
   const pausas = [];
   for (let i = primero; i <= ultimo;) {
     if (activo[i]) { i++; continue; }
@@ -336,10 +356,17 @@ function detectarBloques(wav, clase) {
   const palabras = clase.bloques.map(b => b.texto.split(/\s+/).filter(Boolean).length);
   const totP = palabras.reduce((x, y) => x + y, 0);
   const totD = res.reduce((x, s) => x + (s.fin - s.inicio), 0);
+  const raros = [];
   res.forEach((s, k) => {
     const razon = ((s.fin - s.inicio) / totD) / (palabras[k] / totP);
-    if (razon < 0.45 || razon > 2.2) console.log(`[!] El bloque ${clase.bloques[k].id} dura ${(s.fin - s.inicio).toFixed(1)} s, raro para su texto: ¿pausa larga a mitad de bloque o bloque saltado?`);
+    if (razon < 0.45 || razon > 2.2) raros.push(`${clase.bloques[k].id} (${(s.fin - s.inicio).toFixed(1)} s)`);
   });
+  if (raros.length >= Math.max(3, Math.ceil(n / 3))) {
+    throw new Error(`No pude ubicar bien los bloques en tu grabacion: ${raros.length} bloques salen con duraciones raras (${raros.join(', ')}).\n` +
+      '    Revisa que leiste GUION-PARA-GRABAR.txt completo, en orden, y que callaste 2 segundos entre bloque y bloque.\n' +
+      '    Tambien puedes grabar cada bloque por separado: voz/01.m4a, voz/02.m4a ...');
+  }
+  for (const r of raros) console.log(`[!] El bloque ${r} dura raro para su texto: ¿pausa larga a mitad de bloque o bloque saltado?`);
   return res;
 }
 
@@ -400,7 +427,8 @@ function escribirGuion(clase) {
     `     bloque y guardalo como clases/${slug}/voz/<numero>.m4a (ej.: voz/05.m4a).`,
     '',
     'DONDE GUARDARLA',
-    `  Solo audio (SIPANCITOBOT habla con tu voz):  clases/${slug}/voz/completa.m4a`,
+    `  Solo audio (tu grabacion es la voz del video):  clases/${slug}/voz/completa.m4a`,
+    '  OJO: esto NO clona tu voz. Se usa tu grabacion tal cual, por eso debes leer ESTE guion.',
     `  Video con tu camara (tu cara en el recuadro): clases/${slug}/camara.mp4`,
     '  (sirven .m4a, .mp3, .wav, .opus, .mp4, .mov ...)',
     '  Luego crea el video como siempre (menu CREAR-VIDEO, opcion 1).',

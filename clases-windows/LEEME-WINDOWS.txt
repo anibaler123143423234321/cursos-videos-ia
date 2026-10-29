@@ -66,6 +66,9 @@ PASO 4 - UNA VOZ NATURAL (elige una opcion)
 La voz de Windows de la prueba es sintetica: sirve para probar, no para publicar.
 
 4A) TU VOZ GRABADA (gratis, la mas natural; recomendada para empezar)
+    OJO: esto NO clona tu voz. Tu grabacion ES la narracion del video, por eso tienes que
+    leer el guion de ESA clase completo. (Clonar = 4B.)
+    Antes de grabar sube el microfono: Configuracion > Sistema > Sonido > Entrada > Volumen 80-100.
     1. En CREAR-VIDEO.bat elige la clase y la opcion 5 (Guion para grabar TU voz).
        Se abren el guion (Bloc de notas) y la carpeta voz de la clase.
     2. Graba el guion de corrido con la app Grabadora de sonido y CALLA 2 SEGUNDOS ENTRE

@@ -73,6 +73,8 @@ La voz de macOS de la prueba es sintetica: sirve para probar, no para publicar.
 Tienes tres opciones, de la mas simple a la mas comoda.
 
 4A) TU VOZ GRABADA (gratis, la mas natural; recomendada para empezar)
+    OJO: esto NO clona tu voz. Tu grabacion ES la narracion del video, por eso tienes que
+    leer el guion de ESA clase completo. (Clonar = 4B.)
     1. Abre CREAR-VIDEO.command, elige la clase y la opcion 5 (Guion para grabar TU voz).
        Se abren el guion y la carpeta voz de la clase.
     2. Graba el guion de corrido con QuickTime Player (Archivo > Nueva grabacion de audio) o con
