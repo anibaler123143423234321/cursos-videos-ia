@@ -112,6 +112,7 @@ function vistaNueva() {
       <div><label>Rol del avatar</label><input type="text" name="rol_avatar" value="Asistente docente IA"></div>
     </div>
     <div id="campos-ia">
+      <p class="ayuda" id="ayuda-ia" style="margin-top:14px">Con IA basta con el <b>tema</b>: si dejas vacío lo de abajo, la IA lo decide. Llénalo solo si quieres guiarla.</p>
       <label>Objetivo de aprendizaje</label><input type="text" name="objetivo" placeholder="Al terminar, el estudiante...">
       <label>Puntos que debe cubrir</label><textarea name="puntos" rows="2"></textarea>
       <div class="campos2"><div><label>Ejemplo o código a mostrar</label><input type="text" name="ejemplo"></div>
@@ -127,6 +128,7 @@ function vistaNueva() {
     const modo = f.modo.value;
     $$('.modo', f).forEach(m => m.classList.toggle('activo', m.querySelector('input').checked));
     $('#lbl-guion').firstChild.textContent = modo === 'manual' ? 'Guion ' : 'Guion (opcional: si ya lo tienes, la IA solo hace las diapositivas) ';
+    $('#ayuda-ia').classList.toggle('oculto', modo === 'manual');
     const n = palabras(f.guion.value);
     $('#cuenta-guion').textContent = n ? `${n} palabras · unos ${mmss(n / 2.4)} de video` : '';
   };
