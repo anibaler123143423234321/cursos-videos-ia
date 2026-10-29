@@ -272,12 +272,14 @@ function clienteGratis(env, usos) {
       }
       cuerpo = await r.text();
       if (r.ok) break;
-      if (r.status === 429) {
+      // "Request too large ... (OTPM): Limit 1000, Requested 1041": pedir menos tokens por respuesta (no sirve esperar)
+      const muyGrande = /request too large|max_(completion_)?tokens/i.test(cuerpo);
+      if (r.status === 429 && !muyGrande) {
         const s = esperaDe(r, cuerpo);
         if (s != null && s <= 65 && esperas < 4) { esperas++; await dormir((s + 1) * 1000); continue; }
         break;
       }
-      if ([400, 413].includes(r.status) && maximo) {
+      if (([400, 413].includes(r.status) || muyGrande) && maximo) {
         const nuevo = maximoPermitido(cuerpo, maximo);
         if (nuevo !== maximo) { maximo = nuevo; continue; }
       }
@@ -319,7 +321,7 @@ function maximoPermitido(cuerpo, maximo) {
   let m = /Limit (\d+), Requested (\d+)/i.exec(cuerpo);
   if (m) {
     const n = maximo - (+m[2] - +m[1]) - 100;
-    return n >= 1200 ? n : maximo;
+    return n >= 400 ? n : maximo; // con poco espacio por respuesta, la clase se pide en mas partes
   }
   m = /max_(?:completion_)?tokens\D*?(?:less than or equal to|at most|<=)\D*(\d+)/i.exec(cuerpo);
   if (m && +m[1] < maximo) return +m[1];
