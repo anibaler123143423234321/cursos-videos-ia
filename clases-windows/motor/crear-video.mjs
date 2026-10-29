@@ -37,6 +37,9 @@ const COLA = 2.0;     // segundos finales despues de la ultima frase
 const FPS_BOCA = 30;  // resolucion de la envolvente de voz (boca del robot)
 
 const texto = e => String((e && e.message) || e);
+let FFMPEG = null;   // ruta de ffmpeg (la busca programa())
+let FFPROBE = null;  // opcional
+const PROBADOS = {};
 const r3 = n => Math.round(n * 1000) / 1000;
 
 // ---------------------------------------------------------------- argumentos
@@ -86,7 +89,13 @@ async function principal() {
   validar(clase);
   if (GUION) return escribirGuion(clase);
   if (!fs.existsSync(path.join(DIR, 'diapositivas.js'))) throw new Error(`No existe clases/${slug}/diapositivas.js`);
-  if (!hay('ffmpeg') || !hay('ffprobe')) throw new Error('No encuentro ffmpeg/ffprobe. Instalalo (ver LEEME) y vuelve a intentar.');
+  FFMPEG = programa('ffmpeg');
+  if (!FFMPEG) {
+    throw new Error(`No puedo usar ffmpeg. Probe: ${PROBADOS.ffmpeg.join(' | ')}\n` +
+      '    Instalalo (Windows: winget install -e --id Gyan.FFmpeg / Mac: brew install ffmpeg), cierra la ventana y vuelve a abrirla.\n' +
+      '    Si ya lo tienes en otra carpeta, pon su ruta en .env:  FFMPEG_PATH=C:\\ruta\\a\\ffmpeg.exe');
+  }
+  FFPROBE = programa('ffprobe'); // opcional: si falta, la duracion se lee con ffmpeg
   fs.mkdirSync(SAL, { recursive: true });
 
   console.log(`\n== Clase: ${clase.tema || slug}  (${clase.bloques.length} bloques)`);
@@ -277,7 +286,7 @@ function buscarAudio(dir, nombre) {
 // Encuentra los bloques en una grabacion de corrido: las N-1 pausas mas largas separan los N bloques.
 function detectarBloques(wav, clase) {
   const n = clase.bloques.length;
-  const r = spawnSync('ffmpeg', ['-v', 'error', '-i', wav, '-f', 's16le', '-ac', '1', '-ar', '16000', '-'], { maxBuffer: 1 << 30 });
+  const r = spawnSync(FFMPEG, ['-v', 'error', '-i', wav, '-f', 's16le', '-ac', '1', '-ar', '16000', '-'], { maxBuffer: 1 << 30, windowsHide: true });
   if (r.status !== 0) throw new Error('No pude leer tu grabacion');
   const pcm = r.stdout;
   const muestras = pcm.length >> 1;
@@ -569,7 +578,7 @@ function silencio(dirVoz, nombre, seg) {
 
 // volumen de la voz cuadro a cuadro (mueve la boca del robot y el borde "hablando")
 function envolvente(wav) {
-  const r = spawnSync('ffmpeg', ['-v', 'error', '-i', wav, '-f', 's16le', '-ac', '1', '-ar', '16000', '-'], { maxBuffer: 1 << 30 });
+  const r = spawnSync(FFMPEG, ['-v', 'error', '-i', wav, '-f', 's16le', '-ac', '1', '-ar', '16000', '-'], { maxBuffer: 1 << 30, windowsHide: true });
   if (r.status !== 0) throw new Error('No pude analizar el audio de la voz');
   const pcm = r.stdout;
   const n = pcm.length >> 1;
@@ -655,7 +664,7 @@ async function renderizar(pagina, total, fps, salidaMp4, avatar, camara, capa) {
     '-c:v', 'libx264', '-preset', RAPIDO ? 'veryfast' : 'medium', '-crf', RAPIDO ? '26' : '18', '-r', String(fps),
     '-c:a', 'aac', '-b:a', '192k', '-t', String(total), '-movflags', '+faststart', salidaMp4];
 
-  const proc = spawn('ffmpeg', ffArgs, { stdio: ['pipe', 'ignore', 'pipe'] });
+  const proc = spawn(FFMPEG, ffArgs, { stdio: ['pipe', 'ignore', 'pipe'], windowsHide: true });
   let errFF = '';
   proc.stderr.on('data', d => { errFF += d; });
   let cerrado = false;
@@ -738,18 +747,61 @@ function hay(cmd, flag = '-version') {
 }
 
 function correr(cmd, a) {
-  const r = spawnSync(cmd, a, { encoding: 'utf8', maxBuffer: 1 << 28 });
-  if (r.error) throw new Error(`${cmd}: ${texto(r.error)}`);
-  if (r.status !== 0) throw new Error(`${cmd} fallo:\n${(r.stderr || '').trim().split('\n').slice(-8).join('\n')}`);
+  const r = spawnSync(cmd, a, { encoding: 'utf8', maxBuffer: 1 << 28, windowsHide: true });
+  const nombre = path.basename(cmd);
+  if (r.error) throw new Error(`${nombre}: ${texto(r.error)}`);
+  if (r.status !== 0) throw new Error(`${nombre} fallo:\n${(r.stderr || '').trim().split('\n').slice(-8).join('\n')}`);
   return r.stdout;
 }
 
+// Encuentra un programa (ffmpeg/ffprobe) aunque no este bien en el PATH.
+// Orden: .env (FFMPEG_PATH / FFPROBE_PATH), PATH, where.exe, carpeta de winget, rutas tipicas.
+function programa(nombre) {
+  const exe = process.platform === 'win32' ? `${nombre}.exe` : nombre;
+  const candidatos = [];
+  const delEnv = process.env[`${nombre.toUpperCase()}_PATH`];
+  if (delEnv) candidatos.push(delEnv);
+  if (FFMPEG && path.isAbsolute(FFMPEG)) candidatos.push(path.join(path.dirname(FFMPEG), exe)); // junto a ffmpeg
+  candidatos.push(nombre);
+  if (process.platform === 'win32') {
+    const w = spawnSync('where.exe', [nombre], { encoding: 'utf8', windowsHide: true });
+    if (w.status === 0) candidatos.push(...w.stdout.split(/\r?\n/).map(x => x.trim()).filter(Boolean));
+    const paquetes = path.join(process.env.LOCALAPPDATA || '', 'Microsoft', 'WinGet', 'Packages');
+    try {
+      for (const d of fs.readdirSync(paquetes).filter(d => /ffmpeg/i.test(d))) {
+        for (const sub of fs.readdirSync(path.join(paquetes, d))) candidatos.push(path.join(paquetes, d, sub, 'bin', exe));
+      }
+    } catch { /* winget no instalo ffmpeg ahi */ }
+    candidatos.push(path.join('C:\\ffmpeg', 'bin', exe),
+      path.join(process.env.ProgramFiles || 'C:\\Program Files', 'ffmpeg', 'bin', exe),
+      path.join(process.env.ChocolateyInstall || 'C:\\ProgramData\\chocolatey', 'bin', exe));
+  } else {
+    candidatos.push(`/opt/homebrew/bin/${nombre}`, `/usr/local/bin/${nombre}`);
+  }
+  PROBADOS[nombre] = [];
+  for (const c of [...new Set(candidatos)]) {
+    if (path.isAbsolute(c) && !fs.existsSync(c)) continue;
+    const r = spawnSync(c, ['-version'], { encoding: 'utf8', windowsHide: true });
+    if (!r.error && r.status === 0) return c;
+    PROBADOS[nombre].push(`${c} -> ${r.error ? texto(r.error) : `codigo ${r.status} ${(r.stderr || '').trim().split('\n').pop() || ''}`}`);
+  }
+  return null;
+}
+
 function ff(...a) {
-  return correr('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', ...a]);
+  return correr(FFMPEG, ['-hide_banner', '-loglevel', 'error', '-y', ...a]);
 }
 
 function duracion(f) {
-  const d = parseFloat(correr('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', f]));
+  let d;
+  if (FFPROBE) {
+    d = parseFloat(correr(FFPROBE, ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', f]));
+  } else {
+    // sin ffprobe: ffmpeg imprime "Duration: 00:02:21.70" al leer el archivo
+    const r = spawnSync(FFMPEG, ['-hide_banner', '-i', f], { encoding: 'utf8', windowsHide: true });
+    const m = /Duration:\s*(\d+):(\d+):([\d.]+)/.exec(r.stderr || '');
+    if (m) d = (+m[1]) * 3600 + (+m[2]) * 60 + parseFloat(m[3]);
+  }
   if (!isFinite(d)) throw new Error(`No pude medir la duracion de ${path.basename(f)}`);
   return d;
 }
