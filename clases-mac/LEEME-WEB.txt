@@ -20,6 +20,8 @@ QUE PUEDE HACER TU EQUIPO EN LA WEB
     * "Pego mi guion" (gratis): el docente pega su texto, un parrafo por bloque.
     * "IA gratis": un modelo abierto (Groq u Ollama) escribe guion y diapositivas.
       Con IA basta con escribir el TEMA: objetivo, puntos, ejemplo y reto son opcionales.
+      La IA gratis trabaja por partes (guion y luego diapositivas). Si su plan corta la respuesta,
+      la web le pide la parte que falta hasta completar la clase; por eso puede tardar un poco mas.
     * "Claude" (de pago): la mejor calidad, unos centavos de dolar por clase.
 - Editor de la clase:
     * Guion y diapositivas: corregir el texto de cada bloque y elegir la diapositiva

@@ -6,9 +6,15 @@ export const TIPOS = ['portada', 'idea', 'lista', 'codigo', 'comparacion', 'tarj
 const texto = e => String((e && e.message) || e);
 
 // ---------------------------------------------------------------- prompt
-const REGLAS = `Eres el productor de clases en video de 2 a 3 minutos de la Universidad Señor de Sipán (USS).
+const INTRO = `Eres el productor de clases en video de 2 a 3 minutos de la Universidad Señor de Sipán (USS).
 Cada clase se ve como una clase por Zoom: una diapositiva compartida con animaciones y un avatar que habla.
-Escribe el GUION (lo que dice la voz) y las DIAPOSITIVAS (plantillas) a partir de la ficha del docente.
+Son clases universitarias reales: el contenido debe ser correcto, claro y bien escrito.`;
+
+const REGLAS_PLAN = `- "pronunciacion": siglas, URLs o palabras en inglés que una voz en español leería mal, con cómo deben sonar
+  (ej.: {"escrito": "CSS", "dice": "ce ese ese"}, {"escrito": "HTML", "dice": "hache te eme ele"}). Solo afecta a la voz.
+- "agenda": 3 a 6 puntos cortos (máx. 24 caracteres) con el bloque donde empieza cada uno ("desde").`;
+
+const REGLAS_GUION = `GUION: lo que dice la voz, a partir de la ficha del docente.
 Si la ficha deja campos vacíos (objetivo, puntos, ejemplo, reto), decide tú lo más útil para el tema y el nivel:
 un objetivo claro, 3 o 4 ideas clave, un ejemplo concreto (código si aplica) y un reto práctico corto.
 
@@ -21,44 +27,56 @@ REGLAS DEL GUION
   "recordad" ni "mirad"), al nivel indicado. Escribe como se habla. Cuida la ortografía y la concordancia (el/la, los/las).
 - El texto de cada bloque es SOLO lo que la voz dice en voz alta: sin comillas, sin código y sin símbolos sueltos.
   Los símbolos se dicen con palabras: "un punto", "el numeral", "dos puntos", "las llaves". El código va en las diapositivas.
+- Las siglas se escriben normal en el texto (CSS, HTML, ID). Cómo suenan va SOLO en "pronunciacion", nunca en el texto.
 - Exactitud: solo datos verificables. No inventes cifras, fechas, citas ni funciones.
-- "pronunciacion": siglas, URLs o palabras en inglés que una voz en español leería mal, con cómo deben sonar
-  (ej.: {"escrito": "CSS", "dice": "ce ese ese"}, {"escrito": "HTML", "dice": "hache te eme ele"}). Solo afecta a la voz.
-- "agenda": 3 a 6 puntos cortos (máx. 24 caracteres) con el bloque donde empieza cada uno ("desde").
+${REGLAS_PLAN}`;
 
-DIAPOSITIVAS: EXACTAMENTE una por bloque, en el mismo orden (si hay 10 bloques, 10 diapositivas; "bloque" = id del bloque).
-La del último bloque es de tipo cierre.
+const REGLAS_DIAPOS = `DIAPOSITIVAS: una por bloque, en el mismo orden ("bloque" = id del bloque al que acompaña).
+Haz EXACTAMENTE una por cada bloque que se te pida. La del bloque 01 es portada y la del último bloque es cierre.
 Tipos disponibles:
 - portada: kicker, titulo, sub, items (2-5 chips cortos, p. ej. etiquetas o conceptos). Úsala solo en el bloque 01.
 - idea: kicker, titulo, sub. Para una idea o pregunta clave.
 - lista: kicker, titulo, items (2-5 viñetas de máx. 10 palabras).
 - pasos: kicker, titulo, items (2-5 pasos numerados).
-- codigo: kicker, titulo, sub, codigo (máx. 14 líneas y 50 caracteres por línea; HTML, CSS o JS real y correcto).
+- codigo: kicker, titulo, sub, codigo (máx. 14 líneas y 50 caracteres por línea; HTML, CSS o JS real, correcto y en inglés,
+  que funcione tal cual: "color: blue;", nunca "color: azul;").
 - comparacion: kicker, titulo, izq y der, los DOS llenos (etiqueta corta en mayúsculas, titulo, texto de máx. 15 palabras).
 - tarjetas: kicker, titulo, tarjetas (2-4 con titulo y texto de máx. 12 palabras).
 - dato: kicker, dato (número o palabra corta, p. ej. "404" o "1994"), titulo, sub.
 - cierre: kicker, titulo, items (resumen y reto), despedida (ej.: "¡Nos vemos en la próxima clase! · NOMBRE DEL AVATAR").
 Reglas de diapositivas:
 - titulo de máx. 7 palabras; marca la palabra clave entre asteriscos: "Semántica = *significado*".
-- kicker: 1 a 4 palabras en mayúsculas o tipo etiqueta ("El problema", "Paso 2 · La petición").
-- En pantalla van las ideas clave, no el texto de la voz.
+- kicker: 1 a 4 palabras en español, en mayúsculas o tipo etiqueta ("El problema", "Paso 2 · La petición").
+- En pantalla van las ideas clave, no el texto de la voz. Todo lo que se ve debe ser correcto.
 - "cuando": una palabra o frase corta copiada TAL CUAL (con tildes) del texto de ESE bloque; el elemento aparece cuando la voz la dice.
-- Usa variedad de tipos: al menos 1 codigo o comparacion o tarjetas cuando el tema lo permita.
-- Rellena con "" o [] los campos que no use el tipo elegido.`;
+- Usa variedad de tipos: al menos 1 codigo o comparacion o tarjetas cuando el tema lo permita.`;
 
-const EJEMPLO_JSON = `{
-  "tema": "...",
-  "agenda": [{"titulo": "...", "desde": "02"}],
-  "pronunciacion": [{"escrito": "CSS", "dice": "ce ese ese"}],
-  "bloques": [{"id": "01", "texto": "..."}],
-  "diapositivas": [{"bloque": "01", "tipo": "portada", "kicker": "...", "titulo": "... *clave*", "sub": "...", "nota": "",
-    "items": [{"texto": "...", "cuando": ""}], "codigo": "", "izq": {"etiqueta": "", "titulo": "", "texto": "", "cuando": ""},
-    "der": {"etiqueta": "", "titulo": "", "texto": "", "cuando": ""}, "tarjetas": [], "dato": "", "despedida": ""}]
-}`;
+// Claude lo hace todo en una sola respuesta (salida estructurada, sin tope corto)
+const REGLAS = `${INTRO}
+Escribe el GUION y las DIAPOSITIVAS (plantillas) de la clase.
 
-function pedido(ficha, bloquesFijos) {
+${REGLAS_GUION}
+
+${REGLAS_DIAPOS}`;
+
+// La IA gratis trabaja POR PARTES (guion, luego diapositivas) y cada diapositiva lleva solo los campos de su
+// tipo: asi cada respuesta es corta. Si aun asi se corta por el tope de tokens, se pide la parte que falta.
+const FORMATO_GUION = `Responde SOLO con un objeto JSON, sin texto antes ni después, con esta forma:
+{"tema": "...", "agenda": [{"titulo": "...", "desde": "02"}], "pronunciacion": [{"escrito": "CSS", "dice": "ce ese ese"}],
+ "bloques": [{"id": "01", "texto": "..."}, {"id": "02", "texto": "..."}]}`;
+const FORMATO_SIGUE = `Responde SOLO con un objeto JSON, sin texto antes ni después: {"bloques": [{"id": "07", "texto": "..."}]}`;
+const FORMATO_PLAN = `Responde SOLO con un objeto JSON, sin texto antes ni después:
+{"agenda": [{"titulo": "...", "desde": "02"}], "pronunciacion": [{"escrito": "CSS", "dice": "ce ese ese"}]}`;
+const FORMATO_DIAPOS = `Responde SOLO con un objeto JSON, sin texto antes ni después, con esta forma:
+{"diapositivas": [
+  {"bloque": "01", "tipo": "portada", "kicker": "...", "titulo": "... *clave*", "sub": "...", "items": [{"texto": "...", "cuando": ""}]},
+  {"bloque": "02", "tipo": "comparacion", "kicker": "...", "titulo": "...", "izq": {"etiqueta": "...", "titulo": "...", "texto": "...", "cuando": "..."}, "der": {"etiqueta": "...", "titulo": "...", "texto": "...", "cuando": "..."}},
+  {"bloque": "03", "tipo": "codigo", "kicker": "...", "titulo": "...", "sub": "...", "codigo": "p {\n  color: blue;\n}"}]}
+En cada diapositiva escribe SOLO los campos que usa su tipo; no pongas campos vacíos.`;
+
+function fichaTexto(ficha) {
   const f = k => (ficha[k] || '').toString().trim();
-  const lineas = [
+  return [
     'FICHA DE LA CLASE',
     `Nombre del avatar: ${f('avatar') || 'SIPANCITOBOT'}`,
     `Rol del avatar: ${f('rol_avatar') || 'Asistente docente IA'}`,
@@ -72,10 +90,14 @@ function pedido(ficha, bloquesFijos) {
     `Ejemplo o código a mostrar: ${f('ejemplo')}`,
     `Reto o tarea final: ${f('reto')}`,
     `Notas: ${f('notas')}`,
-  ];
+  ].join('\n');
+}
+
+function pedido(ficha, bloquesFijos) {
+  const lineas = [fichaTexto(ficha)];
   if (bloquesFijos) {
-    lineas.push('', 'EL GUION YA ESTÁ ESCRITO. Usa EXACTAMENTE estos bloques (mismo id y mismo texto, sin cambiar nada) y crea',
-      'solo agenda, pronunciacion y diapositivas para ellos:', JSON.stringify(bloquesFijos, null, 1));
+    lineas.push('', 'EL GUION YA ESTÁ ESCRITO (abajo). No lo cambies ni lo repitas: devuelve "bloques": [] y crea solo',
+      'agenda, pronunciacion y diapositivas (una por bloque, con los mismos id) para estos bloques:', JSON.stringify(bloquesFijos, null, 1));
   }
   return lineas.join('\n');
 }
@@ -112,7 +134,7 @@ async function conClaude(ficha, bloquesFijos, env) {
       betas: ['server-side-fallback-2026-07-01'],
       fallbacks: 'default',
       output_config: { effort: 'medium', format: { type: 'json_schema', schema: ESQUEMA_CLASE } },
-      system: REGLAS,
+      system: `${REGLAS}\n- Rellena con "" o [] los campos que no use el tipo elegido.`,
       messages: [{ role: 'user', content: pedido(ficha, bloquesFijos) }],
     });
     const msg = await stream.finalMessage();
@@ -129,51 +151,222 @@ async function conClaude(ficha, bloquesFijos, env) {
   }
 }
 
+// ---------------------------------------------------------------- IA gratis por partes
+const dormir = ms => new Promise(r => setTimeout(r, ms));
+const contarPalabras = bloques => bloques.reduce((t, b) => t + String(b.texto).split(/\s+/).filter(Boolean).length, 0);
+const dosDigitos = n => String(n).padStart(2, '0');
+
 async function conIaGratis(ficha, bloquesFijos, env) {
+  const usos = [];
+  const pedir = clienteGratis(env, usos);
+  // 1) guion (o el del docente) con agenda y pronunciacion
+  const guion = bloquesFijos ? { bloques: bloquesFijos } : await guionPorPartes(pedir, ficha);
+  if (!(Array.isArray(guion.agenda) && guion.agenda.length)) {
+    const { datos } = await pedir(`${INTRO}\n\n${REGLAS_PLAN}\n\n${FORMATO_PLAN}`,
+      `${fichaTexto(ficha)}\n\nGUION:\n${JSON.stringify(guion.bloques)}\n\nCrea solo la agenda y la pronunciación de este guion.`);
+    guion.agenda = datos.agenda;
+    if (!(Array.isArray(guion.pronunciacion) && guion.pronunciacion.length)) guion.pronunciacion = datos.pronunciacion;
+  }
+  // 2) diapositivas: se piden las que falten hasta tenerlas todas completas
+  const diapositivas = await diapositivasPorPartes(pedir, ficha, guion.bloques);
+  const uso = {
+    partes: usos.length,
+    prompt_tokens: usos.reduce((t, u) => t + (u.prompt_tokens || 0), 0),
+    completion_tokens: usos.reduce((t, u) => t + (u.completion_tokens || 0), 0),
+    fin: usos.map(u => u.fin),
+  };
+  return { datos: { ...guion, diapositivas }, uso };
+}
+
+async function guionPorPartes(pedir, ficha) {
+  const objetivo = Math.round((segundos(ficha.duracion) || 150) * 2.3);
+  let plan = {};
+  let bloques = [];
+  let sinAvance = 0;
+  for (let parte = 0; parte < 6 && bloques.length < 14; parte++) {
+    const sigue = bloques.length > 0;
+    const usuario = sigue
+      ? [fichaTexto(ficha), '', 'TU RESPUESTA ANTERIOR SE CORTÓ. Estos bloques ya están escritos (no los repitas ni los cambies):',
+        JSON.stringify(bloques), '',
+        `Escribe SOLO los bloques que faltan, desde el "${dosDigitos(bloques.length + 1)}", siguiendo la estructura hasta el reto y la despedida.`,
+        `Van ${contarPalabras(bloques)} palabras; el guion completo debe tener unas ${objetivo}.`].join('\n')
+      : fichaTexto(ficha);
+    const { datos, cortada } = await pedir(`${INTRO}\n\n${REGLAS_GUION}\n\n${sigue ? FORMATO_SIGUE : FORMATO_GUION}`, usuario);
+    if (!sigue) plan = { tema: datos.tema, agenda: datos.agenda, pronunciacion: datos.pronunciacion };
+    const nuevos = (Array.isArray(datos.bloques) ? datos.bloques : []).filter(b => b && String(b.texto || '').trim());
+    bloques = [...bloques, ...nuevos].slice(0, 14).map((b, i) => ({ id: dosDigitos(i + 1), texto: String(b.texto).replace(/\s+/g, ' ').trim() }));
+    if (bloques.length && !cortada) break;
+    if (!nuevos.length && ++sinAvance >= 2) break;
+  }
+  if (bloques.length < 3) throw new Error('La IA gratis no logró escribir el guion. Intenta de nuevo o usa otro modelo.');
+  return { ...plan, bloques };
+}
+
+// Una diapositiva cuenta solo si tiene todo lo que su tipo necesita (una comparacion sin lado derecho no sirve)
+function diapositivaCompleta(d) {
+  if (!d || !TIPOS.includes(d.tipo) || !String(d.titulo || '').trim()) return false;
+  const lleno = x => x && String(x.titulo || x.texto || '').trim();
+  const cuantos = a => (Array.isArray(a) ? a.filter(lleno).length : 0);
+  switch (d.tipo) {
+    case 'lista': case 'pasos': return cuantos(d.items) >= 2;
+    case 'cierre': return cuantos(d.items) >= 1 || !!String(d.despedida || '').trim();
+    case 'codigo': return !!String(d.codigo || '').trim();
+    case 'comparacion': return !!(lleno(d.izq) && lleno(d.der));
+    case 'tarjetas': return cuantos(d.tarjetas) >= 2;
+    case 'dato': return !!String(d.dato || '').trim();
+    default: return true;
+  }
+}
+
+async function diapositivasPorPartes(pedir, ficha, bloques) {
+  const ids = bloques.map(b => b.id);
+  const ultimo = ids[ids.length - 1];
+  const hechas = {};
+  let sinAvance = 0;
+  let porParte = ids.length; // si una respuesta se corta, las siguientes piden menos diapositivas a la vez
+  for (let parte = 0; parte < 12; parte++) {
+    const faltan = ids.filter(id => !hechas[id]).slice(0, porParte);
+    if (!faltan.length) break;
+    const listas = ids.filter(id => hechas[id]).map(id => `${id} (${hechas[id].tipo})`);
+    const usuario = [
+      fichaTexto(ficha), '',
+      'GUION COMPLETO (cada diapositiva acompaña a su bloque):', JSON.stringify(bloques), '',
+      listas.length ? `Ya están hechas las diapositivas de los bloques ${listas.join(', ')}: no las repitas y varía los tipos.` : '',
+      `Crea las diapositivas SOLO para estos bloques, una por bloque y en orden: ${faltan.join(', ')}.`,
+      faltan.includes(ultimo) ? `La del bloque ${ultimo} es de tipo cierre.` : '',
+    ].filter(Boolean).join('\n');
+    const { datos, cortada } = await pedir(`${INTRO}\n\n${REGLAS_DIAPOS}\n\n${FORMATO_DIAPOS}`, usuario);
+    let lista = (Array.isArray(datos.diapositivas) ? datos.diapositivas : []).filter(d => d && typeof d === 'object');
+    if (cortada) lista = lista.slice(0, -1); // la ultima pudo quedar a medias: se vuelve a pedir
+    let nuevas = 0;
+    lista.forEach((d, k) => {
+      const v = String(d.bloque == null ? '' : d.bloque).trim();
+      const id = /^\d+$/.test(v) ? dosDigitos(+v) : d.bloque == null ? faltan[k] : null;
+      if (id && faltan.includes(id) && !hechas[id] && diapositivaCompleta(d)) { hechas[id] = { ...d, bloque: id }; nuevas++; }
+    });
+    if (cortada) porParte = Math.max(2, nuevas + 1);
+    if (!nuevas && ++sinAvance >= 2) break;
+  }
+  return ids.filter(id => hechas[id]).map(id => hechas[id]);
+}
+
+// Cliente para APIs compatibles con OpenAI (Groq, Ollama, OpenRouter...). Ajusta max_tokens si el servicio
+// dice cuanto permite y espera cuando el plan gratis pide "intenta de nuevo en 20 s".
+function clienteGratis(env, usos) {
   const url = (env.IA_GRATIS_URL || 'https://api.groq.com/openai/v1').replace(/\/+$/, '');
   const modelo = env.IA_GRATIS_MODELO || 'openai/gpt-oss-120b';
   const cabeceras = { 'Content-Type': 'application/json' };
   if (env.IA_GRATIS_KEY) cabeceras.Authorization = `Bearer ${env.IA_GRATIS_KEY}`;
   else if (!/localhost|127\.0\.0\.1/.test(url)) throw new Error('Falta la API key de la IA gratis (Ajustes).');
-  let r;
-  try {
-    r = await fetch(`${url}/chat/completions`, {
-      method: 'POST',
-      headers: cabeceras,
-      body: JSON.stringify({
-        model: modelo,
-        response_format: { type: 'json_object' },
-        messages: [
-          { role: 'system', content: `${REGLAS}\n\nResponde SOLO con un objeto JSON con esta forma exacta:\n${EJEMPLO_JSON}` },
-          { role: 'user', content: pedido(ficha, bloquesFijos) },
-        ],
-      }),
-    });
-  } catch (e) {
-    throw new Error(`No hay conexión con la IA gratis (${url}): ${texto(e.cause || e)}`);
+  let maximo = Number(env.IA_GRATIS_MAX_TOKENS) || 8000;
+
+  return async function pedir(sistema, usuario) {
+    let r, cuerpo, esperas = 0;
+    for (let intento = 0; intento < 8; intento++) {
+      const peticion = { model: modelo, response_format: { type: 'json_object' }, messages: [{ role: 'system', content: sistema }, { role: 'user', content: usuario }] };
+      if (maximo) peticion.max_tokens = maximo;
+      try {
+        r = await fetch(`${url}/chat/completions`, { method: 'POST', headers: cabeceras, body: JSON.stringify(peticion) });
+      } catch (e) {
+        throw new Error(`No hay conexión con la IA gratis (${url}): ${texto(e.cause || e)}`);
+      }
+      cuerpo = await r.text();
+      if (r.ok) break;
+      if (r.status === 429) {
+        const s = esperaDe(r, cuerpo);
+        if (s != null && s <= 65 && esperas < 4) { esperas++; await dormir((s + 1) * 1000); continue; }
+        break;
+      }
+      if ([400, 413].includes(r.status) && maximo) {
+        const nuevo = maximoPermitido(cuerpo, maximo);
+        if (nuevo !== maximo) { maximo = nuevo; continue; }
+      }
+      break;
+    }
+    if (!r.ok) {
+      const pista = r.status === 401 ? ' (API key inválida)' : r.status === 413 || r.status === 429 ? ' (límite del plan gratis: espera un minuto o usa otro modelo)' : '';
+      throw new Error(`La IA gratis respondió ${r.status}${pista}: ${cuerpo.slice(0, 300)}`);
+    }
+    const j = JSON.parse(cuerpo);
+    const eleccion = (j.choices && j.choices[0]) || {};
+    const contenido = eleccion.message && eleccion.message.content;
+    const cortada = eleccion.finish_reason === 'length';
+    usos.push({ ...j.usage, fin: eleccion.finish_reason });
+    if (!contenido) {
+      if (cortada) return { datos: {}, cortada }; // gasto todo pensando: la siguiente parte lo reintenta
+      throw new Error('La IA gratis no devolvió contenido.');
+    }
+    try {
+      return { datos: extraerJson(contenido, cortada), cortada };
+    } catch (e) {
+      if (cortada) return { datos: {}, cortada };
+      throw e;
+    }
+  };
+}
+
+// Segundos que pide esperar el servicio (cabecera retry-after o "try again in 1m2.5s")
+function esperaDe(r, cuerpo) {
+  const h = Number(r.headers.get('retry-after'));
+  if (Number.isFinite(h) && h > 0) return h;
+  const m = /try again in (?:(\d+)m)?([\d.]+)s/i.exec(cuerpo);
+  return m ? (+(m[1] || 0)) * 60 + Math.ceil(+m[2]) : null;
+}
+
+// "...tokens per minute (TPM): Limit 6000, Requested 10098" -> pedir menos para entrar en el limite.
+// "max_tokens must be less than or equal to 4096" -> pedir ese maximo. Si no acepta max_tokens, sin limite (0).
+function maximoPermitido(cuerpo, maximo) {
+  let m = /Limit (\d+), Requested (\d+)/i.exec(cuerpo);
+  if (m) {
+    const n = maximo - (+m[2] - +m[1]) - 100;
+    return n >= 1200 ? n : maximo;
   }
-  const cuerpo = await r.text();
-  if (!r.ok) {
-    const pista = r.status === 401 ? ' (API key inválida)' : r.status === 413 || r.status === 429 ? ' (límite del plan gratis: espera un minuto o usa otro modelo)' : '';
-    throw new Error(`La IA gratis respondió ${r.status}${pista}: ${cuerpo.slice(0, 300)}`);
-  }
-  const j = JSON.parse(cuerpo);
-  const contenido = j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
-  if (!contenido) throw new Error('La IA gratis no devolvió contenido.');
-  return { datos: extraerJson(contenido), uso: j.usage };
+  m = /max_(?:completion_)?tokens\D*?(?:less than or equal to|at most|<=)\D*(\d+)/i.exec(cuerpo);
+  if (m && +m[1] < maximo) return +m[1];
+  if (/max_(?:completion_)?tokens/i.test(cuerpo)) return 0;
+  return maximo;
 }
 
 // Algunos modelos abiertos (Qwen, DeepSeek...) escriben su razonamiento en <think>...</think> o envuelven el
 // JSON en ```json: nos quedamos solo con el objeto JSON.
-function extraerJson(contenido) {
-  const limpio = String(contenido).replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/```(?:json)?/gi, '').trim();
+function extraerJson(contenido, cortada = false) {
+  const limpio = String(contenido).replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, '').replace(/```(?:json)?/gi, '').trim();
   try { return JSON.parse(limpio); } catch { /* sigue */ }
   const a = limpio.indexOf('{');
   const z = limpio.lastIndexOf('}');
   if (a >= 0 && z > a) {
     try { return JSON.parse(limpio.slice(a, z + 1)); } catch { /* sigue */ }
   }
-  throw new Error('La IA gratis no devolvió un JSON válido. Intenta de nuevo o usa otro modelo.');
+  // respuesta cortada a la mitad: se aprovecha hasta el ultimo elemento completo
+  const rescatado = a >= 0 ? cerrarJson(limpio.slice(a)) : null;
+  if (rescatado) return rescatado;
+  throw new Error(cortada
+    ? 'La respuesta de la IA gratis se cortó (límite de tokens). Intenta de nuevo o usa otro modelo.'
+    : 'La IA gratis no devolvió un JSON válido. Intenta de nuevo o usa otro modelo.');
+}
+
+// Cierra un JSON cortado: prueba a cortar despues de cada } o ] (del final hacia atras) y cerrar lo que quede abierto.
+function cerrarJson(s) {
+  const pila = [];
+  const cortes = [];
+  let enTexto = false, escape = false;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (enTexto) {
+      if (escape) escape = false;
+      else if (c === '\\') escape = true;
+      else if (c === '"') enTexto = false;
+    } else if (c === '"') enTexto = true;
+    else if (c === '{' || c === '[') pila.push(c === '{' ? '}' : ']');
+    else if (c === '}' || c === ']') { pila.pop(); cortes.push([i + 1, pila.slice().reverse().join('')]); }
+  }
+  for (let k = cortes.length - 1; k >= 0 && k >= cortes.length - 400; k--) {
+    try {
+      const v = JSON.parse(s.slice(0, cortes[k][0]) + cortes[k][1]);
+      if (v && typeof v === 'object' && !Array.isArray(v)) return v;
+    } catch { /* sigue */ }
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------- modo manual (sin IA)
@@ -217,14 +410,14 @@ function diapositivasBasicas(ficha, bloques, agenda = []) {
   });
 }
 
-// Los modelos abiertos a veces dejan bloques sin diapositiva (el video se queda medio minuto en la misma)
-// o plantillas a medio llenar (una comparación con un lado vacío). Se completa solo lo que falta.
+// Ultimo recurso: si despues de pedir por partes aun falta alguna diapositiva (o Claude dejo una plantilla
+// a medias), se pone una simple para que el video no se quede medio minuto en la misma. Devuelve sus bloques.
 function completarDiapositivas(clase, ficha) {
   const basicas = diapositivasBasicas(ficha, clase.bloques, clase.agenda);
   const propias = {};
   for (const d of clase.diapositivas) if (!propias[d.bloque]) propias[d.bloque] = arreglarPlantilla(d);
   clase.diapositivas = clase.bloques.map((bl, i) => propias[bl.id] || basicas[i]);
-  return clase;
+  return clase.bloques.filter(bl => !propias[bl.id]).map(bl => bl.id);
 }
 
 function arreglarPlantilla(d) {
@@ -317,5 +510,21 @@ export async function generarClase({ ficha, modo, guion, env, base }) {
   const bloquesFijos = guion ? (Array.isArray(guion) ? guion : guionManual(guion)) : null;
   const { datos, uso } = modo === 'claude' ? await conClaude(ficha, bloquesFijos, env) : await conIaGratis(ficha, bloquesFijos, env);
   if (bloquesFijos) datos.bloques = bloquesFijos; // el guion del docente no se toca
-  return { clase: completarDiapositivas(normalizar(datos, ficha, base), ficha), uso };
+  const clase = normalizar(datos, ficha, base);
+  if (!bloquesFijos) sinDeletreos(clase);
+  const simples = completarDiapositivas(clase, ficha);
+  const aviso = simples.length
+    ? `La IA no completó las diapositivas de los bloques ${simples.join(', ')}: puse unas simples. Revísalas o pulsa «Diapositivas con IA».`
+    : '';
+  return { clase, uso, aviso };
+}
+
+// Algunos modelos escriben "Ce Ese Ese" en el texto en vez de "CSS": se deja la sigla y la voz la lee
+// con "pronunciacion" (asi el texto queda limpio y "cuando" encuentra la palabra).
+function sinDeletreos(clase) {
+  for (const [escrito, dice] of Object.entries(clase.pronunciacion || {})) {
+    if (dice.trim().split(/\s+/).length < 2) continue; // solo deletreos ("ce ese ese"), no palabras sueltas
+    const re = new RegExp(`(?<![\\p{L}\\p{N}])${dice.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'giu');
+    for (const bl of clase.bloques) bl.texto = bl.texto.replace(re, escrito);
+  }
 }

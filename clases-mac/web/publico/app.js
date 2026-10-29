@@ -141,10 +141,11 @@ function vistaNueva() {
     const { modo, guion } = ficha;
     delete ficha.modo; delete ficha.guion;
     $('#b-crear').disabled = true;
-    $('#esperando-ia').innerHTML = `<span class="esperando">${modo === 'manual' ? 'Creando…' : 'La IA está escribiendo la clase (1 a 3 minutos)…'}</span>`;
+    $('#esperando-ia').innerHTML = `<span class="esperando">${modo === 'manual' ? 'Creando…' : 'La IA está escribiendo la clase por partes: guion y luego diapositivas (1 a 3 minutos)…'}</span>`;
     try {
       const r = await api('/api/clases', { method: 'POST', body: JSON.stringify({ ficha, modo, guion }) });
       location.hash = `#/clase/${r.slug}`;
+      if (r.aviso) setTimeout(() => aviso(r.aviso, true), 800);
     } catch (err) {
       aviso(err.message, true);
       $('#b-crear').disabled = false;
@@ -369,7 +370,7 @@ async function rehacerConIa(modo) {
     editor.sucio = false;
     pintarPestana();
     estimar();
-    aviso('Diapositivas nuevas listas: revísalas');
+    aviso(r.aviso || 'Diapositivas nuevas listas: revísalas', !!r.aviso);
   } catch (e) { aviso(e.message, true); pintarPestana(); }
 }
 

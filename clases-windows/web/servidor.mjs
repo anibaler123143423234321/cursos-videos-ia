@@ -251,11 +251,11 @@ async function rutaApi(req, res, url) {
   if (p === '/api/clases' && req.method === 'POST') {
     const { ficha = {}, modo = 'manual', guion = '' } = await leerJson(req);
     if (!String(ficha.tema || '').trim()) return json(res, 400, { error: 'Escribe el tema de la clase' });
-    const { clase, uso } = await generarClase({ ficha, modo, guion, env: leerEnv() });
+    const { clase, uso, aviso } = await generarClase({ ficha, modo, guion, env: leerEnv() });
     const slug = slugDe(clase.tema);
     guardarClase(slug, clase);
     fs.writeFileSync(path.join(dirClase(slug), 'ficha.json'), JSON.stringify({ ...ficha, modo, creada: new Date().toISOString() }, null, 2));
-    return json(res, 200, { slug, uso });
+    return json(res, 200, { slug, uso, aviso });
   }
   if ((r = m(/^\/api\/clases\/([a-z0-9-]+)$/))) {
     const slug = r[1];
@@ -283,9 +283,9 @@ async function rutaApi(req, res, url) {
     if (!clase) return json(res, 404, { error: 'No existe esa clase' });
     const { modo = 'gratis' } = await leerJson(req);
     const ficha = fs.existsSync(path.join(dirClase(r[1]), 'ficha.json')) ? JSON.parse(fs.readFileSync(path.join(dirClase(r[1]), 'ficha.json'), 'utf8')) : {};
-    const { clase: nueva, uso } = await generarClase({ ficha: { ...ficha, ...clase }, modo, guion: clase.bloques, env: leerEnv(), base: clase });
+    const { clase: nueva, uso, aviso } = await generarClase({ ficha: { ...ficha, ...clase }, modo, guion: clase.bloques, env: leerEnv(), base: clase });
     guardarClase(r[1], nueva);
-    return json(res, 200, { ok: true, clase: nueva, uso });
+    return json(res, 200, { ok: true, clase: nueva, uso, aviso });
   }
   if ((r = m(/^\/api\/clases\/([a-z0-9-]+)\/archivo$/))) {
     const slug = r[1];
