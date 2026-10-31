@@ -457,7 +457,7 @@ function vistaNueva() {
     $('#guiar-ia').classList.toggle('oculto', manual || img);
     $('#p-guion').classList.toggle('oculto', img && !manual);
     $('#req-tema').textContent = img && !manual ? 'opcional: la IA lo lee de la primera lámina' : 'obligatorio';
-    $('#d-clase').textContent = img ? 'El tema aparece arriba en el video.' : 'Con IA basta con el tema.';
+    $('#d-clase').textContent = img ? 'El tema es el título de la clase.' : 'Con IA basta con el tema.';
     $('#t-guion').textContent = img ? 'Lo que dice la voz' : manual ? 'Guion' : 'Guion · opcional';
     $('#d-guion').textContent = img ? 'Un párrafo por lámina, en el mismo orden, separados por una línea en blanco.'
       : manual ? 'Un párrafo por bloque, separados por una línea en blanco.' : 'Si ya tienes tu guion, pégalo: la IA solo hará las diapositivas.';
@@ -550,8 +550,10 @@ function estimar() {
   const obj = editor.clase.duracion_objetivo || 150;
   const e = $('#estimado');
   if (e) {
+    // con laminas propias la duracion la marcan las laminas: no hay objetivo que cumplir
+    const objetivo = editor.laminas ? '' : `<small>/ objetivo ${mmss(obj)}</small>`;
     e.innerHTML = `<span>${ico('capas', 14)}${editor.items.length} bloques</span><span>${ico('texto', 14)}${n} palabras</span>
-      <span class="${Math.abs(seg - obj) / obj > 0.15 ? 'fuera' : ''}">${ico('reloj', 14)}≈ ${mmss(seg)} <small>/ objetivo ${mmss(obj)}</small></span>`;
+      <span class="${!editor.laminas && Math.abs(seg - obj) / obj > 0.15 ? 'fuera' : ''}">${ico('reloj', 14)}≈ ${mmss(seg)} ${objetivo}</span>`;
   }
   const g = $('#guardado');
   if (g) g.innerHTML = editor.sucio ? '<i class="punto ambar"></i>Cambios sin guardar' : `${ico('check', 14)}Guardado`;

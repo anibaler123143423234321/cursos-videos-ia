@@ -3,6 +3,12 @@
 Clases en video de 2 a 3 minutos con aspecto de clase por Zoom: láminas, avatar (SIPANCITOBOT) y voz.
 Cada video final se guarda solo en la carpeta compartida de Google Drive del equipo.
 
+| Si eres… | Lee esto |
+|---|---|
+| **Docente** (crea clases desde el navegador, sin instalar nada) | [`guias/Guia-docente-crear-un-video.pdf`](guias/Guia-docente-crear-un-video.pdf): 6 pasos con capturas |
+| **Quien administra la PC del estudio** (enciende la web y da la clave) | [`guias/PC-DEL-ESTUDIO.txt`](guias/PC-DEL-ESTUDIO.txt): una página |
+| **Quien instala o cambia el sistema** | Este README y `clases-windows/LEEME-WINDOWS.txt` |
+
 ## Crear un video en 5 pasos (PC del estudio, Windows)
 
 La PC del estudio ya tiene todo instalado y conectado: Node.js, ffmpeg, la voz local gratis (Piper) y Google Drive.

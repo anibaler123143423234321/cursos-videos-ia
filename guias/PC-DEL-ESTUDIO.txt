@@ -1,0 +1,42 @@
+PC DEL ESTUDIO - LO QUE HACE QUIEN ADMINISTRA
+==============================================
+Los docentes no instalan nada: entran a la web desde su navegador y siguen
+Guia-docente-crear-un-video.pdf (esta misma carpeta). Tu parte es tener la web encendida.
+
+CADA DIA (1 minuto)
+1. Enciende la PC del estudio.
+2. Doble clic en  clases-windows\INICIAR-WEB.bat  y deja abierta la ventana negra.
+   Si la cierras, la web se apaga para todos.
+
+Para no hacerlo a mano: tecla Windows + R, escribe  shell:startup  y Enter. En la carpeta que se
+abre, crea un acceso directo a INICIAR-WEB.bat. Asi la web se enciende sola al prender la PC.
+
+LO QUE LES DAS A LOS DOCENTES (una sola vez)
+1. La direccion de la web: la ventana negra la muestra en "Desde otra PC", por ejemplo
+   http://10.136.11.194:8080  (si cambia la red de la PC, cambia la direccion).
+2. La clave del equipo: la de WEB_CLAVE en clases-windows\.env. Se cambia en la web: Ajustes.
+3. La guia: guias\Guia-docente-crear-un-video.pdf
+
+YA ESTA CONFIGURADO EN ESTA PC (en la web, Servicios en verde)
+- Voz local gratis (Piper): sin internet y sin limite.
+- IA gratis (Groq) y IA que lee laminas (modelo qwen/qwen3.8-27b).
+- Google Drive: cada video final se sube solo a CINF GEX / Videos de clases IA / mes / curso /
+  Video con HTML o Video con laminas / modulo / clase.
+
+CUANTO AGUANTA LO GRATIS
+- Groq gratis: 200 000 tokens por dia. Una clase con 9 laminas usa unos 30 000 (unas 6 al dia);
+  una clase HTML a partir del tema, unos 15 000 (unas 12 al dia). Al llegar al tope la web dice
+  "limite del plan gratis": se libera poco a poco en las siguientes horas.
+- Para mas clases por dia: en Ajustes > IA que lee laminas agrega Gemini (gratis, aistudio.google.com)
+  o usa Claude (de pago por uso).
+- Los videos se crean de uno en uno en esta PC: 5 a 8 minutos cada uno.
+- Espacio en Drive: cada clase ocupa de 20 a 70 MB (video + HTML). La cuenta tiene 15 GB.
+
+SI ALGO FALLA
+- Nadie puede entrar: revisa que la ventana negra siga abierta y que la PC este en la red.
+  La primera vez, Windows pregunta por el Firewall: marca "Redes privadas" y "Permitir acceso".
+- Drive dice "el permiso vencio": doble clic en clases-windows\CONECTAR-DRIVE.bat.
+- "falta la voz es_MX-claude-high": doble clic en clases-windows\INSTALAR-VOZ-LOCAL.bat.
+- Otro error: en la clase, "Ver detalle del error"; copialo y pegaselo a Claude Code.
+
+Instalar en otra PC o cambiar cuentas: README.md y clases-windows\LEEME-WINDOWS.txt.
