@@ -1,0 +1,44 @@
+{
+  "slug": "gmail-comunicacion-profesional",
+  "avatar": "SIPANCITOBOT",
+  "rol_avatar": "Asistente docente IA",
+  "docente": "",
+  "institucion": "Universidad Señor de Sipán",
+  "curso": "Competencias Digitales",
+  "banda": "Competencias Digitales",
+  "tema": "Gestión profesional de la comunicación con Gmail",
+  "nivel": "Básico",
+  "duracion_objetivo": 160,
+  "voz": { "proveedor": "auto", "elevenlabs_voz": "EXAVITQu4vr4xnSDxMaL" },
+  "pronunciacion": {
+    "SIPANCITOBOT": "Sipancitobot",
+    "Gmail": "yi meil",
+    "Google": "gúgol",
+    "tablet": "táblet",
+    "to": "tu",
+    "subject": "sábyect",
+    "Has attachment": "jas atáchment",
+    "after": "áfter",
+    "before": "bifór"
+  },
+  "agenda": [
+    { "titulo": "Logro de la sesión", "desde": "02" },
+    { "titulo": "Gmail y configuración", "desde": "04" },
+    { "titulo": "Organiza tu correo", "desde": "06" },
+    { "titulo": "Búsqueda avanzada", "desde": "07" },
+    { "titulo": "Buenas prácticas", "desde": "08" },
+    { "titulo": "Tarea y repaso", "desde": "09" }
+  ],
+  "bloques": [
+    { "id": "01", "texto": "¡Hola! Soy SIPANCITOBOT, tu asistente docente de la Universidad Señor de Sipán. Te doy la bienvenida a la sesión uno del módulo de comunicación y organización digital. Hoy aprenderás a gestionar tu comunicación de forma profesional con Gmail." },
+    { "id": "02", "texto": "¿Tu bandeja de entrada está llena y no encuentras ese correo importante? Al terminar esta sesión, vas a configurar y organizar tu Gmail con personalización, etiquetas, filtros y búsqueda avanzada, para gestionar tu comunicación de manera eficiente y profesional." },
+    { "id": "03", "texto": "Lo veremos en cinco partes: Gmail en el entorno académico y laboral, la configuración inicial, la organización del correo, la búsqueda avanzada y las buenas prácticas de comunicación profesional." },
+    { "id": "04", "texto": "Empecemos. Gmail es el servicio de correo electrónico de Google. Con él te comunicas, recibes y envías información, organizas tus mensajes y colaboras de forma segura desde cualquier dispositivo: tu computadora, tu tablet o tu celular." },
+    { "id": "05", "texto": "Ahora, dale un toque profesional. Pulsa el engranaje y elige «Ver toda la configuración». Ahí puedes agregar tu firma, elegir un tema, activar una respuesta automática para cuando estés ausente y ajustar las notificaciones y la vista de lectura." },
+    { "id": "06", "texto": "Tercero, ordena tu correo. Las etiquetas agrupan tus mensajes: Académico, Laboral o Proyectos. Los filtros automatizan acciones según reglas, como etiquetar, archivar o reenviar. Y las categorías separan solas tus correos en Principal, Promociones, Social y Notificaciones." },
+    { "id": "07", "texto": "Cuarto, encuentra cualquier correo en segundos con los operadores de búsqueda. From busca por remitente, to por destinatario y subject por palabras del asunto. Has attachment muestra los correos con adjuntos, y after y before filtran por fecha." },
+    { "id": "08", "texto": "Quinto, escribe como profesional. Usa un asunto claro y específico, y un tono formal y respetuoso. Sé breve, claro y directo. Incluye una firma con tu nombre y tu programa de estudios. Y antes de enviar, revisa la ortografía." },
+    { "id": "09", "texto": "Ahora te toca a ti. Revisa las pautas y actividades que tu docente asignará en el aula virtual para reforzar lo aprendido. Un buen comienzo: crea tu firma y tus primeras etiquetas hoy mismo." },
+    { "id": "10", "texto": "Repasemos. Ya reconoces la utilidad de Gmail en lo académico y lo laboral, configuras tu cuenta, organizas tus correos, usas la búsqueda avanzada y aplicas buenas prácticas de comunicación. ¡Nos vemos en la próxima sesión!" }
+  ]
+}

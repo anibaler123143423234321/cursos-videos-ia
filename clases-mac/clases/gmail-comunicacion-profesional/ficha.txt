@@ -1,0 +1,26 @@
+FICHA DE LA CLASE  (llenada a partir de las 9 láminas de la sesión: laminas-referencia.webp)
+==========================================================================================
+
+--- AVATAR ---
+NOMBRE DEL AVATAR: SIPANCITOBOT
+ROL DEL AVATAR: Asistente docente IA
+DOCENTE RESPONSABLE (aparece como revisor, opcional):
+
+--- CLASE ---
+UNIVERSIDAD: Universidad Señor de Sipán
+ESCUELA / PROGRAMA: Programa de Competencias Digitales, Productividad e Inteligencia Artificial
+CURSO: Módulo I: Comunicación, organización y gestión de información digital
+TEMA: Sesión 1 · Gestión profesional de la comunicación con Gmail (Google Workspace)
+NIVEL: Básico
+DURACION: 2:40
+OBJETIVO DE APRENDIZAJE: Al finalizar la sesión, el estudiante configura y organiza su Gmail, aplicando funciones de personalización, etiquetas, filtros y búsqueda avanzada para gestionar su comunicación de manera eficiente y profesional.
+PUNTOS QUE DEBE CUBRIR: Gmail en el entorno académico y laboral · configuración inicial y personalización · organización del correo: etiquetas, filtros y categorías · búsqueda avanzada y gestión de la información · buenas prácticas de comunicación profesional
+EJEMPLO O CODIGO A MOSTRAR: bandeja de Gmail, configuración rápida, operadores de búsqueda (from:, to:, subject:, has:attachment, after: / before:) y un correo formal al docente
+RETO / TAREA FINAL: revisar las pautas y actividades que el docente asignará en el aula virtual
+NOMBRE CORTO (sin espacios ni tildes): gmail-comunicacion-profesional
+
+--- PRODUCCION ---
+VOZ: ElevenLabs, voz Default "Sarah" (en clase.json)
+MUSICA: no
+SUBTITULOS: no
+NOTAS EXTRA: en la lámina 3 decía "etiquetes"; en la clase va "etiquetas". La foto de la portada no se usa: el recuadro de cámara lleva a SIPANCITOBOT.
