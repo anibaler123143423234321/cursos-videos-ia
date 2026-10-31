@@ -7,7 +7,8 @@ Cada video final se guarda solo en la carpeta compartida de Google Drive del equ
 |---|---|
 | **Docente** (crea clases desde el navegador, sin instalar nada) | [`guias/Guia-docente-crear-un-video.pdf`](guias/Guia-docente-crear-un-video.pdf): 6 pasos con capturas |
 | **Quien administra la PC del estudio** (enciende la web y da la clave) | [`guias/PC-DEL-ESTUDIO.txt`](guias/PC-DEL-ESTUDIO.txt): una página |
-| **Quien instala o cambia el sistema** | Este README y `clases-windows/LEEME-WINDOWS.txt` |
+| **Quien instala en otra PC** | [`guias/INSTALAR-EN-OTRA-PC.txt`](guias/INSTALAR-EN-OTRA-PC.txt): un doble clic en `INSTALAR-TODO.bat` y copiar 2 archivos |
+| **Quien cambia el sistema** | Este README y `clases-windows/LEEME-WINDOWS.txt` |
 
 ## Crear un video en 5 pasos (PC del estudio, Windows)
 
@@ -66,24 +67,19 @@ En otra PC, primero haz [Instalar en otra PC](#instalar-en-otra-pc-una-sola-vez-
 
 ## Instalar en otra PC (una sola vez, unos 30 minutos)
 
-1. **Programas.** En PowerShell, una línea a la vez; después cierra y abre PowerShell:
+Clonar no alcanza: las claves, el permiso de Drive y la voz local no están en GitHub a propósito.
+El paso a paso completo está en [`guias/INSTALAR-EN-OTRA-PC.txt`](guias/INSTALAR-EN-OTRA-PC.txt). En corto:
 
-   ```powershell
-   winget install -e --id OpenJS.NodeJS.LTS
-   winget install -e --id Gyan.FFmpeg
-   winget install -e --id Git.Git
-   ```
+1. **En la PC actual:** sube lo último a GitHub y copia en un USB `clases-windows\.env`,
+   `google-drive-cliente.json` y, si quieres, `drive-token.json`.
+2. **En la PC nueva:** instala Git (`winget install -e --id Git.Git`) y clona el repositorio
+   (o descarga el ZIP).
+3. Doble clic en `clases-windows\INSTALAR-TODO.bat`. Instala Node.js, ffmpeg, Python, el motor y la voz
+   local gratis; si te pide cerrarlo y abrirlo otra vez, hazlo.
+4. Copia los archivos del USB en `clases-windows\`. Si no trajiste `drive-token.json`, abre `CONECTAR-DRIVE.bat`.
+5. Doble clic en `INICIAR-WEB.bat` y da a los docentes la nueva dirección.
 
-2. **Esta carpeta.** Descarga el repositorio (Code › Download ZIP) o clónalo con git.
-3. **Primera prueba.** Doble clic en `clases-windows\CREAR-VIDEO.bat`: instala el motor y crea la clase de ejemplo.
-4. **Voz gratis.** Doble clic en `clases-windows\INSTALAR-VOZ-LOCAL.bat` (≈ 150 MB). Al final suena una prueba.
-5. **Google Drive.**
-   - Copia `google-drive-cliente.json` de la PC del estudio a `clases-windows\`.
-     Si no existe, créalo como explica `LEEME-WINDOWS.txt`, PASO 8.
-   - Doble clic en `clases-windows\CONECTAR-DRIVE.bat` y acepta el permiso con tu cuenta `@uss.edu.pe`.
-   - En la web, en **Ajustes › Google Drive**, pega el enlace de la carpeta compartida.
-
-En Mac se hace igual con los archivos `.command` de `clases-mac/` (detalle en `clases-mac/LEEME-MAC.txt`).
+En Mac es igual con los archivos `.command` de `clases-mac/` (`INSTALAR-TODO.command`; detalle en `clases-mac/LEEME-MAC.txt`).
 
 ## Si algo falla
 

@@ -8,6 +8,7 @@ Que hay en esta carpeta
   FICHA-CLASE.txt      la plantilla fija que llenas para cada clase (nombre del avatar, tema...)
   TEXTO-PARA-CLONAR-VOZ.txt  lo que lees para clonar tu voz en ElevenLabs
   CLAUDE.md            el PROMPT MAESTRO: Claude Code lo lee solo, no hace falta pegarlo
+  INSTALAR-TODO.command  instala todo en una Mac nueva (una sola vez; ver guias/INSTALAR-EN-OTRA-PC.txt)
   CREAR-VIDEO.command  menu para crear los videos (doble clic)
   INSTALAR-VOZ-LOCAL.command  instala la voz local gratis (Piper), una sola vez
   CONECTAR-DRIVE.command  da permiso para subir los videos a Google Drive, una sola vez

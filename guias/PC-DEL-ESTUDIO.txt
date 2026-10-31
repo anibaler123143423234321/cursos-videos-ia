@@ -39,4 +39,4 @@ SI ALGO FALLA
 - "falta la voz es_MX-claude-high": doble clic en clases-windows\INSTALAR-VOZ-LOCAL.bat.
 - Otro error: en la clase, "Ver detalle del error"; copialo y pegaselo a Claude Code.
 
-Instalar en otra PC o cambiar cuentas: README.md y clases-windows\LEEME-WINDOWS.txt.
+Instalar en otra PC: guias\INSTALAR-EN-OTRA-PC.txt. Cambiar cuentas o claves: clases-windows\LEEME-WINDOWS.txt.

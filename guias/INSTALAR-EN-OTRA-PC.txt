@@ -1,0 +1,46 @@
+INSTALAR EL ESTUDIO EN OTRA PC (WINDOWS)
+========================================
+Unos 30 minutos, casi todo esperando descargas. Solo lo hace quien administra; los docentes no instalan nada.
+
+CLONAR NO ALCANZA. Hay cosas que NO estan en GitHub a proposito (claves y permisos privados, y archivos
+pesados que el instalador vuelve a crear).
+
+ANTES: EN LA PC ACTUAL
+1. Sube a GitHub lo ultimo y unelo a la rama principal (main). Si no, en la otra PC te llevas una
+   version vieja. (Pidele a Claude Code: "sube la rama y abre el pull request".)
+2. Copia en un USB estos archivos de la carpeta clases-windows:
+     .env                        las claves: clave de la web, IA gratis, voces, carpeta de Drive
+     google-drive-cliente.json   el cliente de Google Cloud
+     drive-token.json            (opcional) el permiso de Drive; si lo copias no hay que reconectar
+   Guarda ese USB con cuidado: con esos archivos se puede entrar a la IA y al Drive.
+   No copies node_modules ni voces: el instalador los crea.
+
+EN LA PC NUEVA
+1. Instala Git: abre PowerShell y escribe   winget install -e --id Git.Git
+   Cierra y vuelve a abrir PowerShell.
+2. Trae el proyecto:
+     cd $HOME\Documents
+     git clone https://github.com/anibaler123143423234321/cursos-videos-ia.git
+   (Sin Git: en GitHub, Code > Download ZIP y descomprimelo en Documentos.)
+3. Doble clic en  cursos-videos-ia\clases-windows\INSTALAR-TODO.bat
+   Instala Node.js, ffmpeg, Python, el motor de video y la voz local gratis.
+   Si te dice que cierres y lo abras otra vez, hazlo: es normal la primera vez.
+4. Copia los archivos del USB dentro de  cursos-videos-ia\clases-windows\  (reemplaza el .env).
+5. Si no copiaste drive-token.json: doble clic en CONECTAR-DRIVE.bat y acepta el permiso con la cuenta
+   que es Editor de la carpeta compartida.
+6. Doble clic en INICIAR-WEB.bat. Si Windows pregunta por el Firewall: "Redes privadas" > "Permitir acceso".
+7. Da a los docentes la NUEVA direccion que muestra la ventana negra (cambia con cada PC).
+
+COMPROBAR (2 minutos)
+- En la web, "Servicios" (abajo a la izquierda) en verde: IA gratis, Voz local gratis, Google Drive.
+- Abre una clase de ejemplo y pulsa "Borrador rapido": en 2 o 3 minutos debe salir el video.
+
+SI NO TIENES LA PC ANTERIOR (sin USB)
+- Instala igual (pasos 1 a 3). Luego, en la web, Ajustes:
+  * IA gratis: crea una clave gratis en console.groq.com > API Keys y pegala.
+  * Google Drive: sigue clases-windows\LEEME-WINDOWS.txt, PASO 8 (proyecto de Google Cloud o
+    Google Drive para escritorio) y pega el enlace de la carpeta compartida.
+  * La clave de la web se crea sola la primera vez (la ventana negra la muestra).
+
+EN MAC: lo mismo con los archivos .command de clases-mac (INSTALAR-TODO.command, CONECTAR-DRIVE.command,
+INICIAR-WEB.command). Antes instala Homebrew (clases-mac\LEEME-MAC.txt, PASO 1).
