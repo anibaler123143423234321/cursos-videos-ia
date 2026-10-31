@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Google Drive: guarda cada video final y el codigo de su clase, ordenados por carpetas, dentro de una carpeta
-// COMPARTIDA con el equipo (todos los que tienen acceso a ella ven los videos):
-//   <DRIVE_CARPETA_ID> / <DRIVE_CARPETA> / <AAAA-MM> / <Curso> / <Modulo> / <clase> /   (video, clase.json, laminas...)
+// COMPARTIDA con el equipo (todos los que tienen acceso a ella ven los videos). Una carpeta por tipo de lamina:
+//   <DRIVE_CARPETA_ID> / <DRIVE_CARPETA> / <AAAA-MM> / <Curso> / Video con HTML    / <Modulo> / <clase> /
+//                                                            / Video con láminas / ...   (video, clase en HTML, clase.json, laminas)
 //
 // Uso:
 //   node motor/drive.mjs conectar                 una sola vez: abre el navegador para dar permiso (CONECTAR-DRIVE)
@@ -210,7 +211,9 @@ export function plan(slug) {
   const previo = fs.existsSync(path.join(dir, 'drive.json')) ? JSON.parse(fs.readFileSync(path.join(dir, 'drive.json'), 'utf8')) : {};
   const hoy = new Date();
   const mes = previo.mes || `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
-  const ruta = [limpio(process.env.DRIVE_CARPETA) || 'Videos de clases IA', mes, limpio(clase.curso) || 'Sin curso', limpio(clase.modulo) || 'Sin modulo', slug];
+  // las dos opciones de la web van en carpetas separadas: laminas del docente (imagenes) o laminas HTML animadas
+  const tipo = (clase.diapositivas || []).some(d => d.tipo === 'imagen') ? 'Video con láminas' : 'Video con HTML';
+  const ruta = [limpio(process.env.DRIVE_CARPETA) || 'Videos de clases IA', mes, limpio(clase.curso) || 'Sin curso', tipo, limpio(clase.modulo) || 'Sin modulo', slug];
   const archivos = [];
   const agregar = (rel, nombre = path.basename(rel), sub = null) => { const a = path.join(RAIZ, rel); if (fs.existsSync(a)) archivos.push({ f: a, nombre, sub }); };
   agregar(path.join('salidas', `${slug}.mp4`));

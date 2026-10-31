@@ -1,0 +1,513 @@
+{
+  "avatar": "SIPANCITOBOT",
+  "rol_avatar": "Asistente docente IA",
+  "docente": "",
+  "institucion": "Universidad Señor de Sipán",
+  "curso": "Competencias Digitales",
+  "modulo": "Módulo I · Comunicación y gestión de información digital",
+  "banda": "Competencias Digitales",
+  "tema": "Gestión profesional de la comunicación con Gmail",
+  "nivel": "Básico",
+  "duracion_objetivo": 150,
+  "voz": {
+    "proveedor": "local",
+    "elevenlabs_voz": ""
+  },
+  "pronunciacion": {
+    "USS": "u ese ese",
+    "Gmail": "ge meil",
+    "Google": "gúgol"
+  },
+  "agenda": [
+    {
+      "titulo": "Logro de la sesión",
+      "desde": "02"
+    },
+    {
+      "titulo": "Gmail y configuración",
+      "desde": "05"
+    },
+    {
+      "titulo": "Organiza tu correo",
+      "desde": "08"
+    },
+    {
+      "titulo": "Búsqueda avanzada",
+      "desde": "09"
+    },
+    {
+      "titulo": "Buenas prácticas",
+      "desde": "10"
+    },
+    {
+      "titulo": "Tarea y repaso",
+      "desde": "11"
+    }
+  ],
+  "bloques": [
+    {
+      "id": "01",
+      "texto": "¡Hola! Soy SIPANCITOBOT. Bienvenido a la Sesión 1 de Competencias Digitales en la Universidad Señor de Sipán. Hoy vamos a aprender sobre la gestión profesional de la comunicación con la herramienta Gmail."
+    },
+    {
+      "id": "02",
+      "texto": "Al llegar al final de esta sesión, tú vas a saber configurar y organizar tu cuenta de Gmail. Dominarás las etiquetas, los filtros y la búsqueda avanzada. Con estas herramientas podrás manejar tus correos de forma muy eficiente y con un estilo completamente profesional."
+    },
+    {
+      "id": "03",
+      "texto": "Mira el temario que vamos a recorrer en esta sesión. Empezamos usando Gmail en el entorno académico y laboral. Luego haremos la configuración inicial y personalización de tu cuenta. Después organizaremos el correo mediante etiquetas, filtros y categorías. También veremos la búsqueda avanzada y cómo gestionar la información."
+    },
+    {
+      "id": "04",
+      "texto": "Por último, revisaremos buenas prácticas de comunicación profesional."
+    },
+    {
+      "id": "05",
+      "texto": "Comencemos definiendo qué es Gmail. Es el servicio de correo electrónico de Google diseñado para la comunicación diaria. Su función principal es gestionar información, permitiéndote recibir, enviar y organizar mensajes de forma segura. Además, te facilita la colaboración desde cualquier dispositivo con conexión a internet. Veamos su entorno de trabajo."
+    },
+    {
+      "id": "06",
+      "texto": "Ahora hablemos de personalizar tu correo. Desde el menú de configuración rápida, puedes ajustar Gmail para que se adapte a tu estilo de trabajo. Por ejemplo, puedes agregar una firma profesional para tus publicaciones, elegir el tema de colores que más te guste o definir una respuesta automática cuando estés de ausencia."
+    },
+    {
+      "id": "07",
+      "texto": "Además, es importante ajustar las notificaciones y la vista de lectura para tener el control total de todo ello sin complicaciones."
+    },
+    {
+      "id": "08",
+      "texto": "Para mantener tu bandeja de entrada ordenada, Gmail ofrece herramientas clave. Las etiquetas te permiten clasificar y agrupar mensajes según sus razones, como académico o laboral. Los filtros automatizan tareas como archivar o reenviar correos según reglas específicas. Y las categorías organizan automáticamente los correos en secciones como principal, promociones, social y notificaciones."
+    },
+    {
+      "id": "09",
+      "texto": "Para localizar correos específicos en segundos, Gmail ofrece potentes operadores de búsqueda. El operador from permite rastrear mensajes de un remitente concreto. Con to encuentras lo que enviaste a alguien. subject filtra por asuntos exactos. Y has attachment muestra correos con archivos adjuntos, muy útil para buscar tareas o evidencias."
+    },
+    {
+      "id": "10",
+      "texto": "Ahora veamos las buenas prácticas al escribir un correo. Primero, usa un asunto claro y específico. Segundo, mantén un tono formal y respetuoso. Y sé breve y directo. No olvides incluir tu nombre y programa como firma. Por último, revisa la ortografía antes de enviarlo para dar una imagen profesional."
+    },
+    {
+      "id": "11",
+      "texto": "Para cerrar la sesión, recuerda revisar las pautas y actividades que tu docente asignará en el aula virtual para reforzar lo aprendido. Hoy reconociste la utilidad de Gmail, aprendiste a configurar tu cuenta, organizar correos y aplicar buenas prácticas de comunicación profesional. Ha sido un gusto acompañarte."
+    },
+    {
+      "id": "12",
+      "texto": "Nos vemos en la próxima clase de la USS."
+    }
+  ],
+  "diapositivas": [
+    {
+      "bloque": "01",
+      "tipo": "imagen",
+      "imagen": "laminas/01.png"
+    },
+    {
+      "bloque": "02",
+      "tipo": "imagen",
+      "imagen": "laminas/02.png",
+      "efectos": [
+        {
+          "tipo": "foco",
+          "caja": [
+            6,
+            37,
+            38,
+            54
+          ],
+          "cuando": "Al llegar",
+          "bloque": "02"
+        },
+        {
+          "tipo": "foco",
+          "caja": [
+            47,
+            34,
+            51,
+            52
+          ],
+          "cuando": "configurar y organizar",
+          "bloque": "02"
+        }
+      ]
+    },
+    {
+      "bloque": "03",
+      "tipo": "imagen",
+      "imagen": "laminas/03.png",
+      "efectos": [
+        {
+          "tipo": "foco",
+          "caja": [
+            7.8,
+            34.5,
+            66.4,
+            11.2
+          ],
+          "cuando": "entorno académico",
+          "bloque": "03"
+        },
+        {
+          "tipo": "foco",
+          "caja": [
+            7.8,
+            45.7,
+            66.4,
+            11.2
+          ],
+          "cuando": "configuración inicial",
+          "bloque": "03"
+        },
+        {
+          "tipo": "foco",
+          "caja": [
+            7.8,
+            57.2,
+            66.4,
+            11.2
+          ],
+          "cuando": "organizaremos el correo",
+          "bloque": "03"
+        },
+        {
+          "tipo": "foco",
+          "caja": [
+            7.8,
+            68.7,
+            66.4,
+            11.2
+          ],
+          "cuando": "búsqueda avanzada",
+          "bloque": "03"
+        },
+        {
+          "tipo": "foco",
+          "caja": [
+            7.8,
+            80.4,
+            66.4,
+            11.2
+          ],
+          "cuando": "buenas prácticas",
+          "bloque": "04"
+        }
+      ]
+    },
+    {
+      "bloque": "05",
+      "tipo": "imagen",
+      "imagen": "laminas/04.png",
+      "efectos": [
+        {
+          "tipo": "foco",
+          "caja": [
+            2,
+            34,
+            40,
+            49
+          ],
+          "cuando": "qué es Gmail",
+          "bloque": "05"
+        },
+        {
+          "tipo": "zoom",
+          "caja": [
+            38.5,
+            30,
+            60,
+            64
+          ],
+          "cuando": "cualquier dispositivo",
+          "bloque": "05"
+        }
+      ]
+    },
+    {
+      "bloque": "06",
+      "tipo": "imagen",
+      "imagen": "laminas/05.png",
+      "efectos": [
+        {
+          "tipo": "foco",
+          "caja": [
+            43.5,
+            23.5,
+            7.5,
+            12.5
+          ],
+          "cuando": "configuración rápida",
+          "bloque": "06"
+        },
+        {
+          "tipo": "numero",
+          "caja": [
+            67.8,
+            44.3,
+            30.8,
+            10.5
+          ],
+          "cuando": "firma profesional",
+          "bloque": "06"
+        },
+        {
+          "tipo": "numero",
+          "caja": [
+            67.8,
+            54.6,
+            30.8,
+            7.5
+          ],
+          "cuando": "tema de colores",
+          "bloque": "06"
+        },
+        {
+          "tipo": "numero",
+          "caja": [
+            67.8,
+            63.3,
+            30.8,
+            10.5
+          ],
+          "cuando": "respuesta automática",
+          "bloque": "06"
+        },
+        {
+          "tipo": "numero",
+          "caja": [
+            67.8,
+            75.3,
+            30.8,
+            10.5
+          ],
+          "cuando": "ajustar las notificaciones",
+          "bloque": "07"
+        }
+      ]
+    },
+    {
+      "bloque": "08",
+      "tipo": "imagen",
+      "imagen": "laminas/06.png",
+      "efectos": [
+        {
+          "tipo": "numero",
+          "caja": [
+            37.8,
+            26.2,
+            60.6,
+            20.2
+          ],
+          "cuando": "etiquetas te permiten",
+          "bloque": "08"
+        },
+        {
+          "tipo": "numero",
+          "caja": [
+            37.8,
+            49,
+            60.6,
+            19.9
+          ],
+          "cuando": "filtros automatizan",
+          "bloque": "08"
+        },
+        {
+          "tipo": "numero",
+          "caja": [
+            37.8,
+            71.6,
+            60.6,
+            21.6
+          ],
+          "cuando": "categorías organizan",
+          "bloque": "08"
+        }
+      ]
+    },
+    {
+      "bloque": "09",
+      "tipo": "imagen",
+      "imagen": "laminas/07.png",
+      "efectos": [
+        {
+          "tipo": "zoom",
+          "caja": [
+            35.8,
+            28.5,
+            61.2,
+            11.6
+          ],
+          "cuando": "operadores de búsqueda",
+          "bloque": "09"
+        },
+        {
+          "tipo": "foco",
+          "caja": [
+            36,
+            52.2,
+            61.2,
+            7.8
+          ],
+          "cuando": "operador from",
+          "bloque": "09"
+        },
+        {
+          "tipo": "foco",
+          "caja": [
+            36,
+            59.8,
+            61.2,
+            7.8
+          ],
+          "cuando": "Con to",
+          "bloque": "09"
+        },
+        {
+          "tipo": "foco",
+          "caja": [
+            36,
+            67.2,
+            61.2,
+            7.8
+          ],
+          "cuando": "subject filtra",
+          "bloque": "09"
+        },
+        {
+          "tipo": "foco",
+          "caja": [
+            36,
+            74.8,
+            61.2,
+            7.8
+          ],
+          "cuando": "has attachment",
+          "bloque": "09"
+        }
+      ]
+    },
+    {
+      "bloque": "10",
+      "tipo": "imagen",
+      "imagen": "laminas/08.png",
+      "efectos": [
+        {
+          "tipo": "resaltar",
+          "caja": [
+            56.6,
+            39.2,
+            41.8,
+            7.4
+          ],
+          "cuando": "asunto claro",
+          "bloque": "10"
+        },
+        {
+          "tipo": "resaltar",
+          "caja": [
+            56.6,
+            46.7,
+            41.8,
+            7.4
+          ],
+          "cuando": "tono formal",
+          "bloque": "10"
+        },
+        {
+          "tipo": "resaltar",
+          "caja": [
+            56.6,
+            54.5,
+            41.8,
+            7.4
+          ],
+          "cuando": "breve y directo",
+          "bloque": "10"
+        },
+        {
+          "tipo": "resaltar",
+          "caja": [
+            56.6,
+            62.5,
+            41.8,
+            11.2
+          ],
+          "cuando": "nombre y programa",
+          "bloque": "10"
+        },
+        {
+          "tipo": "resaltar",
+          "caja": [
+            56.6,
+            74.1,
+            41.8,
+            7.4
+          ],
+          "cuando": "revisa la ortografía",
+          "bloque": "10"
+        }
+      ]
+    },
+    {
+      "bloque": "11",
+      "tipo": "imagen",
+      "imagen": "laminas/09.png",
+      "efectos": [
+        {
+          "tipo": "foco",
+          "caja": [
+            1,
+            1.5,
+            49,
+            97.5
+          ],
+          "cuando": "pautas y actividades",
+          "bloque": "11"
+        },
+        {
+          "tipo": "foco",
+          "caja": [
+            52.8,
+            26.5,
+            46.4,
+            11.5
+          ],
+          "cuando": "reconociste",
+          "bloque": "11"
+        },
+        {
+          "tipo": "foco",
+          "caja": [
+            52.8,
+            38.6,
+            46.4,
+            7.5
+          ],
+          "cuando": "configurar tu cuenta",
+          "bloque": "11"
+        },
+        {
+          "tipo": "foco",
+          "caja": [
+            52.8,
+            47.3,
+            46.4,
+            11.5
+          ],
+          "cuando": "organizar correos",
+          "bloque": "11"
+        },
+        {
+          "tipo": "foco",
+          "caja": [
+            52.8,
+            71.8,
+            46.4,
+            11.5
+          ],
+          "cuando": "buenas prácticas",
+          "bloque": "11"
+        }
+      ]
+    }
+  ],
+  "slug": "gmail-comunicacion-laminas"
+}

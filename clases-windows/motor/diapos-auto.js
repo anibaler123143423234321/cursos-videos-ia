@@ -27,10 +27,17 @@ export function construirAuto({ b, p, u, tl, gsap, clase, tiempos, archivo }) {
     .auto-dato em { font-family: var(--serif); font-weight: 400; color: var(--morado); }
     .auto-chips { display: flex; gap: 14px; flex-wrap: wrap; }
     .auto-despedida { display: inline-flex; align-self: flex-start; padding: 14px 22px; border-radius: 14px; background: var(--verde-claro); color: var(--verde-osc); font-size: 26px; font-weight: 700; }
-    .diapo.lamina { padding: 0; background: #f3f3f6; }
+    .diapo.lamina { padding: 0; align-items: center; justify-content: center; background: #f3f3f6; }
     .diapo.lamina::after { display: none; }
     .lamina-fondo { position: absolute; inset: -60px; width: calc(100% + 120px); height: calc(100% + 120px); object-fit: cover; filter: blur(36px) saturate(1.1); opacity: .45; }
-    .lamina-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+    .lamina-kb, .lamina-zoom { position: relative; height: 100%; }
+    .lamina-img { display: block; height: 100%; width: auto; box-shadow: 0 0 40px rgba(27, 27, 34, .16); }
+    .lamina-foco { position: absolute; border: 4px solid var(--verde); border-radius: 14px;
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, .85), 0 0 22px rgba(166, 198, 26, .6), 0 0 0 3000px rgba(16, 20, 40, .28); }
+    .lamina-num { position: absolute; width: 52px; height: 52px; margin: -26px 0 0 -40px; border-radius: 50%; background: var(--verde);
+      color: #17180f; font: 800 26px/52px var(--sans); text-align: center; box-shadow: 0 4px 14px rgba(0, 0, 0, .28); }
+    .lamina-resalta { position: absolute; border-radius: 6px; background: rgba(166, 198, 26, .32); border-bottom: 5px solid var(--verde);
+      transform-origin: left center; mix-blend-mode: multiply; }
   `);
 
   const lista = clase.diapositivas || [];
@@ -124,14 +131,54 @@ export function construirAuto({ b, p, u, tl, gsap, clase, tiempos, archivo }) {
         break;
       }
       case 'imagen': {
-        // la lamina entera (sin recortar) sobre un fondo desenfocado de si misma, con un zoom lento mientras dura
+        // la lamina entera (sin recortar) sobre un fondo desenfocado de si misma, con un acercamiento lento mientras dura.
+        // "efectos" (los propone la IA que lee la lamina; caja en % de la imagen) aparecen cuando la voz los nombra:
+        //   numero = enumera un punto y lo enmarca · foco = enmarca y oscurece lo demas · resaltar = plumon · zoom = acerca
         const src = archivo(d.imagen || '');
-        s = u.diapo(`<img class="lamina-fondo" src="${esc(src)}" alt=""><img class="lamina-img" src="${esc(src)}" alt="" data-lamina="${esc(d.imagen)}">`, { clase: 'lamina' });
+        const fin = k + 1 < inicios.length ? inicios[k + 1] : tiempos.total;
+        const efs = (d.efectos || []).filter(e => e && Array.isArray(e.caja) && e.caja.length === 4)
+          .map((e, i, todos) => ({ ...e, t: momento(ids.includes(e.bloque) ? e.bloque : bloque, e.cuando, i, todos.length, 0.15) }))
+          .sort((a, z) => a.t - z.t);
+        const pos = ([x, y, w, h]) => ({ left: `${x}%`, top: `${y}%`, width: `${w}%`, height: `${h}%` });
+        let n = 0;
+        const capas = efs.map((e, i) => (e.tipo === 'numero' ? `<b class="lamina-num" data-e="${i}" style="left:${e.caja[0]}%;top:${e.caja[1] + e.caja[3] / 2}%">${++n}</b>`
+          : e.tipo === 'resaltar' ? `<i class="lamina-resalta" data-e="${i}"></i>` : '')).join('');
+        const focos = efs.filter(e => e.tipo === 'foco' || e.tipo === 'numero');
+        s = u.diapo(`<img class="lamina-fondo" src="${esc(src)}" alt="">
+          <div class="lamina-kb"><div class="lamina-zoom"><img class="lamina-img" src="${esc(src)}" alt="" data-lamina="${esc(d.imagen)}">
+          ${focos.length ? '<div class="lamina-foco"></div>' : ''}${capas}</div></div>`, { clase: 'lamina' });
         u.mostrar(s, t0);
-        const img = u.$(s, '.lamina-img');
-        const dura = Math.max(1, (k + 1 < inicios.length ? inicios[k + 1] : tiempos.total) - t0);
-        gsap.set(img, { scale: 1, transformOrigin: '50% 50%' });
-        tl.to(img, { scale: 1.035, duration: dura, ease: 'none' }, t0);
+        const kb = u.$(s, '.lamina-kb');
+        gsap.set(kb, { scale: 1, transformOrigin: '50% 50%' });
+        tl.to(kb, { scale: 1.035, duration: Math.max(1, fin - t0), ease: 'none' }, t0);
+        // el foco salta de zona en zona (se oculta mientras hay un zoom y vuelve en el punto siguiente)
+        const foco = focos.length ? u.$(s, '.lamina-foco') : null;
+        if (foco) {
+          gsap.set(foco, { autoAlpha: 0, ...pos(focos[0].caja) });
+          tl.to(foco, { autoAlpha: 1, duration: 0.35 }, focos[0].t);
+          focos.slice(1).forEach(e => tl.to(foco, { ...pos(e.caja), autoAlpha: 1, duration: 0.45, ease: 'power2.inOut' }, e.t));
+        }
+        efs.forEach((e, i) => {
+          if (e.tipo === 'numero') u.entrar(u.$(s, `.lamina-num[data-e="${i}"]`), e.t, { y: 0, escala: 0.4 });
+          if (e.tipo === 'resaltar') {
+            const el = u.$(s, `.lamina-resalta[data-e="${i}"]`);
+            gsap.set(el, { ...pos(e.caja), scaleX: 0 });
+            tl.to(el, { scaleX: 1, duration: 0.55, ease: 'power2.out' }, e.t);
+          }
+          if (e.tipo === 'zoom') {
+            // acerca hasta que la zona ocupe ~3/4 de la lamina y vuelve antes del siguiente efecto
+            const [x, y, w, h] = e.caja;
+            const z = Math.max(1.3, Math.min(2.4, 75 / w, 75 / h));
+            const cx = x + w / 2 - 50;
+            const cy = y + h / 2 - 50;
+            const zona = u.$(s, '.lamina-zoom');
+            const vuelta = Math.min(efs[i + 1] ? efs[i + 1].t - 0.1 : fin - 0.6, e.t + 5);
+            gsap.set(zona, { transformOrigin: '50% 50%' });
+            if (foco) tl.to(foco, { autoAlpha: 0, duration: 0.3 }, e.t);
+            tl.to(zona, { scale: z, xPercent: -cx * z, yPercent: -cy * z, duration: 0.8, ease: 'power2.inOut' }, e.t);
+            if (vuelta > e.t + 1) tl.to(zona, { scale: 1, xPercent: 0, yPercent: 0, duration: 0.7, ease: 'power2.inOut' }, vuelta);
+          }
+        });
         break;
       }
       case 'dato': {

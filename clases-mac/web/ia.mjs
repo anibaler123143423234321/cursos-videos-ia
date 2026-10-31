@@ -67,9 +67,118 @@ Mira cada lámina y escribe lo que dice la voz mientras esa lámina está en pan
 - Español latinoamericano (Perú) claro y natural, oraciones cortas, trato de "tú" (nunca "vosotros"). Escribe como se habla.
 - Exactitud: di solo lo que está en la lámina o es verificable. No inventes cifras, fechas ni citas.
 - El texto es SOLO lo que la voz dice en voz alta: sin comillas, sin código y sin símbolos sueltos.
-- Las siglas se escriben normal (CSS, HTML). Cómo suenan va SOLO en "pronunciacion", nunca en el texto.`;
+- Las siglas y direcciones se escriben normal en el texto (CSS, HTML, uss.edu.pe): no las deletrees.
+- "pronunciacion": cómo se dicen EN ESPAÑOL las siglas de esa lámina (HTML = "hache te eme ele", HTTP = "hache te te pe"),
+  nunca en inglés. Solo afecta a la voz.`;
+const REGLAS_EFECTOS = `EFECTOS (opcionales, 0 a 5 por lámina): señalan en la lámina lo que la voz va nombrando.
+- "numero": en una lista o en pasos SIN números, uno por cada punto, en el orden en que la voz los nombra.
+  Si los puntos ya tienen número o viñeta en la lámina, usa "foco" en cada punto (no "numero").
+- "foco": enmarca una parte (un recuadro, una imagen, un dato) y oscurece lo demás.
+- "resaltar": subraya como plumón una frase clave.
+- "zoom": acerca la cámara a un detalle pequeño (una captura, un menú, un código). Máximo 1 por lámina.
+- "que": el elemento que señala, con el texto que se lee en él (ej.: "fila 2: Configuración inicial y personalización").
+- "cuando": una palabra o frase corta copiada TAL CUAL de tu "texto": el efecto aparece cuando la voz la dice.
+- En la portada no uses efectos. Si la lámina no tiene una lista ni nada que señalar, deja "efectos": [].`;
+const CAJA_CLAUDE = `- "caja": [x1, y1, x2, y2] del elemento, de 0 a 1000 sobre el cuadrado blanco (0,0 = arriba a la izquierda;
+  1000,1000 = abajo a la derecha). Debe encerrar el elemento completo, con poco margen.`;
 const FORMATO_LAMINA = `Responde SOLO con un objeto JSON, sin texto antes ni después:
-{"titulo": "título corto de la lámina", "texto": "lo que dice la voz", "pronunciacion": [{"escrito": "CSS", "dice": "ce ese ese"}]}`;
+{"titulo": "el título tal como se lee en la lámina", "texto": "lo que dice la voz", "pronunciacion": [{"escrito": "CSS", "dice": "ce ese ese"}],
+ "efectos": [{"tipo": "foco", "que": "fila 1: Gmail en el entorno académico", "cuando": "entorno académico"}]}`;
+const TIPOS_EFECTO = ['numero', 'foco', 'resaltar', 'zoom'];
+// Segundo paso, solo para ubicar: la IA es mucho mas precisa si no tiene que escribir el guion a la vez.
+const PEDIDO_CAJAS = lista => `Ubica en la imagen cada uno de estos elementos:
+${lista.map((e, k) => `${k + 1}. ${e.que}`).join('\n')}
+Para cada uno da su caja [x1, y1, x2, y2] en escala de 0 a 1000 (0,0 = arriba a la izquierda de la imagen; 1000,1000 = abajo
+a la derecha). Encierra el elemento completo. La lámina va arriba a la izquierda de un cuadrado blanco.
+Responde SOLO JSON: {"cajas": [{"n": 1, "caja": [x1, y1, x2, y2]}]}`;
+
+// La IA ve la lamina dentro de un cuadrado blanco (ver laminasCuadradas), asi sus cajas de 0 a 1000 tienen la misma
+// escala en los dos ejes. Caja [x1, y1, x2, y2] del cuadrado -> [x, y, ancho, alto] en % de la lamina real (w x h).
+// Las raras (diminutas, fuera de la lamina o casi toda la lamina) se descartan.
+function cajaDe(c, w = 1, h = 1) {
+  if (!Array.isArray(c) || c.length !== 4 || !c.every(v => Number.isFinite(+v))) return null;
+  const lado = Math.max(w, h);
+  let [x1, y1, x2, y2] = c.map(v => Math.max(0, Math.min(1000, +v)) / 10);
+  [x1, x2] = [x1, x2].map(v => Math.min(100, (v * lado) / w));
+  [y1, y2] = [y1, y2].map(v => Math.min(100, (v * lado) / h));
+  if (x2 < x1) [x1, x2] = [x2, x1];
+  if (y2 < y1) [y1, y2] = [y2, y1];
+  const an = x2 - x1, al = y2 - y1;
+  if (an < 2 || al < 2 || an * al > 6000) return null;
+  const r = v => Math.round(v * 10) / 10;
+  return [r(x1), r(y1), r(an), r(al)];
+}
+function efectosDe(lista, w, h) {
+  return (Array.isArray(lista) ? lista : [])
+    .map(e => ({ tipo: TIPOS_EFECTO.includes(e && e.tipo) ? e.tipo : 'foco', caja: cajaDe(e && e.caja, w, h), cuando: corto(e && e.cuando, 40) }))
+    .filter(e => e.caja).slice(0, 6);
+}
+// IA gratis: con lo que quiere senalar ("que"), una peticion aparte le pide solo las cajas
+async function ubicar(pedir, url, lista, w, h) {
+  const pedidos = (Array.isArray(lista) ? lista : []).filter(e => e && String(e.que || '').trim()).slice(0, 6)
+    .map(e => ({ tipo: TIPOS_EFECTO.includes(e.tipo) ? e.tipo : 'foco', que: corto(e.que, 120), cuando: corto(e.cuando, 40) }));
+  if (!pedidos.length) return [];
+  try {
+    const { datos } = await pedir('Ubicas elementos en imágenes con precisión.', [{ type: 'text', text: PEDIDO_CAJAS(pedidos) }, { type: 'image_url', image_url: { url } }]);
+    const cajas = Array.isArray(datos.cajas) ? datos.cajas : [];
+    return pedidos.map((e, k) => {
+      const c = cajas.find(x => x && +x.n === k + 1) || cajas[k];
+      return { tipo: e.tipo, caja: cajaDe(c && c.caja, w, h), cuando: e.cuando };
+    }).filter(e => e.caja);
+  } catch (err) {
+    console.warn(`[!] No se pudieron ubicar los efectos de una lámina (${texto(err).slice(0, 120)}): queda sin efectos.`);
+    return [];
+  }
+}
+
+// Cada lamina dentro de un cuadrado blanco (arriba a la izquierda), de hasta 1280 px, para la IA con vision.
+// Sin esto, el modelo gratis mide el alto con la escala del ancho y las cajas caen corridas hacia arriba.
+// Lo dibuja el Chromium de Playwright, el mismo que usa el motor para los videos.
+async function laminasCuadradas(dir, laminas) {
+  const { chromium } = await import('playwright');
+  const nav = await chromium.launch();
+  try {
+    const pag = await nav.newPage();
+    const res = [];
+    for (const rel of laminas) {
+      const fuente = `data:${MIME[path.extname(rel)]};base64,${leerLamina(dir, rel)}`;
+      res.push(await pag.evaluate(async src => {
+        const img = new Image();
+        img.src = src;
+        await img.decode();
+        const w = img.naturalWidth, h = img.naturalHeight;
+        const k = Math.min(1, 1280 / Math.max(w, h));
+        const c = document.createElement('canvas');
+        c.width = c.height = Math.round(Math.max(w, h) * k);
+        const g = c.getContext('2d');
+        g.fillStyle = '#fff';
+        g.fillRect(0, 0, c.width, c.height);
+        g.drawImage(img, 0, 0, w * k, h * k);
+        return { url: c.toDataURL('image/jpeg', 0.9), w, h };
+      }, fuente));
+    }
+    return res;
+  } finally {
+    await nav.close();
+  }
+}
+
+// Siglas frecuentes en los cursos y como se dicen en espanol. Ganan sobre lo que proponga la IA: los modelos
+// gratis a veces las escriben en ingles ("aitch ti ti pi") y la voz las diria mal.
+const PRONUNCIACION_BASE = {
+  HTML: 'hache te eme ele', HTML5: 'hache te eme ele cinco', CSS: 'ce ese ese', HTTP: 'hache te te pe', HTTPS: 'hache te te pe ese',
+  DNS: 'de ene ese', IP: 'i pe', URL: 'u erre ele', API: 'a pe i', JSON: 'yeison', SQL: 'ese cu ele', PHP: 'pe hache pe',
+  JavaScript: 'yavascript', JS: 'jota ese', W3C: 'doble u tres ce', USS: 'u ese ese', 'uss.edu.pe': 'u ese ese punto edu punto pe',
+  F12: 'efe doce', GET: 'guet', PDF: 'pe de efe', UX: 'u equis', UI: 'u i', SEO: 'seo', WWW: 'doble u doble u doble u',
+  SIPANCITOBOT: 'sipancitobot', Gmail: 'ge meil', Google: 'gúgol', Workspace: 'uórkspeis', Drive: 'draiv', Classroom: 'clásrum',
+};
+function pronunciacionBase(clase) {
+  const texto = clase.bloques.map(b => b.texto).join(' ');
+  for (const [escrito, dice] of Object.entries(PRONUNCIACION_BASE)) {
+    const re = new RegExp(`(?<![\\p{L}\\p{N}])${escrito.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'u');
+    if (re.test(texto)) clase.pronunciacion[escrito] = dice;
+  }
+}
 
 // Claude lo hace todo en una sola respuesta (salida estructurada, sin tope corto)
 const REGLAS = `${INTRO}
@@ -142,11 +251,12 @@ export const ESQUEMA_CLASE = obj({
   diapositivas: { type: 'array', items: DIAPO },
 });
 // con laminas: un texto por lamina, en orden ("desde" de la agenda = numero de lamina con dos digitos)
+const EFECTO = obj({ tipo: { type: 'string', enum: ['numero', 'foco', 'resaltar', 'zoom'] }, que: str, caja: { type: 'array', items: { type: 'number' } }, cuando: str });
 const ESQUEMA_LAMINAS = obj({
   tema: str,
   agenda: { type: 'array', items: obj({ titulo: str, desde: str }) },
   pronunciacion: { type: 'array', items: obj({ escrito: str, dice: str }) },
-  laminas: { type: 'array', items: obj({ titulo: str, texto: str }) },
+  laminas: { type: 'array', items: obj({ titulo: str, texto: str, efectos: { type: 'array', items: EFECTO } }) },
 });
 
 // ---------------------------------------------------------------- proveedores
@@ -432,6 +542,7 @@ async function laminasConIaGratis(ficha, laminas, dir, env) {
   const n = laminas.length;
   const hechas = [];
   const pronunciacion = [];
+  const cuadradas = await laminasCuadradas(dir, laminas);
   for (let i = 0; i < n; i++) {
     const anterior = hechas[i - 1];
     const indicaciones = [
@@ -441,24 +552,36 @@ async function laminasConIaGratis(ficha, laminas, dir, env) {
       i === n - 1 && n > 1 ? 'Es la última lámina: resumen o reto práctico y despedida.' : '',
       anterior ? `La voz acaba de decir, en la lámina anterior (no lo repitas, continúa la clase): ${anterior.texto}` : '',
     ].filter(Boolean).join('\n');
-    const url = `data:${MIME[path.extname(laminas[i])]};base64,${leerLamina(dir, laminas[i])}`;
-    const { datos } = await pedir(`${INTRO}\n\n${REGLAS_LAMINAS}\n\n${FORMATO_LAMINA}`,
-      [{ type: 'text', text: indicaciones }, { type: 'image_url', image_url: { url } }]);
+    const { url, w, h } = cuadradas[i];
+    const { datos } = await pedir(`${INTRO}\n\n${REGLAS_LAMINAS}\n\n${REGLAS_EFECTOS}\n\n${FORMATO_LAMINA}`,
+      [{ type: 'text', text: `${indicaciones}\n(La lámina va arriba a la izquierda de un cuadrado blanco: ignora el blanco de relleno.)` },
+        { type: 'image_url', image_url: { url } }]);
     const t = String(datos.texto || '').replace(/\s+/g, ' ').trim();
     if (!t) throw new Error(`La IA no escribió el texto de la lámina ${i + 1}. Intenta de nuevo o usa otro modelo.`);
-    hechas.push({ titulo: corto(datos.titulo, 60), texto: t });
-    if (Array.isArray(datos.pronunciacion)) pronunciacion.push(...datos.pronunciacion);
+    hechas.push({ titulo: corto(datos.titulo, 60), texto: t, efectos: i === 0 ? [] : await ubicar(pedir, url, datos.efectos, w, h) });
+    // los modelos gratis escriben mal la pronunciacion de palabras comunes ("to" -> "tot"): solo se aceptan siglas
+    if (Array.isArray(datos.pronunciacion)) pronunciacion.push(...datos.pronunciacion.filter(p => p && /^[A-Z0-9.]{2,}$/.test(String(p.escrito || '').trim())));
   }
   const bloques = hechas.map((x, i) => ({ id: dosDigitos(i + 1), texto: x.texto }));
   let agenda = [];
   try {
     const { datos } = await pedir(`${INTRO}\n\n${REGLAS_PLAN}\n\n${FORMATO_PLAN}`,
       `${fichaTexto(ficha)}\n\nTÍTULOS DE LAS LÁMINAS: ${JSON.stringify(hechas.map(x => x.titulo))}\n\nGUION (un bloque por lámina):\n${JSON.stringify(bloques)}\n\nCrea solo la agenda y la pronunciación de este guion.`);
-    agenda = datos.agenda || [];
-    if (Array.isArray(datos.pronunciacion)) pronunciacion.push(...datos.pronunciacion);
-  } catch { /* sin agenda la columna derecha queda vacia: el docente puede escribirla en el editor */ }
+    agenda = Array.isArray(datos.agenda) ? datos.agenda : [];
+    if (Array.isArray(datos.pronunciacion)) pronunciacion.push(...datos.pronunciacion.filter(p => p && /^[A-Z0-9.]{2,}$/.test(String(p.escrito || '').trim())));
+  } catch (e) {
+    console.warn(`[!] La IA no armó la agenda (${texto(e).slice(0, 160)}): uso los títulos de las láminas.`);
+  }
   const uso = { partes: usos.length, prompt_tokens: usos.reduce((t, u) => t + (u.prompt_tokens || 0), 0), completion_tokens: usos.reduce((t, u) => t + (u.completion_tokens || 0), 0) };
-  return { tema: ficha.tema || hechas[0].titulo, agenda, pronunciacion, textos: hechas.map(x => x.texto), uso };
+  return { tema: ficha.tema || hechas[0].titulo, agenda, pronunciacion, textos: hechas.map(x => x.texto), titulos: hechas.map(x => x.titulo),
+    efectos: hechas.map(x => x.efectos), uso };
+}
+
+// Agenda de respaldo: hasta 5 laminas repartidas (sin la portada), con su titulo como punto de la agenda
+function agendaDeTitulos(titulos) {
+  const candidatas = titulos.map((t, i) => ({ titulo: corto(t, 30), desde: dosDigitos(i + 1) })).slice(1).filter(a => a.titulo);
+  if (candidatas.length <= 5) return candidatas;
+  return [0, 1, 2, 3, 4].map(k => candidatas[Math.round((k * (candidatas.length - 1)) / 4)]);
 }
 
 // Claude: todas las laminas en una sola peticion
@@ -466,12 +589,15 @@ async function laminasConClaude(ficha, laminas, dir, env) {
   const n = laminas.length;
   const contenido = [{ type: 'text', text: `${fichaTexto(ficha)}\n\nSon ${n} láminas, en orden. Escribe EXACTAMENTE ${n} textos en "laminas" (uno por lámina, en el mismo orden). ` +
     'En la agenda, "desde" es el número de la lámina donde empieza cada punto, con dos dígitos ("01", "02"...).' }];
-  laminas.forEach((rel, i) => contenido.push({ type: 'text', text: `Lámina ${i + 1}:` },
-    { type: 'image', source: { type: 'base64', media_type: MIME[path.extname(rel)], data: leerLamina(dir, rel) } }));
-  const { datos, uso } = await claudeJson(env, `${INTRO}\n\n${REGLAS_LAMINAS}\n${REGLAS_PLAN}`, contenido, ESQUEMA_LAMINAS);
+  const cuadradas = await laminasCuadradas(dir, laminas);
+  cuadradas.forEach((c, i) => contenido.push({ type: 'text', text: `Lámina ${i + 1} (arriba a la izquierda de un cuadrado blanco):` },
+    { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: c.url.split(',')[1] } }));
+  const { datos, uso } = await claudeJson(env, `${INTRO}\n\n${REGLAS_LAMINAS}\n\n${REGLAS_EFECTOS}\n${CAJA_CLAUDE}\n${REGLAS_PLAN}`, contenido, ESQUEMA_LAMINAS);
   const textos = (datos.laminas || []).map(x => String(x.texto || '').replace(/\s+/g, ' ').trim());
   if (textos.length !== n || textos.some(t => !t)) throw new Error(`Claude devolvió ${textos.filter(Boolean).length} textos para ${n} láminas. Intenta de nuevo.`);
-  return { tema: ficha.tema || datos.tema, agenda: datos.agenda, pronunciacion: datos.pronunciacion, textos, uso };
+  const efectos = (datos.laminas || []).map((x, i) => (i === 0 ? [] : efectosDe(x.efectos, cuadradas[i].w, cuadradas[i].h)));
+  return { tema: ficha.tema || datos.tema, agenda: datos.agenda, pronunciacion: datos.pronunciacion, textos,
+    titulos: (datos.laminas || []).map(x => x.titulo), efectos, uso };
 }
 
 // El docente escribe un parrafo por lamina
@@ -490,16 +616,31 @@ async function claseDeLaminas({ ficha, modo, guion, env, laminas, dir, base }) {
   const bloques = [];
   const diapositivas = [];
   const primerBloque = {};
+  const plano = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
   r.textos.forEach((t, i) => {
+    const desde = bloques.length;
     guionManual(t).forEach((p, k) => {
       const id = dosDigitos(bloques.length + 1);
       bloques.push({ id, texto: p.texto });
       if (k === 0) { diapositivas.push({ bloque: id, tipo: 'imagen', imagen: laminas[i] }); primerBloque[dosDigitos(i + 1)] = id; }
     });
+    // cada efecto va al bloque de esta lamina donde la voz dice su "cuando" (si no lo dice, aparece escalonado)
+    const propios = bloques.slice(desde);
+    const efectos = ((r.efectos || [])[i] || []).map(e => {
+      const donde = e.cuando && propios.find(b => plano(b.texto).includes(plano(e.cuando)));
+      return { ...e, cuando: donde ? e.cuando : '', bloque: donde ? donde.id : propios[0].id };
+    });
+    if (efectos.length) diapositivas[diapositivas.length - 1].efectos = efectos;
   });
-  const agenda = (Array.isArray(r.agenda) ? r.agenda : []).map(a => ({ ...a, desde: primerBloque[dosDigitos(parseInt(a && a.desde, 10) || 0)] }));
+  const aBloques = lista => (Array.isArray(lista) ? lista : []).map(a => ({ ...a, desde: primerBloque[dosDigitos(parseInt(a && a.desde, 10) || 0)] }))
+    .filter(a => a.titulo && a.desde);
+  // la agenda sirve si avanza: cada punto empieza en una lamina posterior a la del anterior (y no en la portada)
+  const avanza = ag => ag.length >= 2 && ag.every((a, k) => a.desde !== bloques[0].id && (k === 0 || a.desde > ag[k - 1].desde));
+  let agenda = aBloques(r.agenda);
+  if (!avanza(agenda) && r.titulos) agenda = aBloques(agendaDeTitulos(r.titulos));
   const clase = normalizar({ tema: r.tema, agenda, pronunciacion: r.pronunciacion, bloques, diapositivas }, { ...ficha, tema: ficha.tema || r.tema }, base);
   if (modo !== 'manual') sinDeletreos(clase);
+  pronunciacionBase(clase);
   return { clase, uso: r.uso, aviso: '' };
 }
 
@@ -589,7 +730,13 @@ export function normalizar(datos, ficha, base = {}) {
   const diapositivas = (Array.isArray(datos.diapositivas) ? datos.diapositivas : []).filter(d => d && (d.tipo !== 'imagen' || rutaLamina(d.imagen))).map((d, k) => {
     const tipo = TIPOS_VALIDOS.includes(d && d.tipo) ? d.tipo : 'idea';
     const bloque = idOk(d && d.bloque) || ids[Math.min(k, ids.length - 1)];
-    if (tipo === 'imagen') return { bloque, tipo, imagen: rutaLamina(d.imagen) };
+    if (tipo === 'imagen') {
+      // efectos ya en % de la imagen (los arma claseDeLaminas o los guarda el editor tal cual)
+      const efectos = (Array.isArray(d.efectos) ? d.efectos : []).filter(e => e && Array.isArray(e.caja) && e.caja.length === 4 && e.caja.every(Number.isFinite))
+        .slice(0, 8).map(e => ({ tipo: TIPOS_EFECTO.includes(e.tipo) ? e.tipo : 'foco', caja: e.caja.map(v => Math.max(0, Math.min(100, v))),
+          cuando: corto(e.cuando, 40), bloque: idOk(e.bloque) || bloque }));
+      return { bloque, tipo, imagen: rutaLamina(d.imagen), ...(efectos.length ? { efectos } : {}) };
+    }
     const lado = x => ({ etiqueta: corto(x && x.etiqueta, 24), titulo: corto(x && x.titulo, 60), texto: corto(x && x.texto, 140), cuando: corto(x && x.cuando, 40) });
     return {
       bloque,
@@ -650,6 +797,7 @@ export async function generarClase({ ficha, modo, guion, env, base, laminas, dir
   if (bloquesFijos) datos.bloques = bloquesFijos; // el guion del docente no se toca
   const clase = normalizar(datos, ficha, base);
   if (!bloquesFijos) sinDeletreos(clase);
+  pronunciacionBase(clase);
   const simples = completarDiapositivas(clase, ficha);
   const aviso = simples.length
     ? `La IA no completó las diapositivas de los bloques ${simples.join(', ')}: puse unas simples. Revísalas o pulsa «Diapositivas con IA».`

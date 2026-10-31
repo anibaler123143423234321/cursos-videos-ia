@@ -29,36 +29,9 @@ body { font-family: var(--sans); color: var(--texto); -webkit-font-smoothing: an
   background: radial-gradient(1200px 700px at 30% 45%, #1d1d25 0%, var(--fondo) 70%);
 }
 
-/* ---------- barra superior ---------- */
-#barra {
-  position: absolute; inset: 0 0 auto 0; height: 60px; padding: 0 40px;
-  display: flex; align-items: center; justify-content: space-between;
-  background: #0f0f13; border-bottom: 1px solid #22222a; font-size: 18px; color: var(--suave);
-}
-.barra-izq { display: flex; align-items: center; gap: 14px; width: 520px; }
-.barra-izq b { color: var(--texto); font-weight: 600; }
-.barra-izq .sep { color: var(--suave); font-weight: 400; margin: 0 4px; }
-.sello {
-  background: var(--verde); color: #17180f; font-weight: 900; font-size: 15px; letter-spacing: .04em;
-  padding: 5px 9px; border-radius: 6px;
-}
-#tema { font-weight: 600; color: var(--texto); font-size: 19px; text-align: center; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.barra-der { width: 520px; display: flex; justify-content: flex-end; align-items: center; gap: 18px; }
-.rec { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; letter-spacing: .12em; color: #ffb3b4; }
-.rec i { width: 11px; height: 11px; border-radius: 50%; background: var(--rojo); box-shadow: 0 0 10px var(--rojo); }
-#reloj { font-family: var(--mono); color: var(--texto); font-size: 18px; min-width: 64px; text-align: right; }
-
-/* ---------- aviso de pantalla compartida ---------- */
-#compartiendo {
-  position: absolute; left: 40px; top: 88px; height: 32px; padding: 0 14px;
-  display: inline-flex; align-items: center; gap: 10px; border-radius: 8px;
-  background: rgba(166, 198, 26, .14); color: #d9ec8a; font-size: 16px;
-}
-#compartiendo b { color: #f0f8cf; }
-
-/* ---------- pantalla compartida (diapositiva) ---------- */
+/* ---------- pantalla compartida (diapositiva), centrada en el espacio sobre la barra inferior ---------- */
 #pantalla {
-  position: absolute; left: 40px; top: 135px; width: 1440px; height: 810px;
+  position: absolute; left: 40px; top: 105px; width: 1440px; height: 810px;
   background: var(--papel); border-radius: 10px; overflow: hidden;
   box-shadow: 0 30px 80px rgba(0, 0, 0, .45), 0 0 0 1px rgba(255, 255, 255, .06);
 }
@@ -68,14 +41,15 @@ body { font-family: var(--sans); color: var(--texto); -webkit-font-smoothing: an
   background: var(--verde); display: flex; align-items: center; justify-content: space-between;
 }
 .banda-logo { display: flex; align-items: center; gap: 14px; }
-#logo { height: 58px; }
+/* marca/logo.png suele venir con fondo blanco: "multiply" lo funde con el verde de la franja */
+#logo { height: 58px; mix-blend-mode: multiply; }
 .logo-texto { display: flex; align-items: center; gap: 12px; color: #262626; }
 .logo-texto b { font-size: 50px; font-weight: 900; letter-spacing: -0.03em; line-height: 1; }
 .logo-texto small { font-size: 13px; line-height: 1.15; font-weight: 600; color: #3a4206; }
 #banda-der { color: #fff; font-weight: 800; font-size: 32px; letter-spacing: .04em; text-transform: uppercase; text-shadow: 0 1px 0 rgba(0,0,0,.08); }
 
 /* ---------- columna lateral: camara + agenda ---------- */
-#lateral { position: absolute; left: 1504px; top: 135px; width: 376px; height: 810px; }
+#lateral { position: absolute; left: 1504px; top: 105px; width: 376px; height: 810px; }
 #camara {
   position: relative; width: 376px; height: 282px; border-radius: 12px; overflow: hidden;
   background: #000; outline: 3px solid transparent; outline-offset: 2px;

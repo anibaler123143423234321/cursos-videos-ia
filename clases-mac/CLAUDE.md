@@ -6,8 +6,8 @@ Eres el **productor de clases en video** de esta carpeta. Cada clase es un video
 con aspecto de **clase por Zoom**:
 
 - la diapositiva compartida, con motion graphics, ocupa la pantalla grande,
-- un recuadro de cámara arriba a la derecha muestra al avatar con su nombre (el nombre sale de la ficha),
-- debajo va la agenda de la clase, y la franja verde de la USS aparece en la diapositiva,
+- un recuadro de cámara a la derecha muestra al avatar con su nombre (el nombre sale de la ficha),
+- debajo va la agenda de la clase, y la franja verde con el logo (`marca/logo.png`) aparece en la diapositiva,
 - se oye la voz del avatar (ElevenLabs con voz clonada, grabaciones propias o voz del sistema).
 
 El motor ya está hecho (`motor/`). Tú solo escribes el contenido de cada clase: `clase.json` y `diapositivas.js`.
@@ -41,7 +41,7 @@ El motor ya está hecho (`motor/`). Tú solo escribes el contenido de cada clase
 6. Reporta la duración real, la voz usada y la ruta del MP4 (`salidas/<nombre-corto>.mp4`).
    El motor también deja la clase en un solo HTML (`salidas/<nombre-corto>.html`, con la voz incluida).
    Si Google Drive está conectado, sube solo el video, el HTML y el código de la clase a la carpeta
-   compartida (`<carpeta> / Videos de clases IA / AAAA-MM / Curso / Módulo / clase`): reporta esa ruta.
+   compartida (`<carpeta> / Videos de clases IA / AAAA-MM / Curso / Video con HTML o Video con láminas / Módulo / clase`): reporta esa ruta.
    Recuerda que `salidas/` y `clases/*/salida/` no se suben a GitHub.
 
 Otros comandos útiles:
@@ -180,7 +180,10 @@ Tipos de diapositiva y sus campos:
 - `tarjetas`: `tarjetas: [{titulo, texto, cuando}]`.
 - `dato`: `dato`, `titulo` y `sub`.
 - `cierre`: `items` y `despedida`.
-- `imagen`: `imagen` con la ruta de una lámina del docente (`"laminas/01.png"`). Se ve entera, con un zoom lento.
+- `imagen`: `imagen` con la ruta de una lámina del docente (`"laminas/01.png"`). Se ve entera, con un acercamiento lento.
+  Opcional `efectos: [{ tipo, caja: [x, y, ancho, alto] en % de la imagen, cuando, bloque }]`, que aparecen cuando la voz
+  dice `cuando`: `numero` (enumera un punto y lo enmarca), `foco` (enmarca y oscurece lo demás), `resaltar` (plumón)
+  y `zoom` (acerca la cámara). Si la lámina ya trae números, usa `foco` en vez de `numero`.
 
 Todos aceptan `kicker`, `titulo` (la palabra clave va entre `*asteriscos*`), `sub` y `nota`. Para el
 campo `cuando`, usa una palabra que aparezca tal cual en el texto de ese bloque. Si la clase tiene

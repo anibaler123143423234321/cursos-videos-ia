@@ -723,6 +723,14 @@ function pintarBloques() {
     const ed = $('.diapo-ed', el);
     const cambiarLamina = ed && $('[data-lamina]', ed);
     if (cambiarLamina) cambiarLamina.onchange = e => reemplazarLamina(i, e.target.files[0]);
+    const quitarEfectos = ed && $('[data-quitar-efectos]', ed);
+    if (quitarEfectos) {
+      quitarEfectos.onclick = () => {
+        if (editor.items[i].diapo) delete editor.items[i].diapo.efectos;
+        sucio();
+        pintarBloques();
+      };
+    }
     if (ed) {
       visibles(ed);
       ed.oninput = ed.onchange = () => {
@@ -806,6 +814,9 @@ function edDiapo(d, i) {
     ${lbl('tipo', editor.laminas ? 'Lámina o diapositiva' : 'Diapositiva')}
     <select id="tipo-${i}" data-k="tipo">${tipos.map(([v, n]) => `<option value="${v}" ${v === (d.tipo || '') ? 'selected' : ''}>${n}</option>`).join('')}</select>
     ${d.tipo === 'imagen' ? campo('imagen', `<input type="hidden" data-k="imagen" value="${esc(d.imagen)}">
+      <input type="hidden" data-k="efectos" value="${esc(JSON.stringify(d.efectos || []))}">
+      <p class="ayuda" style="margin:10px 0 0" data-resumen-efectos>${resumenEfectos(d.efectos)}</p>
+      ${(d.efectos || []).length ? `<button type="button" class="boton chico" data-quitar-efectos style="margin-top:6px">${ico('x', 14)}Quitar efectos</button>` : ''}
       <label class="soltar chico" style="margin-top:12px"><input type="file" data-lamina accept="image/png,image/jpeg,image/webp">
         <span class="modo-ico">${ico('imagen', 16)}</span><span><b>Reemplazar esta lámina</b><small>${esc(d.imagen)} · PNG o JPG</small></span></label>`) : ''}
     ${campo('portada idea lista pasos codigo comparacion tarjetas dato cierre', `${lbl('kicker', 'Etiqueta superior')}${inp('kicker', d.kicker, 'Ej.: Paso 1 · El DNS')}`)}
@@ -827,6 +838,18 @@ function edDiapo(d, i) {
   </div>`;
 }
 
+// "3 efectos: 2 números y 1 foco, cuando la voz dice «primero», «segundo»…"
+function resumenEfectos(efectos) {
+  const lista = efectos || [];
+  if (!lista.length) return 'Sin efectos: la lámina se ve completa con un acercamiento lento.';
+  const nombres = { numero: ['número', 'números'], foco: ['foco', 'focos'], resaltar: ['resaltado', 'resaltados'], zoom: ['zoom', 'zooms'] };
+  const cuenta = {};
+  for (const e of lista) cuenta[e.tipo] = (cuenta[e.tipo] || 0) + 1;
+  const partes = Object.entries(cuenta).map(([t, n]) => `${n} ${(nombres[t] || [t, t])[n === 1 ? 0 : 1]}`);
+  const cuando = lista.map(e => e.cuando).filter(Boolean).slice(0, 4).map(c => `«${c}»`).join(', ');
+  return `${lista.length} efecto${lista.length === 1 ? '' : 's'}: ${partes.join(', ')}${cuando ? `, cuando la voz dice ${cuando}` : ''}.`;
+}
+
 function visibles(ed) {
   const tipo = $('[data-k=tipo]', ed).value;
   $$('[data-tipos]', ed).forEach(x => x.classList.toggle('oculto', !tipo || !x.dataset.tipos.split(' ').includes(tipo)));
@@ -836,7 +859,11 @@ function leerDiapo(ed) {
   const v = k => { const el = $(`[data-k=${k}]`, ed); return el ? el.value.trim() : ''; };
   const tipo = v('tipo');
   if (!tipo) return null;
-  if (tipo === 'imagen') return { tipo, imagen: v('imagen') };
+  if (tipo === 'imagen') {
+    let efectos = [];
+    try { efectos = JSON.parse(v('efectos') || '[]'); } catch { /* sin efectos */ }
+    return { tipo, imagen: v('imagen'), ...(efectos.length ? { efectos } : {}) };
+  }
   const partes = l => l.split('|').map(x => x.trim());
   const filas = k => v(k).split('\n').map(x => x.trim()).filter(Boolean);
   const d = { tipo, kicker: v('kicker'), titulo: v('titulo'), sub: v('sub'), nota: v('nota'), dato: v('dato'), despedida: v('despedida'), codigo: $('[data-k=codigo]', ed).value };
@@ -1260,7 +1287,7 @@ async function vistaAjustes() {
       </div>
     </section>
     <section class="ajuste">
-      <div class="ajuste-info"><h2>${ico('subir', 18)}Google Drive</h2><p>Cada video final y el código de su clase se guardan en la carpeta compartida del equipo: Mes / Curso / Módulo / Clase. Todos los que tienen acceso a la carpeta los ven.</p>
+      <div class="ajuste-info"><h2>${ico('subir', 18)}Google Drive</h2><p>Cada video final y el código de su clase se guardan en la carpeta compartida del equipo: Mes / Curso / Video con HTML o Video con láminas / Módulo / Clase. Todos los que tienen acceso a la carpeta los ven.</p>
         ${pild(dr.conectado && dr.carpeta, 'Listo', dr.conectado ? 'Falta la carpeta' : 'Sin conectar')}<p class="ayuda" style="margin-top:8px">${pasoDrive}</p></div>
       <div class="panel">
         ${campo('DRIVE_CARPETA_ID', '3 · Carpeta compartida', 'Pega el enlace de la carpeta (Compartir › Copiar enlace). Tu cuenta debe ser Editor de esa carpeta.', { mono: true, ph: 'https://drive.google.com/drive/folders/…' })}

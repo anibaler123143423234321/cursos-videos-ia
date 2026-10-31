@@ -188,7 +188,9 @@ PASO 8 (OPCIONAL) - GOOGLE DRIVE: LOS VIDEOS EN LA CARPETA COMPARTIDA DEL EQUIPO
 --------------------------------------------------------------------------------
 Cada video final se sube solo, con la clase en HTML (salidas/<clase>.html: se abre con doble clic en
 cualquier navegador y se ve la clase con su voz) y su codigo (clase.json, diapositivas, laminas), a:
-   <carpeta compartida> / Videos de clases IA / 2026-10 / <Curso> / <Modulo> / <clase>
+   <carpeta compartida> / Videos de clases IA / 2026-10 / <Curso> / Video con HTML / <Modulo> / <clase>
+                                                              / Video con laminas / <Modulo> / <clase>
+   (una carpeta por tipo de lamina: HTML animadas o las laminas del docente)
 Todos los que tienen acceso a la carpeta lo ven. Tu cuenta debe ser Editor de esa carpeta.
 
 OPCION A - API DE GOOGLE

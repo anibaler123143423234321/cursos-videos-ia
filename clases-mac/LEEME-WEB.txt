@@ -19,7 +19,8 @@ QUE PUEDE HACER TU EQUIPO EN LA WEB
 - Nueva clase: primero, ¿como son tus laminas?
     * Opcion 1 "Mis laminas (imagenes)": subes un PDF o imagenes PNG/JPG (PowerPoint, Canva...).
       Cada lamina es un bloque del video. La voz la escribes tu (un parrafo por lamina), la IA gratis
-      (mira cada lamina y escribe la voz) o Claude.
+      (mira cada lamina y escribe la voz) o Claude. La IA tambien marca efectos que aparecen cuando la voz
+      los nombra: numeros en las listas, foco en una zona, plumon en una frase o zoom a un detalle.
     * Opcion 2 "Laminas HTML animadas": la IA crea las diapositivas a partir del tema (como antes).
   Despues eliges quien escribe el guion:
     * "Pego mi guion" (gratis): el docente pega su texto, un parrafo por bloque.
@@ -66,7 +67,7 @@ VOZ LOCAL GRATIS Y AZURE (Ajustes)
 
 GOOGLE DRIVE (Ajustes > Google Drive)
 - Los videos, la clase en HTML (un solo archivo que se abre en el navegador) y su codigo quedan en:
-  <carpeta compartida> / Videos de clases IA / Mes / Curso / Modulo / Clase.
+  <carpeta compartida> / Videos de clases IA / Mes / Curso / Video con HTML (o Video con laminas) / Modulo / Clase.
   Todos los que tienen acceso a la carpeta compartida los ven.
 - Pasos: 1) pega el cliente OAuth (JSON de Google Cloud, tipo "App de escritorio");
   2) "Conectar Google Drive" desde la PC del estudio (o CONECTAR-DRIVE); 3) pega el enlace de la carpeta.

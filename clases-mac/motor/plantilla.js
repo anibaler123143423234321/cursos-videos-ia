@@ -101,7 +101,6 @@ try {
       li.classList.toggle('hecho', k < actual);
       li.querySelector('i').textContent = k < actual ? '✓' : String(k + 1);
     });
-    $('#reloj').textContent = mmss(t);
     $('#ag-tiempo').textContent = `${mmss(t).replace(/^0/, '')} / ${mmss(tiempos.total).replace(/^0/, '')}`;
     $('#ag-fill').style.width = `${Math.min(100, (t / tiempos.total) * 100)}%`;
   }
@@ -132,8 +131,6 @@ async function armarMarco(clase, tiempos) {
   const nombre = enCamara ? clase.docente : (clase.avatar || 'Avatar');
   document.querySelectorAll('.nombre-avatar').forEach(n => { n.textContent = nombre; });
   $('#rol').textContent = enCamara ? 'Docente' : (clase.rol_avatar || '');
-  $('#curso').textContent = clase.curso || '';
-  $('#tema').textContent = clase.tema || '';
   $('#banda-der').textContent = clase.banda || clase.curso || '';
   if (clase.institucion) $('#pie-inst').textContent = clase.institucion;
   $('#pie-der').textContent = tiempos.camara ? 'Diapositivas generadas con IA'
