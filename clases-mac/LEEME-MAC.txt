@@ -9,7 +9,9 @@ Que hay en esta carpeta
   TEXTO-PARA-CLONAR-VOZ.txt  lo que lees para clonar tu voz en ElevenLabs
   CLAUDE.md            el PROMPT MAESTRO: Claude Code lo lee solo, no hace falta pegarlo
   CREAR-VIDEO.command  menu para crear los videos (doble clic)
-  .env.ejemplo         plantilla para tus claves de ElevenLabs
+  INSTALAR-VOZ-LOCAL.command  instala la voz local gratis (Piper), una sola vez
+  CONECTAR-DRIVE.command  da permiso para subir los videos a Google Drive, una sola vez
+  .env.ejemplo         plantilla para tus claves (ElevenLabs, Azure, IA, Google Drive)
   clases/              una carpeta por clase (ya viene html-semantico-w3c de ejemplo)
   salidas/             aqui aparecen los .mp4 terminados
   motor/               el programa que arma el video (no tocar)
@@ -111,6 +113,23 @@ Tienes tres opciones, de la mas simple a la mas comoda.
     Espanol: descarga "Paulina (Premium)" o "Monica (Premium)". El programa usa sola la mejor que
     encuentre y evita las voces roboticas (Eddy, Flo, Rocko...).
 
+4D) VOZ LOCAL GRATIS CON PIPER (sin internet, sin cuenta, sin limite de videos)
+    1. Doble clic en INSTALAR-VOZ-LOCAL.command (necesita Python 3: brew install python).
+       Descarga unos 150 MB, solo la primera vez. Al final suena una prueba.
+    2. En .env pon  VOZ=local  (o en la web: Voz y avatar > Voz local gratis).
+    Otra voz: bash INSTALAR-VOZ-LOCAL.command es_AR-daniela-high  y en .env  PIPER_VOZ=es_AR-daniela-high
+
+4E) AZURE (voces neurales con acento de Peru; 0,5 millones de caracteres gratis al mes)
+    Una clase usa unos 2 000 caracteres: el plan gratis alcanza para unas 240 clases al mes.
+    1. https://portal.azure.com > Crear un recurso > "Speech" > plan Free F0 > anota la region.
+    2. En el recurso: Keys and Endpoint > copia KEY 1.
+    3. En .env:  AZURE_SPEECH_KEY=<la clave>  y  AZURE_SPEECH_REGION=eastus  (y VOZ=azure si
+       quieres usarla siempre). Voces: es-PE-CamilaNeural (por defecto) o es-PE-AlexNeural.
+
+NO uses varias cuentas gratis (correos temporales) para juntar caracteres: va contra las
+condiciones de ElevenLabs y Azure, pueden bloquear todas las cuentas (tambien la de tu voz
+clonada) y el plan gratis de ElevenLabs no permite uso comercial ni voces clonadas.
+
 IMPORTANTE: clona solo TU voz, o la de alguien que te de su permiso por escrito.
 Nunca subas .env, tus grabaciones (voz/) ni tus videos (camara.mp4) a GitHub: ya estan
 excluidos en .gitignore.
@@ -156,6 +175,39 @@ Nota: LiveAvatar de HeyGen es para avatares EN VIVO (no guarda MP4); para clases
 el HeyGen normal o Hedra.
 
 
+PASO 7 (OPCIONAL) - TUS PROPIAS LAMINAS (IMAGENES O PDF)
+---------------------------------------------------------
+Si ya tienes tus diapositivas (Keynote, PowerPoint, Canva), en la web: Nueva clase >
+"Mis laminas (imagenes)" y sube un PDF o las imagenes PNG/JPG (Keynote: Archivo > Exportar a > PDF).
+Cada lamina es un bloque del video. La voz la escribes tu (un parrafo por lamina), la IA gratis
+(un modelo que lee imagenes: qwen/qwen3.8-27b en Groq o gemini-3.8-flash en Gemini; web: Ajustes >
+IA que lee laminas) o Claude (de pago por uso). Grok (xAI, de pago) tambien lee imagenes.
+
+
+PASO 8 (OPCIONAL) - GOOGLE DRIVE: LOS VIDEOS EN LA CARPETA COMPARTIDA DEL EQUIPO
+--------------------------------------------------------------------------------
+Cada video final se sube solo, con la clase en HTML (salidas/<clase>.html: se abre con doble clic en
+cualquier navegador y se ve la clase con su voz) y su codigo (clase.json, diapositivas, laminas), a:
+   <carpeta compartida> / Videos de clases IA / 2026-10 / <Curso> / <Modulo> / <clase>
+Todos los que tienen acceso a la carpeta lo ven. Tu cuenta debe ser Editor de esa carpeta.
+
+OPCION A - API DE GOOGLE
+  1. https://console.cloud.google.com con tu cuenta @uss.edu.pe > proyecto nuevo.
+  2. APIs y servicios > Biblioteca > "Google Drive API" > Habilitar.
+  3. Pantalla de consentimiento de OAuth > tipo de usuario INTERNO.
+  4. Credenciales > ID de cliente de OAuth > tipo APP DE ESCRITORIO > Descargar JSON.
+  5. Guardalo en esta carpeta como  google-drive-cliente.json  (o pegalo en la web: Ajustes > Google Drive).
+  6. Doble clic en CONECTAR-DRIVE.command y acepta el permiso con la cuenta que es Editor de la carpeta.
+  7. En .env (o en la web) pega el enlace de la carpeta:  DRIVE_CARPETA_ID=https://drive.google.com/drive/folders/...
+
+OPCION B - GOOGLE DRIVE PARA ESCRITORIO (sin Google Cloud)
+  1. Instala Google Drive para escritorio (brew install --cask google-drive) e inicia sesion.
+  2. En drive.google.com: clic derecho en la carpeta compartida > Organizar > Agregar acceso directo > Mi unidad.
+  3. En .env:  DRIVE_RUTA_LOCAL=/Users/<tu-usuario>/Library/CloudStorage/GoogleDrive-<tu-correo>/Mi unidad/<carpeta>
+
+Para subir una clase a mano:  node motor/drive.mjs subir <clase>   (con --prueba solo muestra que subiria)
+
+
 WEB PARA EL EQUIPO
 ------------------
 Para que tu equipo cree clases desde el navegador (sin terminal), mira LEEME-WEB.txt
@@ -169,5 +221,9 @@ PROBLEMAS FRECUENTES
 - "Executable doesn't exist ... chromium": npx playwright install chromium
 - ElevenLabs "HTTP 401": la API key esta mal copiada o no tiene permiso de Text to Speech.
 - ElevenLabs "HTTP 404": el Voice ID no es de tu cuenta.
+- Azure "HTTP 401": la clave esta mal copiada o AZURE_SPEECH_REGION no es la region de tu recurso.
+- "falta la voz es_MX-claude-high": abre INSTALAR-VOZ-LOCAL.command.
+- Drive "404 / no veo la carpeta": revisa DRIVE_CARPETA_ID y que tu cuenta sea Editor de esa carpeta.
+- Drive "el permiso vencio": abre CONECTAR-DRIVE.command otra vez.
 - "sin creditos": se acabo el mes del plan; mientras tanto se usa la voz de macOS.
 - Algo fallo: copia el mensaje de la Terminal y pegaselo a Claude Code.

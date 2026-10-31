@@ -10,3 +10,8 @@ clases/*/camara.*
 clases/*/avatar.*
 .DS_Store
 papelera/
+# voz local (Piper) y permisos de Google Drive: solo en la PC del estudio
+voces/
+google-drive-cliente.json
+drive-token.json
+clases/*/drive.json

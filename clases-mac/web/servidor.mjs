@@ -9,7 +9,8 @@ import os from 'node:os';
 import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { generarClase, normalizar } from './ia.mjs';
+import { generarClase, normalizar, rutaLamina, configVision } from './ia.mjs';
+import * as drive from '../motor/drive.mjs';
 
 const WEB = path.dirname(fileURLToPath(import.meta.url));
 const RAIZ = path.resolve(WEB, '..');
@@ -141,10 +142,15 @@ function resumen(slug) {
   if (!c) return null;
   const tiempos = path.join(dirClase(slug), 'salida', 'tiempos.json');
   const video = path.join(RAIZ, 'salidas', `${slug}.mp4`);
+  const enDrive = path.join(dirClase(slug), 'drive.json');
+  const html = path.join(RAIZ, 'salidas', `${slug}.html`);
   const portada = Array.isArray(c.diapositivas) && c.diapositivas[0];
   return {
-    slug, tema: c.tema || slug, curso: c.curso || '', avatar: c.avatar || '', nivel: c.nivel || '', banda: c.banda || c.curso || '',
-    portada: portada ? { kicker: portada.kicker || '', titulo: portada.titulo || '' } : null,
+    slug, tema: c.tema || slug, curso: c.curso || '', modulo: c.modulo || '', avatar: c.avatar || '', nivel: c.nivel || '', banda: c.banda || c.curso || '',
+    portada: portada ? { kicker: portada.kicker || '', titulo: portada.titulo || '', imagen: portada.imagen || '' } : null,
+    laminas: (c.diapositivas || []).some(d => d.tipo === 'imagen'),
+    drive: fs.existsSync(enDrive) ? JSON.parse(fs.readFileSync(enDrive, 'utf8')) : null,
+    html: fs.existsSync(html) ? { tam: fs.statSync(html).size } : null,
     editada: fs.statSync(path.join(dirClase(slug), 'clase.json')).mtimeMs,
     bloques: (c.bloques || []).length,
     palabras: (c.bloques || []).reduce((n, b) => n + String(b.texto || '').split(/\s+/).filter(Boolean).length, 0),
@@ -154,10 +160,28 @@ function resumen(slug) {
   };
 }
 
+// Laminas que llegan del navegador como data URL (el navegador ya las paso a JPG o PNG, y un PDF a una imagen por pagina)
+function guardarLaminas(dir, lista) {
+  if (!Array.isArray(lista) || !lista.length) return [];
+  if (lista.length > 40) throw new Error('Máximo 40 láminas por clase');
+  fs.mkdirSync(path.join(dir, 'laminas'), { recursive: true });
+  return lista.map((u, i) => {
+    const m = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/.exec(String(u || ''));
+    if (!m) throw new Error(`La lámina ${i + 1} no es una imagen JPG, PNG o WEBP`);
+    const datos = Buffer.from(m[2], 'base64');
+    const ok = { jpeg: [0xff, 0xd8], png: [0x89, 0x50], webp: [0x52, 0x49] }[m[1]].every((b, k) => datos[k] === b);
+    if (!ok || datos.length > 15 * 1024 ** 2) throw new Error(`La lámina ${i + 1} está dañada o pesa más de 15 MB`);
+    const rel = `laminas/${String(i + 1).padStart(2, '0')}.${m[1] === 'jpeg' ? 'jpg' : m[1]}`;
+    fs.writeFileSync(path.join(dir, ...rel.split('/')), datos);
+    return rel;
+  });
+}
+const laminasDe = clase => (clase.diapositivas || []).filter(d => d.tipo === 'imagen' && rutaLamina(d.imagen)).map(d => d.imagen);
+
 // ---------------------------------------------------------------- trabajos (videos, uno a la vez)
 const trabajos = [];
 let ocupado = false;
-const MODOS = { video: [], borrador: ['--rapido'], voz: ['--solo-voz'], capturas: ['--capturas'] };
+const MODOS = { video: [], borrador: ['--rapido'], voz: ['--solo-voz'], capturas: ['--capturas'], drive: null };
 function encolar(slug, modo) {
   const ya = trabajos.find(t => t.slug === slug && t.modo === modo && (t.estado === 'en-cola' || t.estado === 'trabajando'));
   if (ya) return ya;
@@ -173,9 +197,10 @@ function siguiente() {
   if (!t) return;
   ocupado = true;
   t.estado = 'trabajando';
-  t.mensaje = 'Preparando la voz...';
+  t.mensaje = t.modo === 'drive' ? 'Subiendo a Google Drive...' : 'Preparando la voz...';
   const env = { ...process.env, ...leerEnv() };
-  const hijo = spawn(process.execPath, [path.join(RAIZ, 'motor', 'crear-video.mjs'), t.slug, ...MODOS[t.modo]], { cwd: RAIZ, env, windowsHide: true });
+  const orden = t.modo === 'drive' ? ['drive.mjs', 'subir', t.slug] : ['crear-video.mjs', t.slug, ...MODOS[t.modo]];
+  const hijo = spawn(process.execPath, [path.join(RAIZ, 'motor', orden[0]), ...orden.slice(1)], { cwd: RAIZ, env, windowsHide: true });
   let resto = '';
   const leer = d => {
     resto += d.toString();
@@ -188,6 +213,7 @@ function siguiente() {
       t.log.splice(0, Math.max(0, t.log.length - 60));
       if (/^\s*voz (\d+)/.test(l)) { t.mensaje = `Generando la voz (bloque ${/voz (\d+)/.exec(l)[1]})`; t.progreso = Math.max(t.progreso, 5); }
       if (/\[OK\] Voz:/.test(l)) { t.progreso = Math.max(t.progreso, 15); t.mensaje = l.replace(/^\[OK\]\s*/, ''); }
+      if (/^\s*drive: /.test(l)) t.mensaje = `Subiendo a Google Drive: ${l.replace(/^\s*drive:\s*|\.\.\..*$/g, '')}`;
       if (/\[X\]/.test(l)) t.mensaje = l.replace(/^\[X\]\s*/, '');
     }
   };
@@ -198,7 +224,7 @@ function siguiente() {
     t.fin = Date.now();
     t.estado = codigo === 0 ? 'listo' : 'error';
     t.progreso = codigo === 0 ? 100 : t.progreso;
-    if (codigo === 0) t.mensaje = { video: 'Video listo', borrador: 'Borrador listo', voz: 'Voz lista: ya puedes ver la vista previa', capturas: 'Capturas listas' }[t.modo];
+    if (codigo === 0) t.mensaje = { video: 'Video listo', borrador: 'Borrador listo', voz: 'Voz lista: ya puedes ver la vista previa', capturas: 'Capturas listas', drive: 'Subido a Google Drive' }[t.modo];
     else if (!/\w/.test(t.mensaje) || t.mensaje === 'Preparando la voz...') t.mensaje = 'Falló: revisa el detalle';
     ocupado = false;
     siguiente();
@@ -210,7 +236,13 @@ function siguiente() {
 const AJUSTES = {
   ELEVENLABS_API_KEY: { secreto: true }, ELEVENLABS_VOICE_ID: {}, ANTHROPIC_API_KEY: { secreto: true }, CLAUDE_MODELO: {},
   IA_GRATIS_URL: {}, IA_GRATIS_KEY: { secreto: true }, IA_GRATIS_MODELO: {}, VOZ: {}, VOZ_SISTEMA: {}, WEB_CLAVE: { secreto: true },
+  IA_VISION_URL: {}, IA_VISION_KEY: { secreto: true }, IA_VISION_MODELO: {},
+  AZURE_SPEECH_KEY: { secreto: true }, AZURE_SPEECH_REGION: {}, AZURE_VOZ: {},
+  PIPER_VOZ: {}, VOZ_LOCAL_URL: {}, VOZ_LOCAL_VOZ: {},
+  DRIVE_CARPETA_ID: {}, DRIVE_CARPETA: {}, DRIVE_RUTA_LOCAL: {},
 };
+const esLocal = req => /^(127\.0\.0\.1|::1|::ffff:127\.0\.0\.1)$/.test(req.socket.remoteAddress || '');
+let conectando = null; // proceso de "drive.mjs conectar" en marcha
 const enmascarar = v => (v ? `${'•'.repeat(6)}${String(v).slice(-4)}` : '');
 
 // ---------------------------------------------------------------- rutas
@@ -240,11 +272,46 @@ async function rutaApi(req, res, url) {
   }
   if (p === '/api/estado') {
     const env = leerEnv();
+    const vision = configVision(env);
     return json(res, 200, {
-      ia: { claude: !!env.ANTHROPIC_API_KEY, gratis: !!(env.IA_GRATIS_KEY || /localhost|127\.0\.0\.1/.test(env.IA_GRATIS_URL || '')) },
-      voz: { elevenlabs: !!(env.ELEVENLABS_API_KEY && env.ELEVENLABS_VOICE_ID) },
+      ia: {
+        claude: !!env.ANTHROPIC_API_KEY, gratis: !!(env.IA_GRATIS_KEY || /localhost|127\.0\.0\.1/.test(env.IA_GRATIS_URL || '')),
+        vision: !!(vision.IA_GRATIS_KEY || /localhost|127\.0\.0\.1/.test(vision.IA_GRATIS_URL)), modeloVision: vision.IA_GRATIS_MODELO || '',
+      },
+      voz: {
+        elevenlabs: !!(env.ELEVENLABS_API_KEY && env.ELEVENLABS_VOICE_ID),
+        azure: !!(env.AZURE_SPEECH_KEY && env.AZURE_SPEECH_REGION),
+        local: !!env.VOZ_LOCAL_URL || fs.existsSync(path.join(RAIZ, 'voces', `${env.PIPER_VOZ || 'es_MX-claude-high'}.onnx`)),
+      },
+      drive: {
+        modo: env.DRIVE_RUTA_LOCAL ? 'local' : 'api',
+        cliente: drive.tieneCliente(),
+        conectado: env.DRIVE_RUTA_LOCAL ? fs.existsSync(env.DRIVE_RUTA_LOCAL) : drive.conectado(),
+        carpeta: !!drive.idCarpeta(env.DRIVE_CARPETA_ID) || !!env.DRIVE_RUTA_LOCAL,
+        conectando: !!conectando, local: esLocal(req),
+      },
       logo: fs.existsSync(path.join(RAIZ, 'marca', 'logo.png')),
     });
+  }
+  if (p === '/api/drive/cliente' && req.method === 'POST') {
+    let j;
+    try { j = JSON.parse(String((await leerJson(req)).json || '')); } catch { return json(res, 400, { error: 'Eso no es un JSON válido: pega el contenido completo del archivo descargado de Google Cloud.' }); }
+    if (!j || !j.installed || !j.installed.client_id || !j.installed.client_secret) {
+      return json(res, 400, { error: j && j.web ? 'Ese cliente es de tipo «Aplicación web». Crea uno de tipo «App de escritorio».' : 'Ese JSON no es un cliente OAuth de tipo «App de escritorio».' });
+    }
+    fs.writeFileSync(path.join(RAIZ, 'google-drive-cliente.json'), JSON.stringify(j, null, 2));
+    return json(res, 200, { ok: true });
+  }
+  if (p === '/api/drive/conectar' && req.method === 'POST') {
+    // el permiso se da en el navegador de la PC del estudio (Google vuelve a 127.0.0.1)
+    if (!esLocal(req)) return json(res, 403, { error: `Conecta Drive desde la PC del estudio (http://localhost:${PUERTO}) o con CONECTAR-DRIVE.` });
+    if (!drive.tieneCliente()) return json(res, 400, { error: 'Primero guarda el cliente OAuth (JSON) de Google Cloud.' });
+    if (!conectando) {
+      conectando = spawn(process.execPath, [path.join(RAIZ, 'motor', 'drive.mjs'), 'conectar'], { cwd: RAIZ, env: { ...process.env, ...leerEnv() }, windowsHide: true });
+      conectando.on('close', () => { conectando = null; });
+      conectando.on('error', () => { conectando = null; });
+    }
+    return json(res, 200, { ok: true });
   }
   if (p === '/api/clases' && req.method === 'GET') {
     const lista = fs.existsSync(CLASES) ? fs.readdirSync(CLASES).filter(slugValido).map(resumen).filter(Boolean) : [];
@@ -252,7 +319,24 @@ async function rutaApi(req, res, url) {
     return json(res, 200, lista);
   }
   if (p === '/api/clases' && req.method === 'POST') {
-    const { ficha = {}, modo = 'manual', guion = '' } = await leerJson(req);
+    const { ficha = {}, modo = 'manual', guion = '', laminas = [] } = await leerJson(req, 150 << 20);
+    if (Array.isArray(laminas) && laminas.length) {
+      // las laminas se guardan aparte mientras la IA escribe; despues la carpeta toma el nombre del tema
+      const tmp = path.join(CLASES, `.nueva-${crypto.randomBytes(4).toString('hex')}`);
+      try {
+        const rutas = guardarLaminas(tmp, laminas);
+        const { clase, uso, aviso } = await generarClase({ ficha, modo, guion, env: leerEnv(), laminas: rutas, dir: tmp });
+        if (!clase.tema) clase.tema = 'Clase con láminas';
+        const slug = slugDe(clase.tema);
+        fs.renameSync(tmp, dirClase(slug));
+        guardarClase(slug, clase);
+        fs.writeFileSync(path.join(dirClase(slug), 'ficha.json'), JSON.stringify({ ...ficha, modo, laminas: rutas.length, creada: new Date().toISOString() }, null, 2));
+        return json(res, 200, { slug, uso, aviso });
+      } catch (e) {
+        fs.rmSync(tmp, { recursive: true, force: true });
+        throw e;
+      }
+    }
     if (!String(ficha.tema || '').trim()) return json(res, 400, { error: 'Escribe el tema de la clase' });
     const { clase, uso, aviso } = await generarClase({ ficha, modo, guion, env: leerEnv() });
     const slug = slugDe(clase.tema);
@@ -284,9 +368,14 @@ async function rutaApi(req, res, url) {
   if ((r = m(/^\/api\/clases\/([a-z0-9-]+)\/ia$/)) && req.method === 'POST') {
     const clase = leerClase(r[1]);
     if (!clase) return json(res, 404, { error: 'No existe esa clase' });
-    const { modo = 'gratis' } = await leerJson(req);
+    const { modo = 'gratis', laminas = false } = await leerJson(req);
     const ficha = fs.existsSync(path.join(dirClase(r[1]), 'ficha.json')) ? JSON.parse(fs.readFileSync(path.join(dirClase(r[1]), 'ficha.json'), 'utf8')) : {};
-    const { clase: nueva, uso, aviso } = await generarClase({ ficha: { ...ficha, ...clase }, modo, guion: clase.bloques, env: leerEnv(), base: clase });
+    // con laminas, la IA las vuelve a mirar y reescribe lo que dice la voz; sin laminas, rehace las diapositivas
+    const rutas = laminas ? laminasDe(clase) : [];
+    if (laminas && !rutas.length) return json(res, 400, { error: 'Esta clase no tiene láminas' });
+    const { clase: nueva, uso, aviso } = rutas.length
+      ? await generarClase({ ficha: { ...ficha, ...clase }, modo, env: leerEnv(), base: clase, laminas: rutas, dir: dirClase(r[1]) })
+      : await generarClase({ ficha: { ...ficha, ...clase }, modo, guion: clase.bloques, env: leerEnv(), base: clase });
     guardarClase(r[1], nueva);
     return json(res, 200, { ok: true, clase: nueva, uso, aviso });
   }
@@ -294,10 +383,15 @@ async function rutaApi(req, res, url) {
     const slug = r[1];
     if (!leerClase(slug)) return json(res, 404, { error: 'No existe esa clase' });
     const nombre = String(url.searchParams.get('nombre') || '');
-    const valido = /^(voz\/(completa|\d{2})\.(m4a|mp3|wav|ogg|opus|aac|flac|webm|mp4|mov|aiff)|(camara|avatar)\.(mp4|mov|webm|m4v))$/i.test(nombre);
+    const lamina = /^laminas\/\d{2}\.jpg$/.test(nombre); // reemplazar una lamina (el navegador la manda en JPG)
+    const valido = lamina || /^(voz\/(completa|\d{2})\.(m4a|mp3|wav|ogg|opus|aac|flac|webm|mp4|mov|aiff)|(camara|avatar)\.(mp4|mov|webm|m4v))$/i.test(nombre);
     if (!valido) return json(res, 400, { error: 'Nombre de archivo no permitido' });
     const destino = path.join(dirClase(slug), ...nombre.split('/'));
-    if (req.method === 'DELETE') { fs.rmSync(destino, { force: true }); return json(res, 200, { ok: true }); }
+    if (req.method === 'DELETE') {
+      if (lamina) return json(res, 400, { error: 'Las láminas se reemplazan, no se borran' });
+      fs.rmSync(destino, { force: true });
+      return json(res, 200, { ok: true });
+    }
     if (req.method === 'PUT') {
       fs.mkdirSync(path.dirname(destino), { recursive: true });
       // un solo archivo por tipo: borra las otras extensiones del mismo nombre
@@ -320,7 +414,7 @@ async function rutaApi(req, res, url) {
   if ((r = m(/^\/api\/clases\/([a-z0-9-]+)\/trabajo$/)) && req.method === 'POST') {
     if (!leerClase(r[1])) return json(res, 404, { error: 'No existe esa clase' });
     const { modo } = await leerJson(req);
-    if (!MODOS[modo]) return json(res, 400, { error: 'Modo inválido' });
+    if (!Object.hasOwn(MODOS, modo)) return json(res, 400, { error: 'Modo inválido' });
     return json(res, 200, encolar(r[1], modo));
   }
   if (p === '/api/trabajos') return json(res, 200, trabajos);
@@ -328,6 +422,10 @@ async function rutaApi(req, res, url) {
     const borrador = url.searchParams.get('borrador') === '1';
     const f = path.join(RAIZ, 'salidas', `${r[1]}${borrador ? '-borrador' : ''}.mp4`);
     return enviarArchivo(req, res, f, { descarga: url.searchParams.get('ver') === '1' ? null : path.basename(f) });
+  }
+  if ((r = m(/^\/api\/clases\/([a-z0-9-]+)\/html$/))) {
+    // la clase en un solo archivo HTML (se descarga: abrirlo aqui no tiene sentido)
+    return enviarArchivo(req, res, path.join(RAIZ, 'salidas', `${r[1]}.html`), { descarga: `${r[1]}.html` });
   }
   if ((r = m(/^\/api\/clases\/([a-z0-9-]+)\/capturas$/))) {
     const d = path.join(dirClase(r[1]), 'salida', 'capturas');
@@ -367,7 +465,7 @@ function rutaEstatica(req, res, url) {
   const fuente = rel[0] === 'node_modules' && rel[1] === '@fontsource' && /\.woff2?$/.test(f);
   if (!fuente && !sesionValida(req)) { res.writeHead(401); return res.end(); }
   const permitido = rel[0] === 'motor' || rel[0] === 'marca' || (rel[0] === 'clases' && slugValido(rel[1])) ||
-    (rel[0] === 'node_modules' && (rel[1] === 'gsap' || rel[1] === '@fontsource'));
+    (rel[0] === 'node_modules' && (rel[1] === 'gsap' || rel[1] === '@fontsource' || rel[1] === 'pdfjs-dist'));
   if (!permitido || rel.some(x => x.startsWith('.') || x === '..')) { res.writeHead(403); return res.end(); }
   return enviarArchivo(req, res, f);
 }

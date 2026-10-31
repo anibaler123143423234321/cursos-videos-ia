@@ -7,7 +7,7 @@ if ! command -v node >/dev/null 2>&1 || ! command -v ffmpeg >/dev/null 2>&1; the
   read -r -p "Enter para salir" _
   exit 1
 fi
-if [ ! -d node_modules/@anthropic-ai/sdk ] || [ ! -d node_modules/playwright ]; then
+if [ ! -d node_modules/@anthropic-ai/sdk ] || [ ! -d node_modules/playwright ] || [ ! -d node_modules/pdfjs-dist ]; then
   echo "[..] Preparando la web, solo la primera vez..."
   npm install --no-audit --no-fund && npx playwright install chromium
 fi

@@ -3,15 +3,16 @@
 // la voz dice una palabra ("cuando"); si no, aparece escalonado dentro de su bloque.
 //
 // Tipos: portada | idea | lista | codigo | comparacion | tarjetas | pasos | dato | cierre
+//        imagen (una lamina subida por el docente: clases/<clase>/laminas/01.jpg, en el campo "imagen")
 // Campos comunes: bloque (id donde empieza), kicker, titulo (la palabra clave entre *asteriscos*), sub, nota
 
-const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 // *palabra* -> <em>palabra</em> (acento serif morado)
 const conAcento = s => esc(s).replace(/\*([^*]+)\*/g, '<em>$1</em>');
 
-export const TIPOS = ['portada', 'idea', 'lista', 'codigo', 'comparacion', 'tarjetas', 'pasos', 'dato', 'cierre'];
+export const TIPOS = ['portada', 'idea', 'lista', 'codigo', 'comparacion', 'tarjetas', 'pasos', 'dato', 'cierre', 'imagen'];
 
-export function construirAuto({ b, p, u, clase }) {
+export function construirAuto({ b, p, u, tl, gsap, clase, tiempos, archivo }) {
   u.estilo(`
     .diapo::after { content: ''; position: absolute; right: -140px; top: -160px; width: 460px; height: 460px; border-radius: 50%;
       background: radial-gradient(circle, rgba(166,198,26,.20), transparent 68%); pointer-events: none; }
@@ -26,6 +27,10 @@ export function construirAuto({ b, p, u, clase }) {
     .auto-dato em { font-family: var(--serif); font-weight: 400; color: var(--morado); }
     .auto-chips { display: flex; gap: 14px; flex-wrap: wrap; }
     .auto-despedida { display: inline-flex; align-self: flex-start; padding: 14px 22px; border-radius: 14px; background: var(--verde-claro); color: var(--verde-osc); font-size: 26px; font-weight: 700; }
+    .diapo.lamina { padding: 0; background: #f3f3f6; }
+    .diapo.lamina::after { display: none; }
+    .lamina-fondo { position: absolute; inset: -60px; width: calc(100% + 120px); height: calc(100% + 120px); object-fit: cover; filter: blur(36px) saturate(1.1); opacity: .45; }
+    .lamina-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
   `);
 
   const lista = clase.diapositivas || [];
@@ -40,9 +45,12 @@ export function construirAuto({ b, p, u, clase }) {
     return b(bloque, Math.min(0.85, desde + (i / Math.max(1, n)) * 0.7));
   };
 
+  const bloqueDe = (d, k) => (ids.includes(d.bloque) ? d.bloque : ids[Math.min(k, ids.length - 1)]);
+  const inicios = lista.map((d, k) => (k === 0 ? 0 : b(bloqueDe(d, k))));
+
   lista.forEach((d, k) => {
-    const bloque = ids.includes(d.bloque) ? d.bloque : ids[Math.min(k, ids.length - 1)];
-    const t0 = k === 0 ? 0 : b(bloque);
+    const bloque = bloqueDe(d, k);
+    const t0 = inicios[k];
     const kicker = d.kicker ? `<div class="kicker">${esc(d.kicker)}</div>` : '';
     const titulo = d.titulo ? conAcento(d.titulo) : '';
     const sub = d.sub ? `<p class="sub">${conAcento(d.sub)}</p>` : '';
@@ -113,6 +121,17 @@ export function construirAuto({ b, p, u, clase }) {
         entradaTitulo(s, t0, kicker);
         if (sub) u.entrar(u.$(s, '.sub'), t0 + 0.6);
         u.$$(s, '.tarjeta').forEach((el, i) => u.entrar(el, momento(bloque, ts[i].cuando, i, ts.length), { y: 40 }));
+        break;
+      }
+      case 'imagen': {
+        // la lamina entera (sin recortar) sobre un fondo desenfocado de si misma, con un zoom lento mientras dura
+        const src = archivo(d.imagen || '');
+        s = u.diapo(`<img class="lamina-fondo" src="${esc(src)}" alt=""><img class="lamina-img" src="${esc(src)}" alt="" data-lamina="${esc(d.imagen)}">`, { clase: 'lamina' });
+        u.mostrar(s, t0);
+        const img = u.$(s, '.lamina-img');
+        const dura = Math.max(1, (k + 1 < inicios.length ? inicios[k + 1] : tiempos.total) - t0);
+        gsap.set(img, { scale: 1, transformOrigin: '50% 50%' });
+        tl.to(img, { scale: 1.035, duration: dura, ease: 'none' }, t0);
         break;
       }
       case 'dato': {

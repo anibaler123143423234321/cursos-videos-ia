@@ -3,14 +3,18 @@
 import { crearUtil } from './util.js';
 import { crearRobot } from './robot.js';
 
+// Clase embebida en un solo archivo HTML (motor/exportar-html.mjs): datos, voz y laminas vienen dentro de la pagina.
+const EMB = window.__CLASE || null;
 const q = new URLSearchParams(location.search);
-const slug = q.get('clase');
-const modo = q.get('modo') || 'vista';
-const archivoAvatar = q.get('avatar');
+const slug = EMB ? EMB.slug : q.get('clase');
+const modo = EMB ? 'vista' : q.get('modo') || 'vista';
+const archivoAvatar = EMB ? null : q.get('avatar');
 const base = `/clases/${encodeURIComponent(slug || '')}`;
+const archivo = rel => (EMB ? EMB.archivos[rel] || '' : `${base}/${String(rel).split('/').map(encodeURIComponent).join('/')}`);
 const $ = s => document.querySelector(s);
 
 async function json(url) {
+  if (EMB) return EMB.datos[url.split('/').pop()];
   const r = await fetch(url, { cache: 'no-store' });
   if (!r.ok) throw new Error(`No pude leer ${url} (${r.status}). ¿Ya corriste el motor para generar la voz?`);
   return r.json();
@@ -58,9 +62,13 @@ try {
   if (Array.isArray(clase.diapositivas) && clase.diapositivas.length) {
     // diapositivas por plantillas (las que se editan desde la web)
     const { construirAuto } = await import('./diapos-auto.js');
-    construirAuto({ tl, gsap, escena, b, fin, p, u, clase, tiempos });
+    construirAuto({ tl, gsap, escena, b, fin, p, u, clase, tiempos, archivo });
+    // las laminas (imagenes) deben estar cargadas antes del primer cuadro
+    await Promise.all([...escena.querySelectorAll('img.lamina-img')].map(img => img.decode().catch(() => {
+      throw new Error(`No pude abrir la lámina ${img.dataset.lamina}. ¿Está en la carpeta laminas de la clase?`);
+    })));
   } else {
-    const mod = await import(`${base}/diapositivas.js`);
+    const mod = await import(EMB ? '@clase/diapositivas' : `${base}/diapositivas.js`);
     if (typeof mod.default !== 'function') throw new Error('diapositivas.js debe tener "export default function ({ tl, b, p, u, ... }) { ... }"');
     await mod.default({ tl, gsap, escena, b, fin, p, u, clase, tiempos });
   }
@@ -132,9 +140,10 @@ async function armarMarco(clase, tiempos) {
     : clase.docente ? `Clase generada con IA · Revisó: ${clase.docente}` : 'Clase generada con IA';
   document.title = `${clase.tema || 'Clase'} · ${nombre}`;
   // logo opcional: marca/logo.png (el motor avisa con ?logo=1 si existe)
-  if (q.get('logo') === '1') {
+  const logo = EMB ? EMB.archivos.logo : q.get('logo') === '1' ? '/marca/logo.png' : '';
+  if (logo) {
     const img = $('#logo');
-    img.src = '/marca/logo.png';
+    img.src = logo;
     await img.decode().catch(() => {});
     img.hidden = false;
     $('.logo-texto').style.display = 'none';
@@ -152,7 +161,7 @@ function prepararVista(ir, tiempos) {
   ajustar();
   addEventListener('resize', ajustar);
 
-  const audio = new Audio(`${base}/salida/voz-completa.wav`);
+  const audio = new Audio(EMB ? EMB.archivos.voz : `${base}/salida/voz-completa.wav`);
   let video = null;
   if (archivoAvatar) {
     video = $('#avatar-video');

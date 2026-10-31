@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Propuesta: curso de Diseño Web en video con IA (v2)</title>
+<style>
+  @font-face { font-family: Inter; font-weight: 400; src: url(../../clases-windows/node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2); }
+  @font-face { font-family: Inter; font-weight: 500; src: url(../../clases-windows/node_modules/@fontsource/inter/files/inter-latin-500-normal.woff2); }
+  @font-face { font-family: Inter; font-weight: 600; src: url(../../clases-windows/node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2); }
+  @font-face { font-family: Inter; font-weight: 700; src: url(../../clases-windows/node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2); }
+  @font-face { font-family: Inter; font-weight: 800; src: url(../../clases-windows/node_modules/@fontsource/inter/files/inter-latin-800-normal.woff2); }
+  @font-face { font-family: Inter; font-weight: 900; src: url(../../clases-windows/node_modules/@fontsource/inter/files/inter-latin-900-normal.woff2); }
+  @font-face { font-family: Serif; font-style: italic; src: url(../../clases-windows/node_modules/@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2); }
+  :root { --verde: #a6c61a; --verde-osc: #6f8a00; --verde-50: #f3f8dc; --tinta: #121214; --gris: #5d616c; --linea: #e3e4e8; --caja: #f4f4f7; --morado: #4b3fd1; --oscuro: #1d1d22; }
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 400 9.6pt/1.48 Inter, sans-serif; color: var(--tinta); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .pagina { width: 210mm; height: 297mm; padding: 13mm 16mm 12mm; position: relative; page-break-after: always; overflow: hidden; }
+  .pagina:last-child { page-break-after: auto; }
+  .pagina::before { content: ''; position: absolute; left: 0; top: 0; right: 0; height: 3.2mm; background: var(--verde); }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 3mm 0 4mm; border-bottom: 1px solid var(--linea); margin-bottom: 7mm; }
+  .logo { display: flex; align-items: center; gap: 3mm; }
+  .logo b { font-size: 20pt; font-weight: 900; letter-spacing: -0.04em; }
+  .logo small { font-size: 7pt; line-height: 1.2; font-weight: 600; color: #3a3d45; }
+  header .der { text-align: right; font-size: 7.6pt; color: var(--gris); line-height: 1.5; }
+  footer { position: absolute; left: 16mm; right: 16mm; bottom: 8mm; display: flex; justify-content: space-between; font-size: 7.2pt; color: var(--gris); border-top: 1px solid var(--linea); padding-top: 2.5mm; }
+  .kicker { display: flex; align-items: center; gap: 3mm; font-size: 7.6pt; font-weight: 700; letter-spacing: .22em; color: var(--verde-osc); text-transform: uppercase; }
+  .kicker::before { content: ''; width: 9mm; height: 1.3mm; border-radius: 1mm; background: var(--verde); }
+  h1 { font-size: 25pt; line-height: 1.02; letter-spacing: -0.045em; font-weight: 900; margin: 3mm 0 3mm; }
+  h1 em, h2 em { font-family: Serif; font-weight: 400; font-style: italic; color: var(--morado); letter-spacing: -0.01em; }
+  h2 { font-size: 13.5pt; letter-spacing: -0.02em; font-weight: 800; margin: 4.5mm 0 2mm; }
+  h2 em { font-size: 13pt; }
+  p { margin: 0 0 2.5mm; }
+  .meta { font-size: 8.6pt; color: var(--gris); display: flex; gap: 7mm; margin-bottom: 5mm; }
+  .meta b { color: var(--tinta); }
+  .version { display: inline-block; font-size: 7.2pt; font-weight: 700; padding: .6mm 2.2mm; border-radius: 10mm; background: var(--verde-50); color: var(--verde-osc); margin-left: 2mm; vertical-align: 3pt; letter-spacing: 0; }
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3.5mm; margin: 4mm 0 2mm; }
+  .kpi { background: var(--caja); border-radius: 3mm; padding: 3.2mm 3.6mm; }
+  .kpi.osc { background: var(--oscuro); color: #fff; }
+  .kpi b { display: block; font-size: 17pt; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; }
+  .kpi.osc b { color: var(--verde); }
+  .kpi span { display: block; font-size: 7.8pt; color: var(--gris); margin-top: 1.5mm; line-height: 1.4; }
+  .kpi.osc span { color: #c9cbd2; }
+  .dos { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+  .fig img { width: 100%; border-radius: 2mm; display: block; box-shadow: 0 1mm 3mm rgba(0,0,0,.12); }
+  .fig figcaption { font-size: 7.2pt; color: var(--gris); margin-top: 1.5mm; line-height: 1.4; }
+  figure { margin: 0; }
+  ul.check { list-style: none; padding: 0; margin: 0; }
+  ul.check li { position: relative; padding-left: 5mm; margin-bottom: 1.2mm; font-size: 8.3pt; line-height: 1.4; }
+  ul.check li::before { content: ''; position: absolute; left: 0; top: 1.3mm; width: 3mm; height: 3mm; border-radius: 50%; background: var(--verde); }
+  .caja-osc { background: var(--oscuro); color: #fff; border-radius: 3mm; padding: 4mm 5mm; margin-top: 4mm; }
+  .caja-osc h3 { margin: 0 0 2.5mm; font-size: 10.5pt; color: var(--verde); }
+  .caja-osc ol { margin: 0; padding-left: 5mm; font-size: 8.1pt; line-height: 1.5; }
+  .caja-osc b { color: #fff; }
+  table { width: 100%; border-collapse: collapse; font-size: 8.3pt; }
+  th { text-align: left; font-size: 6.8pt; letter-spacing: .14em; text-transform: uppercase; color: var(--gris); font-weight: 700; padding: 2mm 2mm; border-bottom: 1.5px solid var(--tinta); }
+  td { padding: 1.5mm 2mm; border-bottom: 1px solid var(--linea); vertical-align: top; line-height: 1.4; }
+  td.num, th.num { text-align: right; white-space: nowrap; }
+  tr.grupo td { background: var(--caja); font-weight: 800; font-size: 7.4pt; letter-spacing: .12em; text-transform: uppercase; color: var(--verde-osc); padding: 1.6mm 2mm; border-bottom: 0; }
+  .etq { display: inline-block; font-size: 6.6pt; font-weight: 700; padding: .3mm 1.6mm; border-radius: 1.2mm; background: #ecebff; color: var(--morado); margin-left: 1mm; vertical-align: 1px; }
+  .etq.lima { background: var(--verde-50); color: var(--verde-osc); }
+  .gratis { color: var(--verde-osc); font-weight: 800; }
+  .paquetes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3.5mm; margin-top: 2mm; }
+  .paq { border: 1px solid var(--linea); border-radius: 3mm; padding: 3.4mm; }
+  .paq.rec { border: 2px solid var(--verde); background: #fbfdf2; }
+  .paq small { display: block; font-size: 6.8pt; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; color: var(--gris); }
+  .paq.rec small { color: var(--verde-osc); }
+  .paq b.precio { display: block; font-size: 18pt; font-weight: 800; letter-spacing: -0.03em; margin: 1.5mm 0 .5mm; }
+  .paq .sol { font-size: 7.8pt; color: var(--gris); margin-bottom: 2.5mm; }
+  .paq ul { margin: 0; padding-left: 4mm; font-size: 7.9pt; line-height: 1.5; }
+  .nota { font-size: 7pt; color: var(--gris); line-height: 1.45; margin-top: 2.5mm; }
+  .opciones-lam { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .op { background: var(--caja); border-radius: 3mm; padding: 4mm; font-size: 8.6pt; }
+  .op b.t { display: block; font-size: 10pt; margin-bottom: 1mm; }
+  .op .n { font-size: 6.8pt; font-weight: 700; letter-spacing: .16em; color: var(--verde-osc); text-transform: uppercase; }
+  .consid li { margin-bottom: 1mm; font-size: 8pt; }
+  .temario { display: grid; grid-template-columns: 1fr 1fr; column-gap: 7mm; font-size: 8.6pt; }
+  .temario div { display: flex; gap: 3mm; padding: 2mm 0; border-bottom: 1px solid var(--linea); }
+  .temario div b { color: var(--verde-osc); font-weight: 800; min-width: 6mm; }
+  .pasos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; }
+  .paso { border-left: 1.2mm solid var(--verde); background: var(--caja); padding: 3mm; border-radius: 0 2mm 2mm 0; font-size: 7.8pt; line-height: 1.4; }
+  .paso b { display: block; font-size: 8.8pt; margin-bottom: 1mm; }
+  .crono { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; }
+  .crono div { background: var(--caja); border-radius: 2.5mm; padding: 3.5mm; font-size: 7.9pt; line-height: 1.45; }
+  .crono small { display: block; font-size: 6.8pt; letter-spacing: .18em; font-weight: 800; color: var(--verde-osc); margin-bottom: 1.5mm; }
+  .caja-clara { background: var(--caja); border-radius: 3mm; padding: 4.5mm 5mm; }
+  .caja-clara h3 { margin: 0 0 2mm; font-size: 10pt; }
+</style>
+</head>
+<body>
+
+<!-- =========================================================== PAGINA 1 -->
+<section class="pagina">
+  <header>
+    <div class="logo"><b>USS</b><small>Universidad<br>Señor de Sipán</small></div>
+    <div class="der">Propuesta interna · Presupuesto<br>31 de octubre de 2026</div>
+  </header>
+  <div class="kicker">Diseño web · clases en video con IA</div>
+  <h1>Curso de Diseño Web<br>en video, <em>creado con IA</em><span class="version">Versión 2 · con opciones gratuitas</span></h1>
+  <div class="meta"><span>Para: <b>Sandra</b></span><span>De: <b>Dagner Chuman</b></span><span>Alcance: <b>12 temas de 2–3 min, ampliable a cientos al mes</b></span></div>
+
+  <h2>Resumen</h2>
+  <p>El sistema produce clases en video de <b>2 a 3 minutos</b> con aspecto de clase por Zoom: láminas, un avatar docente
+    (<b>SIPANCITOBOT</b>) y voz generada con IA. Esta versión agrega <b>opciones sin costo</b>: voz gratuita en la PC del estudio,
+    IA gratuita que <b>lee las láminas del docente</b> y guardado automático de cada video en la <b>carpeta compartida de Google Drive</b>
+    del equipo, ordenado por mes, curso y módulo.</p>
+
+  <div class="kpis">
+    <div class="kpi"><b>US$ 0</b><span>Paquete gratuito: voz local, IA gratis y Google Drive de la USS. Se puede empezar hoy.</span></div>
+    <div class="kpi"><b>≈ US$ 0,03</b><span>Por clase con voz de Azure (acento peruano). Las primeras ≈ 240 clases del mes son gratis.</span></div>
+    <div class="kpi osc"><b>US$ 31</b><span>Paquete recomendado el 1.er mes: la voz clonada del docente, la más natural (≈ S/ 107).</span></div>
+  </div>
+
+  <h2>Lo que ya funciona</h2>
+  <div class="dos">
+    <figure class="fig"><img src="piloto-html.jpg" alt=""><figcaption><b>Opción 2 · láminas HTML.</b> Clase piloto «Estructura semántica en HTML y el W3C» (2:34 min).</figcaption></figure>
+    <figure class="fig"><img src="piloto-laminas.jpg" alt=""><figcaption><b>Opción 1 · láminas del docente.</b> Prueba con 3 láminas de PDF y voz local gratuita (Piper).</figcaption></figure>
+  </div>
+  <ul class="check" style="margin-top:3.5mm;display:grid;grid-template-columns:1fr 1fr;column-gap:6mm">
+    <li><b>Dos tipos de láminas:</b> las del docente (PDF o imágenes) o animadas por la IA.</li>
+    <li><b>La IA lee las láminas</b> y escribe la voz: gratis (Groq, Gemini) o con Claude.</li>
+    <li><b>Voz a elegir:</b> local gratuita, Azure (acento peruano) o la voz clonada del docente.</li>
+    <li><b>Google Drive:</b> cada video se guarda solo en la carpeta compartida, por mes, curso y módulo.</li>
+    <li>Web del equipo para crear y revisar clases. Windows y Mac.</li>
+    <li>Costo del prototipo hasta hoy: <b>US$ 0</b>.</li>
+  </ul>
+
+  <div class="caja-osc">
+    <h3>Lo que necesitamos para empezar</h3>
+    <ol>
+      <li>Elegir el paquete: <b>Gratuito (US$ 0)</b> para empezar ya, o <b>Recomendado (US$ 31 el 1.er mes)</b> si se quiere la voz del docente.</li>
+      <li>Permiso de <b>Editor</b> en la carpeta compartida del equipo en Google Drive (ya lo tenemos).</li>
+      <li>Un proyecto de Google Cloud de la USS (interno, sin costo) <b>o</b> Google Drive para escritorio en la PC del estudio.</li>
+      <li>El <b>logo oficial</b> de la USS para el video.</li>
+      <li>Solo con voz clonada: el <b>consentimiento escrito</b> del docente y una tarjeta internacional.</li>
+    </ol>
+  </div>
+  <footer><span>Propuesta · Curso de Diseño Web en video con IA · v2</span><span>1 / 4</span></footer>
+</section>
+
+<!-- =========================================================== PAGINA 2 -->
+<section class="pagina">
+  <header>
+    <div class="logo"><b>USS</b><small>Universidad<br>Señor de Sipán</small></div>
+    <div class="der">Propuesta interna · Presupuesto<br>31 de octubre de 2026</div>
+  </header>
+
+  <h2 style="margin-top:0">Dos formas de hacer las láminas <em>· se elige antes de crear la voz</em></h2>
+  <div class="opciones-lam">
+    <div class="op"><span class="n">Opción 1</span><b class="t">Láminas del docente (imágenes)</b>
+      El docente sube un PDF o imágenes de PowerPoint, Canva o Google Slides. La IA mira cada lámina y escribe lo que dice la voz;
+      el docente lo revisa. Ideal si el material ya existe.</div>
+    <div class="op"><span class="n">Opción 2</span><b class="t">Láminas HTML animadas (las crea la IA)</b>
+      El docente escribe solo el tema. La IA escribe el guion y arma láminas con animaciones sincronizadas con la voz.
+      Ideal para temas nuevos.</div>
+  </div>
+
+  <h2>Opciones por componente</h2>
+  <table>
+    <thead><tr><th style="width:24%">Herramienta</th><th>Para qué sirve</th><th class="num">Mensual</th><th class="num">En soles</th></tr></thead>
+    <tbody>
+      <tr class="grupo"><td colspan="4">Voz del avatar</td></tr>
+      <tr><td><b>Piper</b> <span class="etq lima">Gratis</span></td><td>Voz local en la PC del estudio: sin internet, sin cuenta y sin límite de videos. Uso libre (licencia MIT / Apache-2.0). Suena sintética, aunque mejor que la voz de Windows.</td><td class="num gratis">US$ 0</td><td class="num">S/ 0</td></tr>
+      <tr><td><b>Azure Speech</b> <span class="etq lima">Gratis F0</span></td><td>Voces neurales con acento de Perú (Camila, Alex). 0,5 millones de caracteres gratis al mes (≈ 240 clases); después ≈ US$ 16 por millón (≈ US$ 0,03 por clase).</td><td class="num gratis">US$ 0</td><td class="num">S/ 0</td></tr>
+      <tr><td><b>ElevenLabs</b> <span class="etq">Starter</span></td><td>La voz más natural y <b>clonación de la voz del docente</b>. Licencia comercial. 30 000 créditos/mes (≈ 14 clases).</td><td class="num">US$ 6<br><span style="font-size:7pt;color:var(--gris)">1.er mes US$ 1</span></td><td class="num">S/ 21</td></tr>
+      <tr><td><b>ElevenLabs</b> <span class="etq">Creator</span></td><td>Igual, con 121 000 créditos/mes (≈ 58 clases) y clonación profesional (más fiel).</td><td class="num">US$ 22<br><span style="font-size:7pt;color:var(--gris)">1.er mes US$ 11</span></td><td class="num">S/ 76</td></tr>
+      <tr class="grupo"><td colspan="4">IA que escribe el guion y lee las láminas</td></tr>
+      <tr><td><b>Groq o Gemini</b> <span class="etq lima">Gratis</span></td><td>Modelos gratuitos que escriben el guion y <b>leen imágenes</b> (Groq: qwen3.8-27b; Gemini: 3.8 Flash). Tienen límites por minuto y por día. En la capa gratis de Gemini, Google usa los datos para mejorar sus productos.</td><td class="num gratis">US$ 0</td><td class="num">S/ 0</td></tr>
+      <tr><td><b>Claude</b> <span class="etq">Pro</span></td><td>La mejor redacción y exactitud. Con Claude Code, el docente crea las clases (y lee sus láminas) desde la PC del estudio.</td><td class="num">US$ 20</td><td class="num">S/ 69</td></tr>
+      <tr><td><b>Claude API</b> <span class="etq">Por uso</span></td><td>Para usar Claude desde la web del equipo (aparte de la suscripción Pro). Prepago.</td><td class="num">≈ US$ 0,30–0,80<br><span style="font-size:7pt;color:var(--gris)">por clase</span></td><td class="num">≈ S/ 1–3</td></tr>
+      <tr class="grupo"><td colspan="4">Guardado y software</td></tr>
+      <tr><td><b>Google Drive</b> <span class="etq lima">USS</span></td><td>Carpeta compartida del equipo con la cuenta institucional. Cada video pesa ≈ 12–20 MB.</td><td class="num gratis">US$ 0</td><td class="num">S/ 0</td></tr>
+      <tr><td><b>Software de video</b></td><td>Node.js, ffmpeg, Playwright, GSAP, pdf.js: gratuitos. Avatar SIPANCITOBOT incluido.</td><td class="num gratis">US$ 0</td><td class="num">S/ 0</td></tr>
+      <tr><td><b>HeyGen</b> <span class="etq">Opcional</span></td><td>Solo si se quiere un avatar con apariencia humana en lugar del robot.</td><td class="num">≈ US$ 29</td><td class="num">≈ S/ 100</td></tr>
+    </tbody>
+  </table>
+  <p class="nota">Precios en dólares según las páginas oficiales al 31/10/2026 (ElevenLabs incluye promociones del primer mes; el precio por millón
+    de Azure debe confirmarse en su calculadora). Tipo de cambio referencial S/ 3,45 por US$ (BCRP, 23/10/2026). El banco puede cobrar una comisión
+    por compras en el exterior.</p>
+  <footer><span>Propuesta · Curso de Diseño Web en video con IA · v2</span><span>2 / 4</span></footer>
+</section>
+
+<!-- =========================================================== PAGINA 3 -->
+<section class="pagina">
+  <header>
+    <div class="logo"><b>USS</b><small>Universidad<br>Señor de Sipán</small></div>
+    <div class="der">Propuesta interna · Presupuesto<br>31 de octubre de 2026</div>
+  </header>
+
+  <h2 style="margin-top:0">Paquetes para producir las 12 clases</h2>
+  <div class="paquetes">
+    <div class="paq"><small>Gratuito · cada mes</small><b class="precio">US$ 0</b><div class="sol">S/ 0</div>
+      <ul><li>Voz local Piper</li><li>IA gratis (Groq o Gemini) que lee láminas</li><li>Google Drive de la USS</li><li>Voz sintética, no la del docente</li></ul></div>
+    <div class="paq"><small>Económico · cada mes</small><b class="precio">US$ 0</b><div class="sol">hasta ≈ 240 clases al mes</div>
+      <ul><li>Voz de Azure con acento peruano (más natural que Piper)</li><li>IA gratis que lee láminas</li><li>Desde la clase 241: ≈ US$ 0,03 por clase</li></ul></div>
+    <div class="paq rec"><small>Recomendado · 1.er mes</small><b class="precio">US$ 31</b><div class="sol">≈ S/ 107 · luego US$ 26/mes (≈ S/ 90)</div>
+      <ul><li>ElevenLabs Creator (US$ 11 el 1.er mes): voz clonada del docente</li><li>Claude Pro (US$ 20): la mejor redacción</li><li>Continuidad: ElevenLabs Starter + Claude Pro</li></ul></div>
+  </div>
+
+  <h2>Si producimos más: costo mensual por volumen</h2>
+  <table>
+    <thead><tr><th style="width:30%">Clases al mes</th><th class="num">12</th><th class="num">100</th><th class="num">1 000</th></tr></thead>
+    <tbody>
+      <tr><td>Caracteres de voz (≈ 2 050 por clase)</td><td class="num">≈ 25 000</td><td class="num">≈ 205 000</td><td class="num">≈ 2 050 000</td></tr>
+      <tr class="grupo"><td colspan="4">Voz</td></tr>
+      <tr><td>Piper (local)</td><td class="num gratis">US$ 0</td><td class="num gratis">US$ 0</td><td class="num gratis">US$ 0</td></tr>
+      <tr><td>Azure Speech</td><td class="num gratis">US$ 0</td><td class="num gratis">US$ 0</td><td class="num">≈ US$ 33</td></tr>
+      <tr><td>ElevenLabs (voz clonada)</td><td class="num">US$ 6 · Starter</td><td class="num">US$ 99 · Pro</td><td class="num">US$ 990 · Business</td></tr>
+      <tr class="grupo"><td colspan="4">IA</td></tr>
+      <tr><td>IA gratis (Groq / Gemini)</td><td class="num gratis">US$ 0</td><td class="num gratis">US$ 0</td><td class="num">US$ 0 *</td></tr>
+      <tr><td>Claude API (por uso)</td><td class="num">≈ US$ 4–10</td><td class="num">≈ US$ 30–80</td><td class="num">≈ US$ 300–800</td></tr>
+      <tr class="grupo"><td colspan="4">Recursos</td></tr>
+      <tr><td>Espacio en Google Drive</td><td class="num">≈ 0,2 GB</td><td class="num">≈ 2 GB</td><td class="num">≈ 12–20 GB</td></tr>
+      <tr><td>Tiempo de PC para crear los videos (5–8 min c/u)</td><td class="num">≈ 1,5 h</td><td class="num">≈ 11 h</td><td class="num">≈ 110 h</td></tr>
+    </tbody>
+  </table>
+  <p class="nota">* Con ≈ 33 clases por día los límites diarios de los planes gratuitos pueden no alcanzar: repartir el trabajo o pasar a un plan de pago.
+    ElevenLabs Scale (US$ 299, 1,8 M de créditos) cubre ≈ 880 clases. Para 1 000 videos conviene una segunda PC o crear videos de noche.
+    El espacio de Drive depende de la cuota institucional de la USS (confirmar con TI).</p>
+
+  <h2>Consideraciones</h2>
+  <ul class="check consid">
+    <li><b>Licencias:</b> el plan gratuito de ElevenLabs es solo para pruebas (sin uso comercial ni voz clonada); desde Starter sí. Piper y Azure permiten publicar.</li>
+    <li><b>Una cuenta por servicio:</b> no se usan cuentas gratuitas múltiples (correos temporales) para sumar créditos: va contra los términos de los servicios y pueden bloquear todas las cuentas.</li>
+    <li><b>Voz clonada:</b> solo la del docente que lo autorice por escrito.</li>
+    <li><b>Transparencia:</b> cada video indica «Clase generada con IA» y el nombre del docente que la revisó.</li>
+    <li><b>Calidad académica:</b> el docente valida el guion antes de crear el video, también cuando la IA lo escribe a partir de sus láminas.</li>
+  </ul>
+  <footer><span>Propuesta · Curso de Diseño Web en video con IA · v2</span><span>3 / 4</span></footer>
+</section>
+
+<!-- =========================================================== PAGINA 4 -->
+<section class="pagina">
+  <header>
+    <div class="logo"><b>USS</b><small>Universidad<br>Señor de Sipán</small></div>
+    <div class="der">Propuesta interna · Presupuesto<br>31 de octubre de 2026</div>
+  </header>
+
+  <div class="caja-clara">
+    <h3>¿De dónde salen los números?</h3>
+    <p style="margin:0;font-size:9pt">La clase piloto de 2:34 usó <b>2 058 caracteres de voz</b> (1 crédito de ElevenLabs ≈ 1 carácter). 12 clases de 2–3 min necesitan
+      entre <b>25 000 y 30 000 caracteres</b>. Volver a crear una clase sin cambiar el texto <b>no gasta</b> (el sistema guarda los audios); solo se paga
+      lo que se corrige. Los videos de prueba pesan 12–20 MB y tardan 5–8 minutos cada uno en la PC del estudio.</p>
+  </div>
+
+  <h2>Temario propuesto <em>· 12 temas</em></h2>
+  <div class="temario">
+    <div><b>01</b>Cómo funciona la web: cliente, servidor y navegador</div><div><b>07</b>Introducción a CSS: selectores y cascada</div>
+    <div><b>02</b>Tu primer documento HTML</div><div><b>08</b>Colores, tipografía y unidades</div>
+    <div><b>03</b>Estructura semántica y el W3C <span class="etq lima">Piloto listo</span></div><div><b>09</b>El modelo de caja (box model)</div>
+    <div><b>04</b>Textos, enlaces e imágenes</div><div><b>10</b>Flexbox: alinear y distribuir</div>
+    <div><b>05</b>Listas y tablas</div><div><b>11</b>CSS Grid: diseño en cuadrícula</div>
+    <div><b>06</b>Formularios en HTML</div><div><b>12</b>Diseño responsive y media queries</div>
+  </div>
+
+  <h2>¿Cómo se produce cada clase?</h2>
+  <div class="pasos">
+    <div class="paso"><b>1. Láminas y ficha</b>El docente sube sus láminas (PDF o imágenes) o escribe solo el tema; elige curso y módulo (10 min).</div>
+    <div class="paso"><b>2. Guion</b>La IA escribe lo que dice la voz en cada lámina; el docente lo revisa y aprueba (10 min).</div>
+    <div class="paso"><b>3. Video</b>Voz, avatar y láminas se unen solos en la PC del estudio (5–8 min).</div>
+    <div class="paso"><b>4. Drive</b>El video y su código se guardan solos en la carpeta compartida: Mes / Curso / Módulo / Clase.</div>
+  </div>
+  <p style="margin-top:3mm">Tiempo del docente: <b>≈ 20–30 minutos por clase</b> (menos si ya tiene sus láminas), unas <b>4–6 horas</b> para las 12 clases, sin grabarse ni editar.</p>
+
+  <h2>Cronograma <em>· 4 semanas</em></h2>
+  <div class="crono">
+    <div><small>SEMANA 1</small>Elección del paquete, conexión de Google Drive, voz (local, Azure o clonada), logo oficial y validación del piloto.</div>
+    <div><small>SEMANA 2</small>Temas 01, 02, 04 y 05.</div>
+    <div><small>SEMANA 3</small>Temas 06, 07, 08 y 09.</div>
+    <div><small>SEMANA 4</small>Temas 10, 11 y 12, revisión final y carga al aula virtual desde Google Drive.</div>
+  </div>
+  <footer><span>Propuesta · Curso de Diseño Web en video con IA · v2</span><span>4 / 4</span></footer>
+</section>
+</body>
+</html>

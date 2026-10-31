@@ -17,7 +17,7 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-if exist "node_modules\@anthropic-ai\sdk" if exist "node_modules\playwright" goto deps_ok
+if exist "node_modules\@anthropic-ai\sdk" if exist "node_modules\playwright" if exist "node_modules\pdfjs-dist" goto deps_ok
 echo [..] Preparando la web, solo la primera vez...
 call npm install --no-audit --no-fund
 call npx playwright install chromium

@@ -13,13 +13,16 @@ let editor = null;   // clase abierta
 let sondeo = null;
 
 const TIPOS = [['', '— Sigue la diapositiva anterior —'], ['portada', 'Portada'], ['idea', 'Idea clave'], ['lista', 'Lista'],
-  ['pasos', 'Pasos numerados'], ['codigo', 'Código'], ['comparacion', 'Comparación'], ['tarjetas', 'Tarjetas'], ['dato', 'Dato grande'], ['cierre', 'Cierre y reto']];
+  ['pasos', 'Pasos numerados'], ['codigo', 'Código'], ['comparacion', 'Comparación'], ['tarjetas', 'Tarjetas'], ['dato', 'Dato grande'], ['cierre', 'Cierre y reto'],
+  ['imagen', 'Lámina (imagen)']];
 const TRABAJOS = {
   voz: { nombre: 'Vista previa con voz', icono: 'volumen', desc: 'Escucha la clase en el navegador', dura: '≈ 1 min' },
   capturas: { nombre: 'Revisar diapositivas', icono: 'imagen', desc: 'Fotos de cada diapositiva', dura: '≈ 1 min' },
   borrador: { nombre: 'Borrador rápido', icono: 'ojo', desc: 'Video liviano para ver el ritmo', dura: '2–3 min' },
   video: { nombre: 'Video final', icono: 'pelicula', desc: 'MP4 en alta calidad, 1920 × 1080', dura: '5–8 min' },
+  drive: { nombre: 'Subir a Google Drive', icono: 'subir', desc: 'Video y código a la carpeta compartida', dura: '≈ 1 min' },
 };
+const VOCES = { auto: 'Automática', local: 'Voz local gratis', azure: 'Azure', elevenlabs: 'ElevenLabs', grabacion: 'Tu grabación', sistema: 'Del sistema' };
 const ESTADO_TRABAJO = { 'en-cola': 'En cola', trabajando: 'En curso', listo: 'Listo', error: 'Error' };
 const OBJETIVO_PALABRAS = { '2:00': 270, '2:30': 345, '3:00': 420 };
 
@@ -114,6 +117,53 @@ function hace(ms) {
   return 'hace un momento';
 }
 
+// ---------------------------------------------------------------- laminas (imagenes o PDF -> JPG de hasta 1920 x 1080)
+const MAX_W = 1920, MAX_H = 1080;
+function lienzo(w, h) {
+  const k = Math.min(1, MAX_W / w, MAX_H / h);
+  const c = document.createElement('canvas');
+  c.width = Math.round(w * k);
+  c.height = Math.round(h * k);
+  const g = c.getContext('2d');
+  g.fillStyle = '#fff'; // un PNG transparente queda sobre blanco, como en la presentacion
+  g.fillRect(0, 0, c.width, c.height);
+  return { c, g };
+}
+async function imagenAJpg(archivo) {
+  const bmp = await createImageBitmap(archivo);
+  const { c, g } = lienzo(bmp.width, bmp.height);
+  g.drawImage(bmp, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', 0.9);
+}
+async function pdfAJpgs(archivo, avance) {
+  const pdfjs = await import('/node_modules/pdfjs-dist/build/pdf.min.mjs');
+  pdfjs.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.min.mjs';
+  const doc = await pdfjs.getDocument({ data: await archivo.arrayBuffer(), cMapUrl: '/node_modules/pdfjs-dist/cmaps/', cMapPacked: true,
+    standardFontDataUrl: '/node_modules/pdfjs-dist/standard_fonts/' }).promise;
+  const res = [];
+  for (let i = 1; i <= doc.numPages; i++) {
+    avance(`${archivo.name}: página ${i} de ${doc.numPages}`);
+    const pag = await doc.getPage(i);
+    const v0 = pag.getViewport({ scale: 1 });
+    const v = pag.getViewport({ scale: Math.min(MAX_W / v0.width, MAX_H / v0.height) }); // las paginas de PowerPoint miden 960 x 540: se amplian
+    const { c, g } = lienzo(v.width, v.height);
+    await pag.render({ canvasContext: g, viewport: v }).promise;
+    res.push({ nombre: `${archivo.name} · pág. ${i}`, url: c.toDataURL('image/jpeg', 0.9) });
+  }
+  return res;
+}
+// varias imagenes (en orden de nombre: 1.png, 2.png ... 10.png) y/o PDF -> laminas
+async function aLaminas(archivos, avance = () => {}) {
+  const lista = [...archivos].sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }));
+  const res = [];
+  for (const f of lista) {
+    if (f.type === 'application/pdf' || /\.pdf$/i.test(f.name)) res.push(...await pdfAJpgs(f, avance));
+    else if (/^image\//.test(f.type)) { avance(f.name); res.push({ nombre: f.name, url: await imagenAJpg(f) }); }
+  }
+  return res;
+}
+const blobDe = url => fetch(url).then(r => r.blob());
+
 // Cuadro del video en miniatura (para la lista de clases y la entrada)
 function miniatura({ titulo, kicker = '', banda = '', avatar = 'SIPANCITOBOT' }) {
   return `<div class="mini-frame" aria-hidden="true"><div class="mf-in">
@@ -157,7 +207,8 @@ function pintarLateral(h) {
   const actual = h.startsWith('/clase/') ? '/' : h;
   $('#menu').innerHTML = [['/', 'clases', 'Clases'], ['/nueva', 'mas', 'Nueva clase'], ['/ajustes', 'ajustes', 'Ajustes']]
     .map(([r, i, n]) => `<a class="menu-item ${r === actual ? 'activo' : ''}" href="#${r}" ${r === actual ? 'aria-current="page"' : ''}>${ico(i, 18)}<span>${n}</span></a>`).join('');
-  $('#servicios').innerHTML = [['IA gratis', estado.ia.gratis], ['Claude', estado.ia.claude], ['ElevenLabs', estado.voz.elevenlabs]]
+  $('#servicios').innerHTML = [['IA gratis', estado.ia.gratis], ['IA que lee láminas', estado.ia.vision], ['Claude', estado.ia.claude],
+    ['Voz local gratis', estado.voz.local], ['Azure', estado.voz.azure], ['ElevenLabs', estado.voz.elevenlabs], ['Google Drive', estado.drive.conectado]]
     .map(([n, ok]) => `<li><a href="#/ajustes"><i class="punto ${ok ? 'on' : ''}"></i>${n}<span>${ok ? 'Configurado' : 'Sin configurar'}</span></a></li>`).join('');
   $('#salir').innerHTML = `${ico('salir', 18)}<span>Salir</span>`;
 }
@@ -244,35 +295,40 @@ async function vistaLista() {
 // ---------------------------------------------------------------- nueva clase
 function vistaNueva() {
   editor = null;
-  const modos = [
-    ['manual', 'texto', 'Pego mi guion', 'Escribes o pegas el texto y eliges las diapositivas.', 'Gratis', true],
-    ['gratis', 'chispas', 'IA gratis', estado.ia.gratis ? 'Un modelo abierto escribe guion y diapositivas.' : 'Necesita una API key gratuita.', 'Gratis', estado.ia.gratis],
-    ['claude', 'rayo', 'Claude', estado.ia.claude ? 'La mejor calidad de redacción y exactitud.' : 'Necesita una API key de Claude.', 'De pago', estado.ia.claude],
-  ];
-  const elegido = estado.ia.gratis ? 'gratis' : 'manual';
+  let laminas = []; // [{ nombre, url }] ya convertidas a JPG en el navegador
   const seg = (nombre, valores, def) => `<div class="segmentado" role="radiogroup">${valores.map(v => `<label><input type="radio" name="${nombre}" value="${v}" ${v === def ? 'checked' : ''}><span>${v}</span></label>`).join('')}</div>`;
+  const tipoLamina = (v, icono, opcion, titulo, detalle) => `<label class="modo"><input type="radio" name="laminas" value="${v}" ${v === 'html' ? 'checked' : ''}>
+    <span class="modo-cab"><span class="modo-ico">${ico(icono, 18)}</span><span class="pildora">${opcion}</span></span>
+    <span><b>${titulo}</b><small>${detalle}</small></span></label>`;
   app.innerHTML = `<div class="vista">
   <header class="cabecera"><div><nav class="migas"><a href="#/">Clases</a>${ico('der', 14)}<span>Nueva clase</span></nav>
     <h1>Nueva clase</h1><p class="muted">Completa lo esencial. Podrás corregir todo antes de crear el video.</p></div></header>
   <form id="f-nueva" class="nueva" novalidate>
     <fieldset id="fs-nueva">
       <section class="panel">
-        <div class="panel-cab"><span class="paso">1</span><div><h2>¿Quién escribe el guion?</h2><p class="muted">Siempre podrás editarlo después.</p></div></div>
-        <div class="modos">${modos.map(([v, i, t, d, insignia, ok]) => `
-          <label class="modo ${ok ? '' : 'apagado'}">
-            <input type="radio" name="modo" value="${v}" ${v === elegido ? 'checked' : ''} ${ok ? '' : 'disabled'}>
-            <span class="modo-cab"><span class="modo-ico">${ico(i, 18)}</span><span class="pildora ${insignia === 'Gratis' ? 'lima' : ''}">${insignia}</span></span>
-            <span><b>${t}</b><small>${d}</small></span>
-            ${ok ? '' : '<a href="#/ajustes">Configurar en Ajustes →</a>'}
-          </label>`).join('')}</div>
+        <div class="panel-cab"><span class="paso">1</span><div><h2>¿Cómo son tus láminas?</h2><p class="muted">Se elige antes de crear la voz.</p></div></div>
+        <div class="modos dos">
+          ${tipoLamina('imagen', 'imagen', 'Opción 1', 'Mis láminas (imágenes)', 'Subes PNG, JPG o un PDF de PowerPoint o Canva. La IA las lee y escribe lo que dice la voz.')}
+          ${tipoLamina('html', 'capas', 'Opción 2', 'Láminas HTML animadas', 'La IA crea diapositivas con animaciones a partir del tema. Se editan en la web.')}
+        </div>
+        <div id="zona-laminas" class="oculto">
+          <label class="soltar" id="soltar-laminas" style="margin-top:14px"><input type="file" id="up-laminas" multiple accept="image/png,image/jpeg,image/webp,application/pdf,.pdf">
+            <span class="modo-ico">${ico('subir', 17)}</span><span><b>Subir láminas</b><small>Arrastra aquí o elige · PNG, JPG o PDF · se ordenan por nombre (1, 2, 3…)</small></span></label>
+          <div class="laminas-cab"><span id="laminas-estado" class="ayuda"></span><button type="button" class="boton chico oculto" id="b-quitar-laminas">${ico('basura', 14)}Quitar todas</button></div>
+          <div class="laminas-rejilla" id="laminas-rejilla"></div>
+        </div>
       </section>
       <section class="panel">
-        <div class="panel-cab"><span class="paso">2</span><div><h2>La clase</h2><p class="muted">Con IA basta con el tema.</p></div></div>
-        <label for="n-tema">Tema <span class="req">obligatorio</span></label>
+        <div class="panel-cab"><span class="paso">2</span><div><h2>¿Quién escribe el guion?</h2><p class="muted">Siempre podrás editarlo después.</p></div></div>
+        <div class="modos" id="modos"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-cab"><span class="paso">3</span><div><h2>La clase</h2><p class="muted" id="d-clase">Con IA basta con el tema.</p></div></div>
+        <label for="n-tema">Tema <span class="req" id="req-tema">obligatorio</span></label>
         <input type="text" id="n-tema" name="tema" class="grande" required placeholder="Ej.: Flexbox: alinear y distribuir elementos" autocomplete="off">
         <div class="campos2" style="margin-top:4px">
           <div><span class="etiqueta">Nivel</span>${seg('nivel', ['Básico', 'Intermedio', 'Avanzado'], 'Básico')}</div>
-          <div><span class="etiqueta">Duración</span>${seg('duracion', ['2:00', '2:30', '3:00'], '2:30')}</div>
+          <div id="c-duracion"><span class="etiqueta">Duración</span>${seg('duracion', ['2:00', '2:30', '3:00'], '2:30')}</div>
         </div>
         <details class="plegable" id="guiar-ia">
           <summary>${ico('chispas')}Guiar a la IA <span class="muted">· opcional</span>${ico('abajo')}</summary>
@@ -284,20 +340,21 @@ function vistaNueva() {
               <div><label for="n-ret">Reto o tarea final</label><input type="text" id="n-ret" name="reto"></div></div>
           </div>
         </details>
-        <details class="plegable">
-          <summary>${ico('bot')}Curso y avatar <span class="muted" id="resumen-avatar"></span>${ico('abajo')}</summary>
+        <details class="plegable" open>
+          <summary>${ico('bot')}Curso, módulo y avatar <span class="muted" id="resumen-avatar"></span>${ico('abajo')}</summary>
           <div>
             <div class="campos2">
               <div><label for="n-cur">Curso</label><input type="text" id="n-cur" name="curso" value="Diseño Web"></div>
-              <div><label for="n-doc">Docente que revisa</label><input type="text" id="n-doc" name="docente" placeholder="Opcional"></div>
+              <div><label for="n-mod">Módulo <span class="ayuda">carpeta en Google Drive</span></label><input type="text" id="n-mod" name="modulo" placeholder="Ej.: Módulo 1 · HTML"></div>
               <div><label for="n-ava">Nombre del avatar</label><input type="text" id="n-ava" name="avatar" value="SIPANCITOBOT"></div>
               <div><label for="n-rol">Rol del avatar</label><input type="text" id="n-rol" name="rol_avatar" value="Asistente docente IA"></div>
+              <div><label for="n-doc">Docente que revisa</label><input type="text" id="n-doc" name="docente" placeholder="Opcional"></div>
             </div>
           </div>
         </details>
       </section>
-      <section class="panel">
-        <div class="panel-cab"><span class="paso">3</span><div><h2 id="t-guion">Guion</h2><p class="muted" id="d-guion"></p></div></div>
+      <section class="panel" id="p-guion">
+        <div class="panel-cab"><span class="paso">4</span><div><h2 id="t-guion">Guion</h2><p class="muted" id="d-guion"></p></div></div>
         <textarea name="guion" rows="12" aria-labelledby="t-guion" placeholder="¡Hola! Soy SIPANCITOBOT y hoy vamos a…&#10;&#10;Segundo bloque…&#10;&#10;Tercer bloque…"></textarea>
         <div class="medidor"><div class="medidor-barra"><i id="medidor"></i></div><span id="cuenta-guion"></span></div>
       </section>
@@ -305,14 +362,65 @@ function vistaNueva() {
     <aside class="nueva-lado"><div class="panel" id="lado-nueva"></div></aside>
   </form></div>`;
   const f = $('#f-nueva');
+  const conImagenes = () => f.laminas.value === 'imagen';
+  const parrafos = t => String(t || '').split(/\n\s*\n/).filter(x => x.trim()).length;
+
+  // quien escribe: cambia segun el tipo de lamina (con imagenes la IA tiene que poder leerlas)
+  const pintarModos = () => {
+    const img = conImagenes();
+    const antes = f.modo ? f.modo.value : '';
+    const lista = img ? [
+      ['manual', 'texto', 'Escribo la voz', 'Un párrafo por lámina, en el mismo orden.', 'Gratis', true],
+      ['gratis', 'chispas', 'IA gratis lee las láminas', estado.ia.vision ? `Mira cada lámina y escribe la voz (${estado.ia.modeloVision}).` : 'Configura «IA que lee láminas» en Ajustes.', 'Gratis', estado.ia.vision],
+      ['claude', 'rayo', 'Claude lee las láminas', estado.ia.claude ? 'La mejor redacción. Unos centavos por clase.' : 'Necesita una API key de Claude.', 'De pago', estado.ia.claude],
+    ] : [
+      ['manual', 'texto', 'Pego mi guion', 'Escribes o pegas el texto y eliges las diapositivas.', 'Gratis', true],
+      ['gratis', 'chispas', 'IA gratis', estado.ia.gratis ? 'Un modelo abierto escribe guion y diapositivas.' : 'Necesita una API key gratuita.', 'Gratis', estado.ia.gratis],
+      ['claude', 'rayo', 'Claude', estado.ia.claude ? 'La mejor calidad de redacción y exactitud.' : 'Necesita una API key de Claude.', 'De pago', estado.ia.claude],
+    ];
+    const disponible = v => (lista.find(x => x[0] === v) || [])[5];
+    const elegido = disponible(antes) ? antes : disponible('gratis') ? 'gratis' : 'manual';
+    $('#modos').innerHTML = lista.map(([v, i, t, d, insignia, ok]) => `
+      <label class="modo ${ok ? '' : 'apagado'}">
+        <input type="radio" name="modo" value="${v}" ${v === elegido ? 'checked' : ''} ${ok ? '' : 'disabled'}>
+        <span class="modo-cab"><span class="modo-ico">${ico(i, 18)}</span><span class="pildora ${insignia === 'Gratis' ? 'lima' : ''}">${insignia}</span></span>
+        <span><b>${t}</b><small>${d}</small></span>
+        ${ok ? '' : '<a href="#/ajustes">Configurar en Ajustes →</a>'}
+      </label>`).join('');
+  };
+
+  const pintarLaminas = () => {
+    $('#laminas-rejilla').innerHTML = laminas.map((l, i) => `<figure><img src="${l.url}" alt=""><figcaption><b>${dos(i + 1)}</b>${esc(l.nombre)}</figcaption></figure>`).join('');
+    $('#laminas-estado').textContent = laminas.length ? `${laminas.length} lámina${laminas.length === 1 ? '' : 's'} · cada una será un bloque del video` : 'Aún no subes láminas.';
+    $('#b-quitar-laminas').classList.toggle('oculto', !laminas.length);
+    actualizar();
+  };
+  const agregarLaminas = async archivos => {
+    if (!archivos || !archivos.length) return;
+    const caja = $('#laminas-estado');
+    try {
+      const nuevas = await aLaminas(archivos, txt => { caja.textContent = `Preparando ${txt}…`; });
+      if (!nuevas.length) { aviso('Sube imágenes PNG o JPG, o un PDF', true); return pintarLaminas(); }
+      laminas = [...laminas, ...nuevas].slice(0, 40);
+      if (laminas.length === 40) aviso('Máximo 40 láminas por clase');
+    } catch (e) { aviso(`No pude leer el archivo: ${e.message}`, true); }
+    pintarLaminas();
+  };
+  $('#up-laminas').onchange = e => { agregarLaminas(e.target.files); e.target.value = ''; };
+  const zona = $('#soltar-laminas');
+  zona.ondragover = e => { e.preventDefault(); zona.classList.add('encima'); };
+  zona.ondragleave = () => zona.classList.remove('encima');
+  zona.ondrop = e => { e.preventDefault(); zona.classList.remove('encima'); agregarLaminas(e.dataTransfer.files); };
+  $('#b-quitar-laminas').onclick = () => { laminas = []; pintarLaminas(); };
+
   // el resumen se dibuja una sola vez y luego solo cambian sus textos (si se redibujara el boton,
   // el clic en «Crear» se perderia al salir del guion, porque el cambio redibuja antes del clic)
   const lado = () => {
     $('#lado-nueva').innerHTML = `<h3>Resumen</h3>
       <dl class="resumen-lista">
+        <div><dt>Láminas</dt><dd id="r-laminas"></dd></div>
         <div><dt>Guion</dt><dd id="r-modo"></dd></div>
-        <div><dt>Duración</dt><dd id="r-dur"></dd></div>
-        <div><dt>Palabras sugeridas</dt><dd id="r-pal"></dd></div>
+        <div><dt id="r-dur-t">Duración</dt><dd id="r-dur"></dd></div>
         <div><dt>Tiempo de creación</dt><dd id="r-tiempo"></dd></div>
       </dl>
       <button class="boton prim ancho grande" id="b-crear"></button>
@@ -320,51 +428,77 @@ function vistaNueva() {
   };
   const resumen = () => {
     const modo = f.modo.value;
-    const dur = f.duracion.value;
+    const img = conImagenes();
     const manual = modo === 'manual';
+    const n = laminas.length;
+    $('#r-laminas').textContent = img ? `${n} imagen${n === 1 ? '' : 'es'}` : 'HTML animadas';
     $('#r-modo').textContent = manual ? 'Tu texto' : modo === 'gratis' ? 'IA gratis' : 'Claude';
-    $('#r-dur').textContent = `${dur} min`;
-    $('#r-pal').textContent = `≈ ${OBJETIVO_PALABRAS[dur]}`;
-    $('#r-tiempo').textContent = manual ? 'Al instante' : '1 a 3 min';
-    const etiqueta = manual ? 'Crear clase' : 'Crear clase con IA';
+    $('#r-dur-t').textContent = img ? 'Duración' : 'Duración · palabras';
+    $('#r-dur').textContent = img ? (n ? `≈ ${mmss(n * 17)} (≈ 17 s por lámina)` : '—') : `${f.duracion.value} min · ≈ ${OBJETIVO_PALABRAS[f.duracion.value]}`;
+    $('#r-tiempo').textContent = manual ? 'Al instante' : img ? `≈ ${Math.max(1, Math.ceil(n * 0.5))}–${Math.max(2, n)} min` : '1 a 3 min';
+    const etiqueta = manual ? 'Crear clase' : img ? 'Crear clase: la IA lee las láminas' : 'Crear clase con IA';
     if ($('#b-crear').dataset.etiqueta !== etiqueta) {
       $('#b-crear').dataset.etiqueta = etiqueta;
       $('#b-crear').innerHTML = `${ico(manual ? 'check' : 'chispas')}${etiqueta}`;
     }
-    $('#r-nota').textContent = manual
-      ? 'Separa los bloques con una línea en blanco. Luego eliges una diapositiva para cada bloque.'
-      : 'La IA escribe el guion y las diapositivas. Después revisas el texto antes de crear el video.';
+    $('#r-nota').textContent = img
+      ? (manual ? 'Escribe un párrafo por lámina. Cada lámina se ve mientras la voz dice su párrafo.'
+        : 'La IA mira cada lámina y escribe lo que dice la voz. Después lo revisas antes de crear el video.')
+      : manual ? 'Separa los bloques con una línea en blanco. Luego eliges una diapositiva para cada bloque.'
+        : 'La IA escribe el guion y las diapositivas. Después revisas el texto antes de crear el video.';
   };
   const actualizar = () => {
     const modo = f.modo.value;
+    const img = conImagenes();
+    const manual = modo === 'manual';
     const obj = OBJETIVO_PALABRAS[f.duracion.value];
-    $('#t-guion').textContent = modo === 'manual' ? 'Guion' : 'Guion · opcional';
-    $('#d-guion').textContent = modo === 'manual'
-      ? 'Un párrafo por bloque, separados por una línea en blanco.'
-      : 'Si ya tienes tu guion, pégalo: la IA solo hará las diapositivas.';
-    $('#guiar-ia').classList.toggle('oculto', modo === 'manual');
-    $('#resumen-avatar').textContent = `· ${f.curso.value || 'Sin curso'} · ${f.avatar.value || 'SIPANCITOBOT'}`;
-    const n = palabras(f.guion.value);
+    $('#zona-laminas').classList.toggle('oculto', !img);
+    $('#c-duracion').classList.toggle('oculto', img);
+    $('#guiar-ia').classList.toggle('oculto', manual || img);
+    $('#p-guion').classList.toggle('oculto', img && !manual);
+    $('#req-tema').textContent = img && !manual ? 'opcional: la IA lo lee de la primera lámina' : 'obligatorio';
+    $('#d-clase').textContent = img ? 'El tema aparece arriba en el video.' : 'Con IA basta con el tema.';
+    $('#t-guion').textContent = img ? 'Lo que dice la voz' : manual ? 'Guion' : 'Guion · opcional';
+    $('#d-guion').textContent = img ? 'Un párrafo por lámina, en el mismo orden, separados por una línea en blanco.'
+      : manual ? 'Un párrafo por bloque, separados por una línea en blanco.' : 'Si ya tienes tu guion, pégalo: la IA solo hará las diapositivas.';
+    $('#resumen-avatar').textContent = `· ${f.curso.value || 'Sin curso'}${f.modulo.value ? ` · ${f.modulo.value}` : ''} · ${f.avatar.value || 'SIPANCITOBOT'}`;
     const m = $('#medidor');
-    m.style.width = `${Math.min(100, (n / obj) * 100)}%`;
-    m.className = n > obj * 1.15 ? 'largo' : n >= obj * 0.85 ? 'bien' : '';
-    $('#cuenta-guion').textContent = n ? `${n} / ${obj} palabras · ≈ ${mmss(n / 2.4)}` : `Sugerido: ≈ ${obj} palabras`;
+    if (img) {
+      const p = parrafos(f.guion.value);
+      m.style.width = `${laminas.length ? Math.min(100, (p / laminas.length) * 100) : 0}%`;
+      m.className = laminas.length && p === laminas.length ? 'bien' : p > laminas.length ? 'largo' : '';
+      $('#cuenta-guion').textContent = `${p} párrafo${p === 1 ? '' : 's'} / ${laminas.length} lámina${laminas.length === 1 ? '' : 's'}`;
+    } else {
+      const n = palabras(f.guion.value);
+      m.style.width = `${Math.min(100, (n / obj) * 100)}%`;
+      m.className = n > obj * 1.15 ? 'largo' : n >= obj * 0.85 ? 'bien' : '';
+      $('#cuenta-guion').textContent = n ? `${n} / ${obj} palabras · ≈ ${mmss(n / 2.4)}` : `Sugerido: ≈ ${obj} palabras`;
+    }
     resumen();
   };
   f.addEventListener('input', actualizar);
-  f.addEventListener('change', actualizar);
+  f.addEventListener('change', e => { if (e.target.name === 'laminas') pintarModos(); actualizar(); });
+  pintarModos();
   lado();
-  actualizar();
+  pintarLaminas();
   f.onsubmit = async e => {
     e.preventDefault();
     const ficha = Object.fromEntries(new FormData(f));
     const { modo, guion } = ficha;
-    delete ficha.modo; delete ficha.guion;
-    if (!String(ficha.tema || '').trim()) { aviso('Escribe el tema de la clase', true); $('#n-tema').focus(); return; }
-    if (modo === 'manual' && !palabras(guion)) { aviso('Pega el guion: un párrafo por bloque', true); f.guion.focus(); return; }
+    const img = ficha.laminas === 'imagen';
+    delete ficha.modo; delete ficha.guion; delete ficha.laminas;
+    if (img && !laminas.length) { aviso('Sube tus láminas (PNG, JPG o PDF)', true); $('#up-laminas').focus(); return; }
+    if ((!img || modo === 'manual') && !String(ficha.tema || '').trim()) { aviso('Escribe el tema de la clase', true); $('#n-tema').focus(); return; }
+    if (img && modo === 'manual' && parrafos(guion) !== laminas.length) { aviso(`Escribe un párrafo por lámina: tienes ${parrafos(guion)} párrafos y ${laminas.length} láminas`, true); f.guion.focus(); return; }
+    if (!img && modo === 'manual' && !palabras(guion)) { aviso('Pega el guion: un párrafo por bloque', true); f.guion.focus(); return; }
     $('#fs-nueva').disabled = true;
     const inicio = Date.now();
     $('#lado-nueva').innerHTML = modo === 'manual' ? '<div class="generando"><div class="orbita"></div><h3>Creando la clase…</h3></div>'
+      : img ? `<div class="generando"><div class="orbita"></div><h3>La IA está mirando tus láminas</h3>
+        <p>Lee una lámina a la vez y escribe lo que dice la voz. Con la IA gratis, unos 20 a 40 segundos por lámina.</p>
+        <div class="cronometro" id="crono">0:00</div>
+        <ol class="pasos-ia"><li><b>1</b>Lo que dice la voz en cada lámina</li><li><b>2</b>Agenda y pronunciación</li><li><b>3</b>Se abre el editor para que revises</li></ol>
+        <p class="ayuda" style="margin-top:14px">No cierres esta pestaña.</p></div>`
       : `<div class="generando"><div class="orbita"></div><h3>La IA está escribiendo tu clase</h3>
         <p>Trabaja por partes y completa lo que falte. Suele tardar de 1 a 3 minutos.</p>
         <div class="cronometro" id="crono">0:00</div>
@@ -372,7 +506,9 @@ function vistaNueva() {
         <p class="ayuda" style="margin-top:14px">No cierres esta pestaña.</p></div>`;
     const reloj = setInterval(() => { const c = $('#crono'); if (c) c.textContent = mmss((Date.now() - inicio) / 1000); else clearInterval(reloj); }, 500);
     try {
-      const r = await api('/api/clases', { method: 'POST', body: JSON.stringify({ ficha, modo, guion }) });
+      const cuerpo = { ficha, modo, guion };
+      if (img) cuerpo.laminas = laminas.map(l => l.url);
+      const r = await api('/api/clases', { method: 'POST', body: JSON.stringify(cuerpo) });
       clearInterval(reloj);
       location.hash = `#/clase/${r.slug}`;
       setTimeout(() => aviso(r.aviso || 'Clase creada: revisa el guion y las diapositivas', !!r.aviso), 600);
@@ -400,6 +536,8 @@ function prepararItems() {
   const c = editor.clase;
   const diapos = c.diapositivas || [];
   editor.plantillas = diapos.length > 0 || !editor.codigo;
+  editor.laminas = diapos.some(d => d.tipo === 'imagen');
+  editor.version = editor.version || Date.now(); // cambia al reemplazar una lamina (para no ver la imagen vieja)
   editor.items = (c.bloques || []).map(b => ({ id: b.id, texto: b.texto, diapo: diapos.find(x => x.bloque === b.id) || null }));
   editor.agenda = (c.agenda || []).map(a => ({ ...a }));
   editor.pron = Object.entries(c.pronunciacion || {}).map(([escrito, dice]) => ({ escrito, dice }));
@@ -450,7 +588,7 @@ function pintarEditor() {
       <section class="panel">
         <div class="panel-cab" style="margin-bottom:14px"><div><h2>Producción</h2><p class="muted">Los videos se crean en la PC del estudio, de uno en uno.</p></div></div>
         <div class="prod-acciones">
-          ${['voz', 'capturas', 'borrador'].map(m => `<button class="prod-accion" id="b-${m === 'voz' ? 'vista' : m}">
+          ${['voz', 'capturas', 'borrador', ...(estado.drive.conectado ? ['drive'] : [])].map(m => `<button class="prod-accion" id="b-${m === 'voz' ? 'vista' : m}">
             <span class="modo-ico">${ico(TRABAJOS[m].icono, 17)}</span><span><b>${TRABAJOS[m].nombre}</b><small>${TRABAJOS[m].desc}</small></span><span class="pildora">${TRABAJOS[m].dura}</span></button>`).join('')}
         </div>
         <div class="trabajos" id="trabajos"></div>
@@ -460,9 +598,12 @@ function pintarEditor() {
         <h3 style="margin-bottom:6px">Ficha</h3>
         <dl>
           <div><dt>Curso</dt><dd>${esc(c.curso || '—')}</dd></div>
+          <div><dt>Módulo</dt><dd>${esc(c.modulo || '—')}</dd></div>
+          <div><dt>Láminas</dt><dd>${editor.laminas ? 'Imágenes' : editor.plantillas ? 'HTML animadas' : 'Código'}</dd></div>
           <div><dt>Nivel</dt><dd>${esc(c.nivel || '—')}</dd></div>
           <div><dt>Avatar</dt><dd>${esc(c.avatar || '—')}</dd></div>
           <div><dt>Voz</dt><dd id="ficha-voz"></dd></div>
+          <div><dt>Google Drive</dt><dd id="ficha-drive"></dd></div>
         </dl>
       </section>
     </aside>
@@ -472,17 +613,26 @@ function pintarEditor() {
   $('#b-vista').onclick = () => lanzar('voz');
   $('#b-capturas').onclick = () => lanzar('capturas');
   $('#b-borrador').onclick = () => lanzar('borrador');
+  if ($('#b-drive')) $('#b-drive').onclick = () => lanzar('drive');
   $('#b-video').onclick = () => lanzar('video');
   pintarPestana();
   pintarResultado();
   estimar();
   fichaVoz();
+  fichaDrive();
 }
 
 function fichaVoz() {
   const p = (editor.clase.voz && editor.clase.voz.proveedor) || 'auto';
   const el = $('#ficha-voz');
-  if (el) el.textContent = { auto: 'Automática', elevenlabs: 'ElevenLabs', grabacion: 'Tu grabación', sistema: 'Del sistema' }[p] || p;
+  if (el) el.textContent = VOCES[p] || p;
+}
+function fichaDrive() {
+  const el = $('#ficha-drive');
+  const d = editor.resumen && editor.resumen.drive;
+  if (!el) return;
+  if (d) el.innerHTML = d.enlace ? `<a href="${esc(d.enlace)}" target="_blank" rel="noopener" title="${esc(d.ruta)}">Abrir carpeta</a>` : `<span title="${esc(d.local || d.ruta)}">Copiado</span>`;
+  else el.textContent = estado.drive.conectado ? 'Se sube con el video final' : 'Sin conectar';
 }
 
 function pintarPestana() {
@@ -498,7 +648,13 @@ function pintarPestana() {
 function pintarGuion(cont) {
   const fijo = !editor.plantillas;
   cont.innerHTML = `
-    ${fijo ? `<div class="aviso-caja">${ico('info')}<span>Esta clase usa <b>diapositivas programadas</b> (código). Puedes corregir lo que dice la voz, pero no agregar ni quitar bloques.</span></div>` : `
+    ${fijo ? `<div class="aviso-caja">${ico('info')}<span>Esta clase usa <b>diapositivas programadas</b> (código). Puedes corregir lo que dice la voz, pero no agregar ni quitar bloques.</span></div>` : editor.laminas ? `
+    <div class="barra-ia">
+      <span class="ico-caja">${ico('imagen', 18)}</span>
+      <div><b>Voz con IA leyendo tus láminas</b><span>La IA vuelve a mirar cada lámina y reescribe lo que dice la voz, la agenda y la pronunciación.</span></div>
+      <button class="boton chico" id="ia-gratis" ${estado.ia.vision ? '' : 'disabled'}>IA gratis</button>
+      <button class="boton chico" id="ia-claude" ${estado.ia.claude ? '' : 'disabled'}>Claude</button>
+    </div>` : `
     <div class="barra-ia">
       <span class="ico-caja">${ico('chispas', 18)}</span>
       <div><b>Diapositivas con IA</b><span>Respeta tu guion y propone diapositivas, agenda y pronunciación.</span></div>
@@ -565,6 +721,8 @@ function pintarBloques() {
     $('[data-k=texto]', el).oninput = e => { editor.items[i].texto = e.target.value; contar(); actualizarTiempos(); sucio(); };
     $$('[data-acc]', el).forEach(b => { b.onclick = () => moverBloque(i, b.dataset.acc); });
     const ed = $('.diapo-ed', el);
+    const cambiarLamina = ed && $('[data-lamina]', ed);
+    if (cambiarLamina) cambiarLamina.onchange = e => reemplazarLamina(i, e.target.files[0]);
     if (ed) {
       visibles(ed);
       ed.oninput = ed.onchange = () => {
@@ -592,9 +750,14 @@ document.addEventListener('input', e => { if (e.target.matches('.bloque textarea
 const nombreTipo = d => (TIPOS.find(([v]) => v === ((d && d.tipo) || '')) || ['', ''])[1].replace(/—/g, '').trim();
 
 // Vista aproximada de la diapositiva (mismo diseño que el video)
+const urlLamina = rel => `/clases/${editor.slug}/${rel}?v=${editor.version}`;
 function miniDiapo(d) {
-  if (!d || !d.tipo) return `<div class="md md-vacia"><span>${ico('capas')}Continúa la diapositiva anterior</span></div>`;
+  if (!d || !d.tipo) return `<div class="md md-vacia"><span>${ico('capas')}Continúa ${editor.laminas ? 'la lámina' : 'la diapositiva'} anterior</span></div>`;
   const banda = esc(editor.clase.banda || editor.clase.curso || '');
+  if (d.tipo === 'imagen') {
+    return `<div class="md md-imagen"><div class="md-area">${d.imagen ? `<img src="${esc(urlLamina(d.imagen))}" alt="" loading="lazy">` : ''}</div>
+      <div class="md-banda"><b>USS</b><span>${banda}</span></div></div>`;
+  }
   const k = d.kicker ? `<span class="md-k">${esc(d.kicker)}</span>` : '';
   const t = d.titulo ? `<b class="md-t">${acento(d.titulo)}</b>` : '<b class="md-t md-falta">Título de la diapositiva</b>';
   const s = d.sub ? `<span class="md-s">${acento(d.sub)}</span>` : '';
@@ -637,9 +800,14 @@ function edDiapo(d, i) {
   const campo = (tipos, html) => `<div data-tipos="${tipos}">${html}</div>`;
   const inp = (k, v, ph = '') => `<input type="text" id="${k}-${i}" data-k="${k}" value="${esc(v)}" placeholder="${esc(ph)}">`;
   const lbl = (k, texto, ayuda = '') => `<label for="${k}-${i}">${texto}${ayuda ? ` <span class="ayuda">${ayuda}</span>` : ''}</label>`;
+  // "Lámina (imagen)" solo aparece en los bloques que tienen una lamina subida
+  const tipos = TIPOS.filter(([v]) => v !== 'imagen' || d.tipo === 'imagen');
   return `<div class="diapo-ed">
-    ${lbl('tipo', 'Diapositiva')}
-    <select id="tipo-${i}" data-k="tipo">${TIPOS.map(([v, n]) => `<option value="${v}" ${v === (d.tipo || '') ? 'selected' : ''}>${n}</option>`).join('')}</select>
+    ${lbl('tipo', editor.laminas ? 'Lámina o diapositiva' : 'Diapositiva')}
+    <select id="tipo-${i}" data-k="tipo">${tipos.map(([v, n]) => `<option value="${v}" ${v === (d.tipo || '') ? 'selected' : ''}>${n}</option>`).join('')}</select>
+    ${d.tipo === 'imagen' ? campo('imagen', `<input type="hidden" data-k="imagen" value="${esc(d.imagen)}">
+      <label class="soltar chico" style="margin-top:12px"><input type="file" data-lamina accept="image/png,image/jpeg,image/webp">
+        <span class="modo-ico">${ico('imagen', 16)}</span><span><b>Reemplazar esta lámina</b><small>${esc(d.imagen)} · PNG o JPG</small></span></label>`) : ''}
     ${campo('portada idea lista pasos codigo comparacion tarjetas dato cierre', `${lbl('kicker', 'Etiqueta superior')}${inp('kicker', d.kicker, 'Ej.: Paso 1 · El DNS')}`)}
     ${campo('portada idea lista pasos codigo comparacion tarjetas dato cierre', `${lbl('titulo', 'Título', 'máx. 7 palabras · *clave* en morado')}${inp('titulo', d.titulo, 'Ej.: Semántica = *significado*')}`)}
     ${campo('portada idea lista pasos codigo comparacion tarjetas dato', `${lbl('sub', 'Subtítulo')}${inp('sub', d.sub)}`)}
@@ -668,6 +836,7 @@ function leerDiapo(ed) {
   const v = k => { const el = $(`[data-k=${k}]`, ed); return el ? el.value.trim() : ''; };
   const tipo = v('tipo');
   if (!tipo) return null;
+  if (tipo === 'imagen') return { tipo, imagen: v('imagen') };
   const partes = l => l.split('|').map(x => x.trim());
   const filas = k => v(k).split('\n').map(x => x.trim()).filter(Boolean);
   const d = { tipo, kicker: v('kicker'), titulo: v('titulo'), sub: v('sub'), nota: v('nota'), dato: v('dato'), despedida: v('despedida'), codigo: $('[data-k=codigo]', ed).value };
@@ -728,20 +897,39 @@ function pintarPron() {
 }
 
 async function rehacerConIa(modo) {
-  if (!await confirmar({ titulo: 'Rehacer las diapositivas con IA', texto: 'La IA reemplaza las diapositivas, la agenda y la pronunciación. Tu guion no cambia.', boton: 'Rehacer diapositivas' })) return;
+  const conLaminas = editor.laminas;
+  const ok = await confirmar(conLaminas
+    ? { titulo: 'Reescribir la voz leyendo las láminas', texto: 'La IA vuelve a mirar cada lámina y reemplaza lo que dice la voz, la agenda y la pronunciación. Tus láminas no cambian.', boton: 'Reescribir la voz' }
+    : { titulo: 'Rehacer las diapositivas con IA', texto: 'La IA reemplaza las diapositivas, la agenda y la pronunciación. Tu guion no cambia.', boton: 'Rehacer diapositivas' });
+  if (!ok) return;
   try { await guardar(true); } catch (e) { aviso(e.message, true); return; }
   const b = $(`#ia-${modo}`);
   b.disabled = true;
   b.innerHTML = '<span class="anillo-carga" style="width:14px;height:14px;border-width:2px"></span>Trabajando…';
   try {
-    const r = await api(`/api/clases/${editor.slug}/ia`, { method: 'POST', body: JSON.stringify({ modo }) });
+    const r = await api(`/api/clases/${editor.slug}/ia`, { method: 'POST', body: JSON.stringify({ modo, laminas: conLaminas }) });
     editor.clase = r.clase;
     prepararItems();
     editor.sucio = false;
     pintarPestana();
     estimar();
-    aviso(r.aviso || 'Diapositivas nuevas listas: revísalas', !!r.aviso);
+    aviso(r.aviso || (conLaminas ? 'Voz nueva lista: revísala' : 'Diapositivas nuevas listas: revísalas'), !!r.aviso);
   } catch (e) { aviso(e.message, true); pintarPestana(); }
+}
+
+// Reemplaza la imagen de una lamina (se manda en JPG, como las que se suben al crear la clase)
+async function reemplazarLamina(i, archivo) {
+  const it = editor.items[i];
+  if (!archivo || !it || !it.diapo || it.diapo.tipo !== 'imagen') return;
+  try {
+    const nombre = it.diapo.imagen.replace(/\.(png|webp)$/, '.jpg');
+    const r = await fetch(`/api/clases/${editor.slug}/archivo?nombre=${encodeURIComponent(nombre)}`, { method: 'PUT', body: await blobDe(await imagenAJpg(archivo)) });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `Error ${r.status}`);
+    if (nombre !== it.diapo.imagen) { it.diapo.imagen = nombre; sucio(); }
+    editor.version = Date.now();
+    pintarBloques();
+    aviso('Lámina reemplazada');
+  } catch (e) { aviso(`No se pudo reemplazar la lámina: ${e.message}`, true); }
 }
 
 // ----- pestaña: voz y avatar
@@ -762,7 +950,9 @@ function pintarVoz(cont) {
   <section class="panel">
     <div class="panel-cab"><div><h2>Voz del avatar</h2><p class="muted">Con qué voz habla el avatar en esta clase.</p></div></div>
     <div class="opciones">
-      ${opcion('auto', 'rayo', 'Automática', 'Tu grabación si existe; si no, ElevenLabs; si no, la del sistema.')}
+      ${opcion('auto', 'rayo', 'Automática', 'Tu grabación si existe; si no, la mejor voz configurada (ElevenLabs › Azure › local › sistema).')}
+      ${opcion('local', 'volumen', 'Voz local gratis', estado.voz.local ? 'Piper en la PC del estudio: sin internet, sin cuenta, sin límite.' : 'Instálala con INSTALAR-VOZ-LOCAL en la PC del estudio.')}
+      ${opcion('azure', 'ondas', 'Azure', estado.voz.azure ? 'Voces neurales de Perú y México. 0,5 M caracteres gratis al mes.' : 'Configúrala en Ajustes.')}
       ${opcion('elevenlabs', 'ondas', 'ElevenLabs', estado.voz.elevenlabs ? 'Voz natural (clonada o elegida).' : 'Configúrala en Ajustes.')}
       ${opcion('grabacion', 'mic', 'Solo mi grabación', 'Tu propia voz grabada (abajo).')}
       ${opcion('sistema', 'volumen', 'Voz del sistema', 'Gratis y sin internet; suena sintética.')}
@@ -863,7 +1053,7 @@ function descargarGuion() {
 // ----- pestaña: datos
 function pintarDatos(cont) {
   const c = editor.clase;
-  const campos = [['tema', 'Tema'], ['curso', 'Curso'], ['banda', 'Texto de la franja verde'], ['nivel', 'Nivel'],
+  const campos = [['tema', 'Tema'], ['curso', 'Curso'], ['modulo', 'Módulo (carpeta en Google Drive)'], ['banda', 'Texto de la franja verde'], ['nivel', 'Nivel'],
     ['avatar', 'Nombre del avatar'], ['rol_avatar', 'Rol del avatar'], ['docente', 'Docente que revisó'], ['institucion', 'Institución']];
   cont.innerHTML = `
     <section class="panel">
@@ -952,6 +1142,7 @@ async function actualizarTrabajos() {
       if (t.modo === 'voz' && editor.esperoVista) { editor.esperoVista = false; editor.mostrar = 'vista'; }
       if (t.modo === 'capturas') editor.mostrar = 'capturas';
       if (t.modo === 'video' || t.modo === 'borrador') editor.mostrar = t.modo;
+      if (t.modo === 'drive') editor.mostrar = 'video';
       aviso(`${(TRABAJOS[t.modo] || {}).nombre || t.modo}: listo`);
       pintarResultado();
     }
@@ -982,10 +1173,14 @@ async function pintarResultado() {
       r.innerHTML = `<h4>Borrador</h4><video class="reproductor" controls preload="metadata" src="/api/clases/${slug}/video?borrador=1&ver=1&t=${Date.now()}"></video>
         <div class="acciones"><a class="boton ancho" href="/api/clases/${slug}/video?borrador=1">${ico('descargar')}Descargar borrador</a></div>`;
     } else if (res && res.video) {
+      const dr = res.drive;
       r.innerHTML = `<h4>Video final</h4><video class="reproductor" controls preload="metadata" src="/api/clases/${slug}/video?ver=1&t=${res.video.fecha}"></video>
         <div class="acciones"><a class="boton lima ancho" href="/api/clases/${slug}/video">${ico('descargar')}Descargar MP4 · ${MB(res.video.tam)}</a></div>
-        <p class="ayuda" style="margin-top:8px;text-align:center">Creado ${hace(res.video.fecha)}</p>`;
+        ${res.html ? `<div class="acciones" style="margin-top:8px"><a class="boton ancho" href="/api/clases/${slug}/html" title="Se abre con doble clic en cualquier navegador">${ico('texto')}Clase en HTML · ${MB(res.html.tam)}</a></div>` : ''}
+        ${dr && dr.enlace ? `<div class="acciones" style="margin-top:8px"><a class="boton ancho" href="${esc(dr.enlace)}" target="_blank" rel="noopener">${ico('subir')}Abrir en Google Drive</a></div>` : ''}
+        <p class="ayuda" style="margin-top:8px;text-align:center">Creado ${hace(res.video.fecha)}${dr ? ` · en Drive: ${esc(dr.ruta)}` : ''}</p>`;
     }
+    if (d) { editor.resumen = d.resumen; fichaDrive(); }
   }
 }
 
@@ -997,21 +1192,51 @@ async function vistaAjustes() {
     <input type="${secreto ? 'password' : 'text'}" id="aj-${k}" name="${k}" value="${secreto ? '' : esc(a[k])}" autocomplete="off" spellcheck="false" class="${mono || secreto ? 'mono' : ''}"
       placeholder="${esc(secreto ? (a[k] ? `${a[k]}  (guardada)` : 'Pega aquí tu clave') : ph)}">
     ${ayuda ? `<p class="ayuda" style="margin-top:6px">${ayuda}</p>` : ''}`;
-  const pild = ok => `<span class="pildora ${ok ? 'ok' : ''}"><i class="punto ${ok ? 'on' : ''}"></i>${ok ? 'Configurado' : 'Sin configurar'}</span>`;
+  const pild = (ok, si = 'Configurado', no = 'Sin configurar') => `<span class="pildora ${ok ? 'ok' : ''}"><i class="punto ${ok ? 'on' : ''}"></i>${ok ? si : no}</span>`;
+  const dr = estado.drive;
+  const pasoDrive = dr.modo === 'local' ? (dr.conectado ? 'Copia a la carpeta de Google Drive para escritorio.' : 'No encuentro la carpeta de DRIVE_RUTA_LOCAL.')
+    : !dr.cliente ? 'Paso 1: pega el cliente OAuth (JSON) de Google Cloud.'
+    : !dr.conectado ? 'Paso 2: pulsa «Conectar Google Drive» en la PC del estudio.'
+    : dr.carpeta ? 'Listo: cada video final se sube solo a la carpeta compartida.' : 'Conectado. Falta la carpeta compartida (paso 3).';
   app.innerHTML = `<div class="vista">
   <header class="cabecera"><div><h1>Ajustes</h1><p class="muted">Se guardan solo en la PC del estudio (archivo .env). Las claves nunca se muestran completas.</p></div></header>
   <form id="f-aj" class="ajustes" autocomplete="off">
     <section class="ajuste">
-      <div class="ajuste-info"><h2>${ico('ondas', 18)}Voz · ElevenLabs</h2><p>Voz natural para el avatar: tu voz clonada o una voz de la biblioteca.</p>${pild(estado.voz.elevenlabs)}</div>
+      <div class="ajuste-info"><h2>${ico('volumen', 18)}Voz por defecto</h2><p>Con qué voz hablan las clases nuevas. Cada clase puede cambiarla en «Voz y avatar».</p></div>
       <div class="panel">
-        ${campo('ELEVENLABS_API_KEY', 'API key', 'elevenlabs.io › Developers › API Keys (permiso: Text to Speech).', { secreto: true })}
-        ${campo('ELEVENLABS_VOICE_ID', 'Voice ID por defecto', 'Tu voz clonada o una voz «Default» (en el plan Free solo funcionan las Default).', { mono: true })}
         <label for="aj-VOZ">Voz por defecto de las clases</label>
-        <select id="aj-VOZ" name="VOZ"><option value="auto">Automática (grabación → ElevenLabs → sistema)</option><option value="elevenlabs">ElevenLabs</option><option value="sistema">Voz del sistema</option></select>
+        <select id="aj-VOZ" name="VOZ">
+          <option value="auto">Automática (grabación › ElevenLabs › Azure › voz local › sistema)</option>
+          <option value="local">Voz local gratis (Piper)</option><option value="azure">Azure</option>
+          <option value="elevenlabs">ElevenLabs</option><option value="sistema">Voz del sistema</option></select>
       </div>
     </section>
     <section class="ajuste">
-      <div class="ajuste-info"><h2>${ico('chispas', 18)}IA gratis</h2><p>Un modelo abierto escribe guion y diapositivas. Groq (gratis con cuenta) u Ollama en esta PC.</p>${pild(estado.ia.gratis)}</div>
+      <div class="ajuste-info"><h2>${ico('volumen', 18)}Voz local gratis</h2><p>Piper habla en la PC del estudio: sin internet, sin cuenta y sin límite de caracteres. Suena menos natural que ElevenLabs.</p>${pild(estado.voz.local, 'Instalada', 'Sin instalar')}</div>
+      <div class="panel">
+        <p class="ayuda" style="margin:0 0 4px">Para instalarla: en la PC del estudio, doble clic en <b>INSTALAR-VOZ-LOCAL</b> (unos 150 MB, una sola vez).</p>
+        ${campo('PIPER_VOZ', 'Voz de Piper', 'Vacío = es_MX-claude-high (México). Otras: es_MX-ald-medium, es_AR-daniela-high. Instálala con INSTALAR-VOZ-LOCAL &lt;voz&gt;.', { mono: true, ph: 'es_MX-claude-high' })}
+        ${campo('VOZ_LOCAL_URL', 'En vez de Piper: servidor de voz en Docker', 'Opcional. Kokoro: docker run -p 8880:8880 ghcr.io/remsky/kokoro-fastapi-cpu:latest y aquí http://localhost:8880/v1', { mono: true, ph: 'http://localhost:8880/v1' })}
+        ${campo('VOZ_LOCAL_VOZ', 'Voz del servidor', 'Kokoro en español: ef_dora (mujer) o em_alex (hombre).', { mono: true, ph: 'ef_dora' })}
+      </div>
+    </section>
+    <section class="ajuste">
+      <div class="ajuste-info"><h2>${ico('ondas', 18)}Voz · Azure</h2><p>Voces neurales de Microsoft, con acento de Perú. 0,5 millones de caracteres gratis al mes (unas 240 clases); después se paga por uso.</p>${pild(estado.voz.azure)}</div>
+      <div class="panel">
+        ${campo('AZURE_SPEECH_KEY', 'Clave (Key 1)', 'portal.azure.com › crea un recurso «Speech» (plan F0 gratis) › Keys and Endpoint.', { secreto: true })}
+        ${campo('AZURE_SPEECH_REGION', 'Región', 'La del recurso, en minúsculas: eastus, brazilsouth, westeurope…', { mono: true, ph: 'eastus' })}
+        ${campo('AZURE_VOZ', 'Voz', 'Perú: es-PE-CamilaNeural (mujer) o es-PE-AlexNeural (hombre). México: es-MX-DaliaNeural, es-MX-JorgeNeural.', { mono: true, ph: 'es-PE-CamilaNeural' })}
+      </div>
+    </section>
+    <section class="ajuste">
+      <div class="ajuste-info"><h2>${ico('ondas', 18)}Voz · ElevenLabs</h2><p>La voz más natural: tu voz clonada o una voz de la biblioteca. De pago desde el plan Starter.</p>${pild(estado.voz.elevenlabs)}</div>
+      <div class="panel">
+        ${campo('ELEVENLABS_API_KEY', 'API key', 'elevenlabs.io › Developers › API Keys (permiso: Text to Speech).', { secreto: true })}
+        ${campo('ELEVENLABS_VOICE_ID', 'Voice ID por defecto', 'Tu voz clonada o una voz «Default» (en el plan Free solo funcionan las Default).', { mono: true })}
+      </div>
+    </section>
+    <section class="ajuste">
+      <div class="ajuste-info"><h2>${ico('chispas', 18)}IA gratis</h2><p>Un modelo abierto escribe guion y diapositivas HTML. Groq (gratis con cuenta) u Ollama en esta PC.</p>${pild(estado.ia.gratis)}</div>
       <div class="panel">
         ${campo('IA_GRATIS_URL', 'Dirección', 'Groq: https://api.groq.com/openai/v1 · Ollama: http://localhost:11434/v1', { mono: true, ph: 'https://api.groq.com/openai/v1' })}
         ${campo('IA_GRATIS_KEY', 'API key', 'Groq: console.groq.com › API Keys (gratis). Ollama no necesita.', { secreto: true })}
@@ -1019,10 +1244,46 @@ async function vistaAjustes() {
       </div>
     </section>
     <section class="ajuste">
-      <div class="ajuste-info"><h2>${ico('rayo', 18)}Claude</h2><p>La mejor calidad de redacción. Se paga por uso: unos centavos de dólar por clase.</p>${pild(estado.ia.claude)}</div>
+      <div class="ajuste-info"><h2>${ico('imagen', 18)}IA que lee láminas</h2><p>Mira tus láminas (imágenes o PDF) y escribe lo que dice la voz. Vacío = la misma IA gratis, con un modelo que lee imágenes.</p>
+        ${pild(estado.ia.vision)}${estado.ia.vision ? `<p class="ayuda" style="margin-top:8px">Modelo: <b class="mono">${esc(estado.ia.modeloVision)}</b></p>` : ''}</div>
+      <div class="panel">
+        ${campo('IA_VISION_URL', 'Dirección (opcional)', 'Vacío = la de la IA gratis (Groq). Gemini gratis: https://generativelanguage.googleapis.com/v1beta/openai · Ollama: http://localhost:11434/v1', { mono: true, ph: 'la de la IA gratis' })}
+        ${campo('IA_VISION_KEY', 'API key (solo si cambias la dirección)', 'Gemini: aistudio.google.com › Get API key (gratis; Google usa esos datos para mejorar sus productos).', { secreto: true })}
+        ${campo('IA_VISION_MODELO', 'Modelo que lee imágenes', 'Groq: qwen/qwen3.8-27b · Gemini: gemini-3.8-flash · Ollama: qwen2.5vl:7b o gemma3 · Grok (de pago, api.x.ai/v1): un modelo grok con visión.', { mono: true, ph: estado.ia.modeloVision || 'qwen/qwen3.8-27b' })}
+      </div>
+    </section>
+    <section class="ajuste">
+      <div class="ajuste-info"><h2>${ico('rayo', 18)}Claude</h2><p>La mejor calidad de redacción y lee láminas. Se paga por uso (API, aparte de la suscripción Pro): unos centavos por clase.</p>${pild(estado.ia.claude)}</div>
       <div class="panel">
         ${campo('ANTHROPIC_API_KEY', 'API key de Claude', 'platform.claude.com › API Keys. Recarga prepagada.', { secreto: true })}
         ${campo('CLAUDE_MODELO', 'Modelo', 'Vacío = claude-opus-5-5 (recomendado).', { mono: true, ph: 'claude-opus-5-5' })}
+      </div>
+    </section>
+    <section class="ajuste">
+      <div class="ajuste-info"><h2>${ico('subir', 18)}Google Drive</h2><p>Cada video final y el código de su clase se guardan en la carpeta compartida del equipo: Mes / Curso / Módulo / Clase. Todos los que tienen acceso a la carpeta los ven.</p>
+        ${pild(dr.conectado && dr.carpeta, 'Listo', dr.conectado ? 'Falta la carpeta' : 'Sin conectar')}<p class="ayuda" style="margin-top:8px">${pasoDrive}</p></div>
+      <div class="panel">
+        ${campo('DRIVE_CARPETA_ID', '3 · Carpeta compartida', 'Pega el enlace de la carpeta (Compartir › Copiar enlace). Tu cuenta debe ser Editor de esa carpeta.', { mono: true, ph: 'https://drive.google.com/drive/folders/…' })}
+        ${campo('DRIVE_CARPETA', 'Subcarpeta para los videos', 'Se crea dentro de la carpeta compartida. Vacío = «Videos de clases IA».', { ph: 'Videos de clases IA' })}
+        <details class="plegable" ${dr.cliente ? '' : 'open'}>
+          <summary>${ico('candado')}1 · Cliente OAuth de Google Cloud ${dr.cliente ? '<span class="muted">· guardado</span>' : ''}${ico('abajo')}</summary>
+          <div>
+            <p class="ayuda">console.cloud.google.com con tu cuenta @uss.edu.pe › proyecto nuevo › activa «Google Drive API» › Pantalla de consentimiento: <b>Interno</b> › Credenciales › ID de cliente OAuth › <b>App de escritorio</b> › Descargar JSON. Abre el archivo y pega aquí todo su contenido.</p>
+            <textarea id="drive-json" rows="4" class="mono" spellcheck="false" placeholder='{"installed":{"client_id":"…","client_secret":"…"}}'></textarea>
+            <div class="acciones" style="margin-top:8px"><button type="button" class="boton chico" id="b-drive-json">${ico('guardar', 14)}Guardar cliente</button></div>
+          </div>
+        </details>
+        <div class="acciones" style="margin-top:12px">
+          <button type="button" class="boton chico ${dr.conectado ? '' : 'prim'}" id="b-drive-conectar" ${dr.cliente && dr.local && dr.modo === 'api' ? '' : 'disabled'}>${ico('flecha', 14)}${dr.conectado ? '2 · Volver a conectar' : '2 · Conectar Google Drive'}</button>
+          ${dr.local ? '' : '<span class="ayuda">Se conecta desde la PC del estudio (http://localhost) o con CONECTAR-DRIVE.</span>'}
+        </div>
+        <details class="plegable">
+          <summary>${ico('info')}Plan B sin Google Cloud: Google Drive para escritorio${ico('abajo')}</summary>
+          <div>
+            <p class="ayuda">Instala Google Drive para escritorio en la PC del estudio. En drive.google.com, en la carpeta compartida: clic derecho › Organizar › Agregar acceso directo › Mi unidad. Pega aquí la ruta como aparece en el Explorador. Si la llenas, se usa esta forma en vez de la API.</p>
+            ${campo('DRIVE_RUTA_LOCAL', 'Ruta de la carpeta en esta PC', '', { mono: true, ph: 'G:\\Mi unidad\\CINF GEX' })}
+          </div>
+        </details>
       </div>
     </section>
     <section class="ajuste">
@@ -1032,14 +1293,38 @@ async function vistaAjustes() {
     <div class="barra-guardar"><span class="muted">Los cambios se aplican al guardar.</span><button class="boton prim">${ico('guardar')}Guardar ajustes</button></div>
   </form></div>`;
   $('#f-aj').VOZ.value = a.VOZ || 'auto';
+  const recargar = async () => { estado = await api('/api/estado'); await vistaAjustes(); pintarLateral('/ajustes'); };
   $('#f-aj').onsubmit = async e => {
     e.preventDefault();
     try {
       await api('/api/ajustes', { method: 'POST', body: JSON.stringify(Object.fromEntries(new FormData(e.target))) });
       aviso('Ajustes guardados');
-      estado = await api('/api/estado');
-      await vistaAjustes();
-      pintarLateral('/ajustes');
+      await recargar();
+    } catch (err) { aviso(err.message, true); }
+  };
+  $('#b-drive-json').onclick = async () => {
+    try {
+      await api('/api/drive/cliente', { method: 'POST', body: JSON.stringify({ json: $('#drive-json').value }) });
+      aviso('Cliente de Google guardado. Ahora: Conectar Google Drive');
+      await recargar();
+    } catch (err) { aviso(err.message, true); }
+  };
+  $('#b-drive-conectar').onclick = async () => {
+    try {
+      await api('/api/drive/conectar', { method: 'POST' });
+      aviso('Se abrió el navegador de esta PC: entra con la cuenta que es Editor de la carpeta y acepta el permiso.');
+      // se pregunta cada 3 s hasta que termine (5 minutos como maximo)
+      const fin = Date.now() + 5 * 60 * 1000;
+      const mirar = async () => {
+        const s = await api('/api/estado').catch(() => null);
+        if (!s || !$('#b-drive-conectar')) return;
+        if (s.drive.conectando && Date.now() < fin) return setTimeout(mirar, 3000);
+        estado = s;
+        aviso(s.drive.conectado ? 'Google Drive conectado' : 'No se completó la conexión con Google Drive', !s.drive.conectado);
+        await vistaAjustes();
+        pintarLateral('/ajustes');
+      };
+      setTimeout(mirar, 3000);
     } catch (err) { aviso(err.message, true); }
   };
 }

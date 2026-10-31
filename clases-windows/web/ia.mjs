@@ -1,9 +1,15 @@
 // Genera el guion y las diapositivas (plantillas) de una clase a partir de la ficha del docente.
 // Modos: "manual" (el docente pega su guion, sin IA), "gratis" (API compatible con OpenAI: Groq,
 // Ollama, OpenRouter...) y "claude" (API de Anthropic, de pago por uso).
+// Con LAMINAS (imagenes de las diapositivas del docente) la IA las mira y escribe lo que dice la voz en cada una.
+
+import fs from 'node:fs';
+import path from 'node:path';
 
 export const TIPOS = ['portada', 'idea', 'lista', 'codigo', 'comparacion', 'tarjetas', 'pasos', 'dato', 'cierre'];
+const TIPOS_VALIDOS = [...TIPOS, 'imagen']; // "imagen" = una lamina subida; la IA no la elige
 const texto = e => String((e && e.message) || e);
+export const rutaLamina = v => (/^laminas\/\d{2}\.(jpg|png|webp)$/.test(String(v || '')) ? String(v) : '');
 
 // ---------------------------------------------------------------- prompt
 const INTRO = `Eres el productor de clases en video de 2 a 3 minutos de la Universidad Señor de Sipán (USS).
@@ -51,6 +57,20 @@ Reglas de diapositivas:
 - "cuando": una palabra o frase corta copiada TAL CUAL (con tildes) del texto de ESE bloque; el elemento aparece cuando la voz la dice.
 - Usa variedad de tipos: al menos 1 codigo o comparacion o tarjetas cuando el tema lo permita.`;
 
+const REGLAS_LAMINAS = `GUION A PARTIR DE LÁMINAS: el docente ya hizo sus láminas (imágenes de sus diapositivas).
+Mira cada lámina y escribe lo que dice la voz mientras esa lámina está en pantalla.
+- Explica el contenido de la lámina con tus palabras, como un buen docente: no la leas palabra por palabra
+  ni describas su diseño (nada de "en esta lámina vemos" o "la imagen muestra").
+- 20 a 60 palabras por lámina (10 a 25 segundos). Una lámina de título o de sección: 15 a 30 palabras.
+- Primera lámina: el avatar saluda, se presenta por su nombre y dice el tema. Última lámina: resumen o reto y despedida.
+- Si la lámina tiene código, explica qué hace; no lo dictes símbolo por símbolo.
+- Español latinoamericano (Perú) claro y natural, oraciones cortas, trato de "tú" (nunca "vosotros"). Escribe como se habla.
+- Exactitud: di solo lo que está en la lámina o es verificable. No inventes cifras, fechas ni citas.
+- El texto es SOLO lo que la voz dice en voz alta: sin comillas, sin código y sin símbolos sueltos.
+- Las siglas se escriben normal (CSS, HTML). Cómo suenan va SOLO en "pronunciacion", nunca en el texto.`;
+const FORMATO_LAMINA = `Responde SOLO con un objeto JSON, sin texto antes ni después:
+{"titulo": "título corto de la lámina", "texto": "lo que dice la voz", "pronunciacion": [{"escrito": "CSS", "dice": "ce ese ese"}]}`;
+
 // Claude lo hace todo en una sola respuesta (salida estructurada, sin tope corto)
 const REGLAS = `${INTRO}
 Escribe el GUION y las DIAPOSITIVAS (plantillas) de la clase.
@@ -82,6 +102,7 @@ function fichaTexto(ficha) {
     `Rol del avatar: ${f('rol_avatar') || 'Asistente docente IA'}`,
     `Universidad: ${f('institucion') || 'Universidad Señor de Sipán'}`,
     `Curso: ${f('curso')}`,
+    `Módulo: ${f('modulo')}`,
     `Tema: ${f('tema')}`,
     `Nivel: ${f('nivel') || 'Básico'}`,
     `Duración: ${f('duracion') || '2:30'}`,
@@ -120,9 +141,21 @@ export const ESQUEMA_CLASE = obj({
   bloques: { type: 'array', items: obj({ id: str, texto: str }) },
   diapositivas: { type: 'array', items: DIAPO },
 });
+// con laminas: un texto por lamina, en orden ("desde" de la agenda = numero de lamina con dos digitos)
+const ESQUEMA_LAMINAS = obj({
+  tema: str,
+  agenda: { type: 'array', items: obj({ titulo: str, desde: str }) },
+  pronunciacion: { type: 'array', items: obj({ escrito: str, dice: str }) },
+  laminas: { type: 'array', items: obj({ titulo: str, texto: str }) },
+});
 
 // ---------------------------------------------------------------- proveedores
 async function conClaude(ficha, bloquesFijos, env) {
+  return claudeJson(env, `${REGLAS}\n- Rellena con "" o [] los campos que no use el tipo elegido.`, pedido(ficha, bloquesFijos), ESQUEMA_CLASE);
+}
+
+// Una peticion a Claude con salida JSON segun el esquema. "contenido" puede llevar imagenes (laminas).
+async function claudeJson(env, sistema, contenido, esquema) {
   if (!env.ANTHROPIC_API_KEY) throw new Error('Falta la API key de Claude (Ajustes).');
   const { default: Anthropic } = await import('@anthropic-ai/sdk');
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
@@ -133,9 +166,9 @@ async function conClaude(ficha, bloquesFijos, env) {
       // si un filtro de seguridad rechaza la peticion, la API la reintenta con el modelo recomendado
       betas: ['server-side-fallback-2026-07-01'],
       fallbacks: 'default',
-      output_config: { effort: 'medium', format: { type: 'json_schema', schema: ESQUEMA_CLASE } },
-      system: `${REGLAS}\n- Rellena con "" o [] los campos que no use el tipo elegido.`,
-      messages: [{ role: 'user', content: pedido(ficha, bloquesFijos) }],
+      output_config: { effort: 'medium', format: { type: 'json_schema', schema: esquema } },
+      system: sistema,
+      messages: [{ role: 'user', content: contenido }],
     });
     const msg = await stream.finalMessage();
     if (msg.stop_reason === 'refusal') throw new Error('Claude no quiso generar esta clase (filtro de seguridad). Cambia la ficha e intenta de nuevo.');
@@ -250,20 +283,32 @@ async function diapositivasPorPartes(pedir, ficha, bloques) {
   return ids.filter(id => hechas[id]).map(id => hechas[id]);
 }
 
+// La IA que lee laminas (vision). Por defecto la misma de la IA gratis; si su modelo no lee imagenes se usa
+// uno que si: Groq qwen/qwen3.8-27b, Gemini gemini-3.8-flash (capa gratis) u Ollama local (qwen2.5vl, gemma3).
+export function configVision(env) {
+  const propia = !!env.IA_VISION_URL;
+  const url = String(propia ? env.IA_VISION_URL : env.IA_GRATIS_URL || 'https://api.groq.com/openai/v1').replace(/\/+$/, '');
+  const modelo = env.IA_VISION_MODELO || (/groq\.com/.test(url) ? 'qwen/qwen3.8-27b' : /generativelanguage\.googleapis/.test(url) ? 'gemini-3.8-flash' : env.IA_GRATIS_MODELO);
+  return { IA_GRATIS_URL: url, IA_GRATIS_KEY: propia ? env.IA_VISION_KEY : env.IA_GRATIS_KEY, IA_GRATIS_MODELO: modelo, IA_GRATIS_MAX_TOKENS: env.IA_GRATIS_MAX_TOKENS };
+}
+
 // Cliente para APIs compatibles con OpenAI (Groq, Ollama, OpenRouter...). Ajusta max_tokens si el servicio
 // dice cuanto permite y espera cuando el plan gratis pide "intenta de nuevo en 20 s".
-function clienteGratis(env, usos) {
+// "usuario" puede ser texto o una lista de partes (texto + imagenes) para los modelos con vision.
+function clienteGratis(env, usos, { vision = false } = {}) {
   const url = (env.IA_GRATIS_URL || 'https://api.groq.com/openai/v1').replace(/\/+$/, '');
   const modelo = env.IA_GRATIS_MODELO || 'openai/gpt-oss-120b';
   const cabeceras = { 'Content-Type': 'application/json' };
   if (env.IA_GRATIS_KEY) cabeceras.Authorization = `Bearer ${env.IA_GRATIS_KEY}`;
-  else if (!/localhost|127\.0\.0\.1/.test(url)) throw new Error('Falta la API key de la IA gratis (Ajustes).');
+  else if (!/localhost|127\.0\.0\.1/.test(url)) throw new Error(`Falta la API key de la IA ${vision ? 'que lee láminas' : 'gratis'} (Ajustes).`);
   let maximo = Number(env.IA_GRATIS_MAX_TOKENS) || 8000;
+  let formatoJson = true; // algunos servicios no aceptan response_format: se quita y se pide JSON en el texto
 
   return async function pedir(sistema, usuario) {
     let r, cuerpo, esperas = 0;
     for (let intento = 0; intento < 8; intento++) {
-      const peticion = { model: modelo, response_format: { type: 'json_object' }, messages: [{ role: 'system', content: sistema }, { role: 'user', content: usuario }] };
+      const peticion = { model: modelo, messages: [{ role: 'system', content: sistema }, { role: 'user', content: usuario }] };
+      if (formatoJson) peticion.response_format = { type: 'json_object' };
       if (maximo) peticion.max_tokens = maximo;
       try {
         r = await fetch(`${url}/chat/completions`, { method: 'POST', headers: cabeceras, body: JSON.stringify(peticion) });
@@ -279,6 +324,7 @@ function clienteGratis(env, usos) {
         if (s != null && s <= 65 && esperas < 4) { esperas++; await dormir((s + 1) * 1000); continue; }
         break;
       }
+      if (r.status === 400 && formatoJson && /response_format|json_object/i.test(cuerpo)) { formatoJson = false; continue; }
       if (([400, 413].includes(r.status) || muyGrande) && maximo) {
         const nuevo = maximoPermitido(cuerpo, maximo);
         if (nuevo !== maximo) { maximo = nuevo; continue; }
@@ -286,8 +332,11 @@ function clienteGratis(env, usos) {
       break;
     }
     if (!r.ok) {
-      const pista = r.status === 401 ? ' (API key inválida)' : r.status === 413 || r.status === 429 ? ' (límite del plan gratis: espera un minuto o usa otro modelo)' : '';
-      throw new Error(`La IA gratis respondió ${r.status}${pista}: ${cuerpo.slice(0, 300)}`);
+      const sinVision = vision && r.status >= 400 && r.status < 500 && /image|vision|multimodal|image_url|content type/i.test(cuerpo);
+      const pista = r.status === 401 ? ' (API key inválida)'
+        : sinVision ? ` (el modelo ${modelo} no lee imágenes: en Ajustes › IA que lee láminas usa qwen/qwen3.8-27b en Groq o gemini-3.8-flash en Gemini)`
+        : r.status === 413 || r.status === 429 ? ' (límite del plan gratis: espera un minuto o usa otro modelo)' : '';
+      throw new Error(`La IA ${vision ? 'que lee láminas' : 'gratis'} respondió ${r.status}${pista}: ${cuerpo.slice(0, 300)}`);
     }
     const j = JSON.parse(cuerpo);
     const eleccion = (j.choices && j.choices[0]) || {};
@@ -371,6 +420,89 @@ function cerrarJson(s) {
   return null;
 }
 
+// ---------------------------------------------------------------- laminas (imagenes de las diapositivas del docente)
+const MIME = { '.jpg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
+const leerLamina = (dir, rel) => fs.readFileSync(path.join(dir, ...rel.split('/'))).toString('base64');
+
+// IA gratis con vision: una lamina por peticion (los planes gratis aceptan pocas imagenes y pocos tokens a la vez),
+// cada una sabiendo lo que se dijo en la anterior. Al final, agenda y pronunciacion con el guion ya escrito.
+async function laminasConIaGratis(ficha, laminas, dir, env) {
+  const usos = [];
+  const pedir = clienteGratis(configVision(env), usos, { vision: true });
+  const n = laminas.length;
+  const hechas = [];
+  const pronunciacion = [];
+  for (let i = 0; i < n; i++) {
+    const anterior = hechas[i - 1];
+    const indicaciones = [
+      fichaTexto(ficha), '',
+      `LÁMINA ${i + 1} DE ${n} (la imagen va adjunta).`,
+      i === 0 ? 'Es la primera lámina: saludo; el avatar se presenta por su nombre y dice el tema.' : '',
+      i === n - 1 && n > 1 ? 'Es la última lámina: resumen o reto práctico y despedida.' : '',
+      anterior ? `La voz acaba de decir, en la lámina anterior (no lo repitas, continúa la clase): ${anterior.texto}` : '',
+    ].filter(Boolean).join('\n');
+    const url = `data:${MIME[path.extname(laminas[i])]};base64,${leerLamina(dir, laminas[i])}`;
+    const { datos } = await pedir(`${INTRO}\n\n${REGLAS_LAMINAS}\n\n${FORMATO_LAMINA}`,
+      [{ type: 'text', text: indicaciones }, { type: 'image_url', image_url: { url } }]);
+    const t = String(datos.texto || '').replace(/\s+/g, ' ').trim();
+    if (!t) throw new Error(`La IA no escribió el texto de la lámina ${i + 1}. Intenta de nuevo o usa otro modelo.`);
+    hechas.push({ titulo: corto(datos.titulo, 60), texto: t });
+    if (Array.isArray(datos.pronunciacion)) pronunciacion.push(...datos.pronunciacion);
+  }
+  const bloques = hechas.map((x, i) => ({ id: dosDigitos(i + 1), texto: x.texto }));
+  let agenda = [];
+  try {
+    const { datos } = await pedir(`${INTRO}\n\n${REGLAS_PLAN}\n\n${FORMATO_PLAN}`,
+      `${fichaTexto(ficha)}\n\nTÍTULOS DE LAS LÁMINAS: ${JSON.stringify(hechas.map(x => x.titulo))}\n\nGUION (un bloque por lámina):\n${JSON.stringify(bloques)}\n\nCrea solo la agenda y la pronunciación de este guion.`);
+    agenda = datos.agenda || [];
+    if (Array.isArray(datos.pronunciacion)) pronunciacion.push(...datos.pronunciacion);
+  } catch { /* sin agenda la columna derecha queda vacia: el docente puede escribirla en el editor */ }
+  const uso = { partes: usos.length, prompt_tokens: usos.reduce((t, u) => t + (u.prompt_tokens || 0), 0), completion_tokens: usos.reduce((t, u) => t + (u.completion_tokens || 0), 0) };
+  return { tema: ficha.tema || hechas[0].titulo, agenda, pronunciacion, textos: hechas.map(x => x.texto), uso };
+}
+
+// Claude: todas las laminas en una sola peticion
+async function laminasConClaude(ficha, laminas, dir, env) {
+  const n = laminas.length;
+  const contenido = [{ type: 'text', text: `${fichaTexto(ficha)}\n\nSon ${n} láminas, en orden. Escribe EXACTAMENTE ${n} textos en "laminas" (uno por lámina, en el mismo orden). ` +
+    'En la agenda, "desde" es el número de la lámina donde empieza cada punto, con dos dígitos ("01", "02"...).' }];
+  laminas.forEach((rel, i) => contenido.push({ type: 'text', text: `Lámina ${i + 1}:` },
+    { type: 'image', source: { type: 'base64', media_type: MIME[path.extname(rel)], data: leerLamina(dir, rel) } }));
+  const { datos, uso } = await claudeJson(env, `${INTRO}\n\n${REGLAS_LAMINAS}\n${REGLAS_PLAN}`, contenido, ESQUEMA_LAMINAS);
+  const textos = (datos.laminas || []).map(x => String(x.texto || '').replace(/\s+/g, ' ').trim());
+  if (textos.length !== n || textos.some(t => !t)) throw new Error(`Claude devolvió ${textos.filter(Boolean).length} textos para ${n} láminas. Intenta de nuevo.`);
+  return { tema: ficha.tema || datos.tema, agenda: datos.agenda, pronunciacion: datos.pronunciacion, textos, uso };
+}
+
+// El docente escribe un parrafo por lamina
+function textosManuales(guion, n) {
+  const parrafos = String(guion || '').replace(/\r/g, '').split(/\n\s*\n/).map(x => x.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  if (parrafos.length !== n) throw new Error(`Tienes ${n} láminas y ${parrafos.length} párrafos: escribe un párrafo por lámina, separados por una línea en blanco.`);
+  return parrafos;
+}
+
+// Un texto por lamina -> bloques y diapositivas "imagen". Un texto muy largo se parte en varios bloques
+// (la lamina sigue en pantalla). La agenda llega con el numero de lamina y se pasa al bloque donde empieza.
+async function claseDeLaminas({ ficha, modo, guion, env, laminas, dir, base }) {
+  const r = modo === 'manual' ? { tema: ficha.tema, agenda: [], pronunciacion: [], textos: textosManuales(guion, laminas.length), uso: null }
+    : modo === 'claude' ? await laminasConClaude(ficha, laminas, dir, env)
+    : await laminasConIaGratis(ficha, laminas, dir, env);
+  const bloques = [];
+  const diapositivas = [];
+  const primerBloque = {};
+  r.textos.forEach((t, i) => {
+    guionManual(t).forEach((p, k) => {
+      const id = dosDigitos(bloques.length + 1);
+      bloques.push({ id, texto: p.texto });
+      if (k === 0) { diapositivas.push({ bloque: id, tipo: 'imagen', imagen: laminas[i] }); primerBloque[dosDigitos(i + 1)] = id; }
+    });
+  });
+  const agenda = (Array.isArray(r.agenda) ? r.agenda : []).map(a => ({ ...a, desde: primerBloque[dosDigitos(parseInt(a && a.desde, 10) || 0)] }));
+  const clase = normalizar({ tema: r.tema, agenda, pronunciacion: r.pronunciacion, bloques, diapositivas }, { ...ficha, tema: ficha.tema || r.tema }, base);
+  if (modo !== 'manual') sinDeletreos(clase);
+  return { clase, uso: r.uso, aviso: '' };
+}
+
 // ---------------------------------------------------------------- modo manual (sin IA)
 export function guionManual(textoGuion) {
   const parrafos = String(textoGuion || '').replace(/\r/g, '').split(/\n\s*\n/).map(x => x.replace(/\s+/g, ' ').trim()).filter(Boolean);
@@ -446,7 +578,7 @@ export function normalizar(datos, ficha, base = {}) {
   const bloquesIn = (Array.isArray(datos.bloques) ? datos.bloques : []).filter(x => x && String(x.texto || '').trim());
   if (!bloquesIn.length) throw new Error('La IA no devolvió bloques de guion.');
   const mapa = {};
-  const bloques = bloquesIn.slice(0, 14).map((x, i) => {
+  const bloques = bloquesIn.slice(0, 40).map((x, i) => { // con laminas puede haber muchas
     const id = String(i + 1).padStart(2, '0');
     mapa[String(x.id)] = id;
     return { id, texto: String(x.texto).replace(/\s+/g, ' ').trim() };
@@ -454,11 +586,13 @@ export function normalizar(datos, ficha, base = {}) {
   const ids = bloques.map(x => x.id);
   const idOk = v => mapa[String(v)] || (ids.includes(String(v)) ? String(v) : null);
 
-  const diapositivas = (Array.isArray(datos.diapositivas) ? datos.diapositivas : []).map((d, k) => {
-    const tipo = TIPOS.includes(d && d.tipo) ? d.tipo : 'idea';
+  const diapositivas = (Array.isArray(datos.diapositivas) ? datos.diapositivas : []).filter(d => d && (d.tipo !== 'imagen' || rutaLamina(d.imagen))).map((d, k) => {
+    const tipo = TIPOS_VALIDOS.includes(d && d.tipo) ? d.tipo : 'idea';
+    const bloque = idOk(d && d.bloque) || ids[Math.min(k, ids.length - 1)];
+    if (tipo === 'imagen') return { bloque, tipo, imagen: rutaLamina(d.imagen) };
     const lado = x => ({ etiqueta: corto(x && x.etiqueta, 24), titulo: corto(x && x.titulo, 60), texto: corto(x && x.texto, 140), cuando: corto(x && x.cuando, 40) });
     return {
-      bloque: idOk(d && d.bloque) || ids[Math.min(k, ids.length - 1)],
+      bloque,
       tipo,
       kicker: corto(d.kicker, 40), titulo: corto(d.titulo, 90), sub: corto(d.sub, 180), nota: corto(d.nota, 180),
       items: items(d.items, 6, 110),
@@ -485,6 +619,7 @@ export function normalizar(datos, ficha, base = {}) {
     docente: ficha.docente || base.docente || '',
     institucion: ficha.institucion || base.institucion || 'Universidad Señor de Sipán',
     curso: ficha.curso || base.curso || '',
+    modulo: corto(ficha.modulo != null ? ficha.modulo : base.modulo, 60),
     banda: ficha.banda || ficha.curso || base.banda || '',
     tema: corto(ficha.tema || datos.tema || base.tema, 120),
     nivel: ficha.nivel || base.nivel || 'Básico',
@@ -503,7 +638,8 @@ export function segundos(d) {
 }
 
 // ---------------------------------------------------------------- entrada principal
-export async function generarClase({ ficha, modo, guion, env, base }) {
+export async function generarClase({ ficha, modo, guion, env, base, laminas, dir }) {
+  if (laminas && laminas.length) return claseDeLaminas({ ficha, modo, guion, env, laminas, dir, base });
   if (modo === 'manual') {
     const bloques = guionManual(guion);
     if (!bloques.length) throw new Error('Pega el guion: un párrafo por bloque, separados por una línea en blanco.');

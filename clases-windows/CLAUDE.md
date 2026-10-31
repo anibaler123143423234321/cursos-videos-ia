@@ -39,6 +39,9 @@ El motor ya está hecho (`motor/`). Tú solo escribes el contenido de cada clase
    ```
    Tarda unos minutos (Mac M4 o PC). Deja que termine sin interrumpirlo.
 6. Reporta la duración real, la voz usada y la ruta del MP4 (`salidas/<nombre-corto>.mp4`).
+   El motor también deja la clase en un solo HTML (`salidas/<nombre-corto>.html`, con la voz incluida).
+   Si Google Drive está conectado, sube solo el video, el HTML y el código de la clase a la carpeta
+   compartida (`<carpeta> / Videos de clases IA / AAAA-MM / Curso / Módulo / clase`): reporta esa ruta.
    Recuerda que `salidas/` y `clases/*/salida/` no se suben a GitHub.
 
 Otros comandos útiles:
@@ -83,6 +86,7 @@ Otros comandos útiles:
   "docente": "",
   "institucion": "Universidad Señor de Sipán",
   "curso": "Diseño Web",
+  "modulo": "Módulo 1 · HTML",
   "banda": "Diseño Web",
   "tema": "Introducción a la estructura semántica en HTML",
   "nivel": "Básico",
@@ -103,6 +107,7 @@ Otros comandos útiles:
 - `pausa` (opcional) son los segundos de silencio después del bloque. Por defecto es 0,45.
 - `agenda` lleva de 3 a 6 puntos con títulos cortos (máx. ~24 caracteres). `desde` es el bloque donde empieza cada punto.
 - `banda` es el texto blanco de la franja verde (curso o escuela). `docente`, si existe, aparece abajo como revisor.
+- `modulo` es la carpeta de la clase en Google Drive (dentro del curso). Cópialo de la ficha.
 
 ## Formato de `clases/<nombre-corto>/diapositivas.js`
 
@@ -175,11 +180,22 @@ Tipos de diapositiva y sus campos:
 - `tarjetas`: `tarjetas: [{titulo, texto, cuando}]`.
 - `dato`: `dato`, `titulo` y `sub`.
 - `cierre`: `items` y `despedida`.
+- `imagen`: `imagen` con la ruta de una lámina del docente (`"laminas/01.png"`). Se ve entera, con un zoom lento.
 
 Todos aceptan `kicker`, `titulo` (la palabra clave va entre `*asteriscos*`), `sub` y `nota`. Para el
 campo `cuando`, usa una palabra que aparezca tal cual en el texto de ese bloque. Si la clase tiene
 `"diapositivas"`, el motor ignora `diapositivas.js`. Usa `diapositivas.js` (código) solo si necesitas
 algo que las plantillas no ofrecen (maquetas o diagramas especiales).
+
+## Láminas propias del docente (imágenes)
+
+Si la ficha dice `LAMINAS PROPIAS: si`, el docente ya hizo sus diapositivas y las dejó en
+`clases/<nombre-corto>/laminas/01.png`, `02.png`… (PowerPoint: Archivo › Exportar › PNG; Canva: Descargar › PNG).
+No crees diapositivas: **mira cada lámina** y escribe un bloque por lámina, en el mismo orden, explicando
+su contenido con tus palabras (20–60 palabras; sin leerla literal ni describir su diseño). En `clase.json` pon
+`"diapositivas": [{ "bloque": "01", "tipo": "imagen", "imagen": "laminas/01.png" }, …]`, una por lámina.
+La primera lámina lleva el saludo y la última el reto y la despedida. Si una lámina necesita más de 60
+palabras, usa dos bloques: el segundo no lleva diapositiva (la lámina sigue en pantalla).
 
 ## Avatar
 
@@ -205,7 +221,14 @@ El orden de prioridad es (modo `auto`):
    de la grabación completa (sirven para corregir un bloque).
 4. **ElevenLabs**, si `.env` tiene `ELEVENLABS_API_KEY` y `ELEVENLABS_VOICE_ID`. Los audios se guardan en
    caché y solo se regenera el bloque cuyo texto cambió, así no se gastan créditos de más.
-5. **Voz del sistema** (macOS `say` / Windows SAPI). Es el último recurso y suena sintética.
+5. **Azure**, si `.env` tiene `AZURE_SPEECH_KEY` y `AZURE_SPEECH_REGION` (voces de Perú: `es-PE-CamilaNeural`).
+   También con caché.
+6. **Voz local gratis**: Piper (instalada con `INSTALAR-VOZ-LOCAL`, en `voces/`) o un servidor como Kokoro
+   en Docker (`VOZ_LOCAL_URL`). Sin internet ni límite.
+7. **Voz del sistema** (macOS `say` / Windows SAPI). Es el último recurso y suena sintética.
+
+Con `--voz=local`, `--voz=azure`, `--voz=elevenlabs` o `--voz=sistema` se fuerza una. Si la elegida falla,
+el motor usa la siguiente para TODA la clase (nunca mezcla voces).
 
 Si el docente graba su voz y el motor avisa que «las pausas no son muy claras» o que un bloque
 «dura raro», revisa con `--capturas` que cada diapositiva cambie a tiempo.
@@ -215,6 +238,6 @@ Las carpetas `voz/`, `camara.*` y `avatar.*` tienen la voz y la cara del docente
 ## Prohibido
 
 - Modificar `motor/` para una clase concreta (si encuentras un error del motor, explícalo y propón el cambio).
-- Leer, mostrar o copiar el contenido de `.env` (contiene claves privadas).
+- Leer, mostrar o copiar el contenido de `.env` (contiene claves privadas), `google-drive-cliente.json` o `drive-token.json`.
 - Subir a GitHub `.env`, `node_modules/`, `salidas/` o `clases/*/salida/`.
 - Inventar datos, citas o estadísticas.

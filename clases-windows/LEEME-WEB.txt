@@ -16,7 +16,12 @@ PARA ENCENDERLA (en la PC del estudio)
 
 QUE PUEDE HACER TU EQUIPO EN LA WEB
 - Clases: ver todas las clases, abrirlas y descargar el MP4.
-- Nueva clase: llenar la ficha y elegir quien escribe el guion:
+- Nueva clase: primero, ¿como son tus laminas?
+    * Opcion 1 "Mis laminas (imagenes)": subes un PDF o imagenes PNG/JPG (PowerPoint, Canva...).
+      Cada lamina es un bloque del video. La voz la escribes tu (un parrafo por lamina), la IA gratis
+      (mira cada lamina y escribe la voz) o Claude.
+    * Opcion 2 "Laminas HTML animadas": la IA crea las diapositivas a partir del tema (como antes).
+  Despues eliges quien escribe el guion:
     * "Pego mi guion" (gratis): el docente pega su texto, un parrafo por bloque.
     * "IA gratis": un modelo abierto (Groq u Ollama) escribe guion y diapositivas.
       Con IA basta con escribir el TEMA: objetivo, puntos, ejemplo y reto son opcionales.
@@ -26,11 +31,13 @@ QUE PUEDE HACER TU EQUIPO EN LA WEB
 - Editor de la clase:
     * Guion y diapositivas: corregir el texto de cada bloque y elegir la diapositiva
       (portada, idea, lista, pasos, codigo, comparacion, tarjetas, dato, cierre).
-    * Voz y avatar: elegir la voz (ElevenLabs, voz del sistema o grabacion propia), subir la grabacion
+    * Voz y avatar: elegir la voz (voz local gratis, Azure, ElevenLabs, voz del sistema o grabacion propia), subir la grabacion
       del docente, su video de camara o un avatar de HeyGen/Hedra.
-    * Botones: Vista previa (con sonido), Revisar diapositivas (capturas), Borrador rapido y Video final.
+    * Botones: Vista previa (con sonido), Revisar diapositivas (capturas), Borrador rapido, Subir a Google Drive
+      y Video final (si Drive esta conectado, el video final se sube solo a la carpeta compartida).
   Los videos se crean de uno en uno en la PC del estudio (5 a 8 minutos cada uno). La web muestra el avance.
-- Ajustes: claves de ElevenLabs, Claude y la IA gratis (se guardan solo en la PC del estudio).
+- Ajustes: voces (local, Azure, ElevenLabs), IA gratis, IA que lee laminas, Claude y Google Drive
+  (todo se guarda solo en la PC del estudio).
 
 CONFIGURAR LA IA (en la web: Ajustes)
 - Claude (de pago por uso): crea una API key en https://platform.claude.com (API Keys) y recarga saldo.
@@ -42,6 +49,28 @@ CONFIGURAR LA IA (en la web: Ajustes)
 - IA gratis sin internet con Ollama (https://ollama.com) instalado en la PC del estudio:
     Direccion: http://localhost:11434/v1          Modelo: qwen2.5:7b (o el que descargues)
   Funciona sin cuenta, pero en una PC sin tarjeta grafica es lento y escribe peor que Claude.
+
+IA QUE LEE LAMINAS (Ajustes > IA que lee laminas)
+- Vacio = la misma IA gratis. En Groq el modelo que lee imagenes es qwen/qwen3.8-27b (gratis).
+- Gemini (gratis): crea una API key en https://aistudio.google.com y pega:
+    Direccion: https://generativelanguage.googleapis.com/v1beta/openai    Modelo: gemini-3.8-flash
+  En la capa gratis, Google usa esos datos para mejorar sus productos: no subas laminas con datos privados.
+- Ollama sin internet: Direccion http://localhost:11434/v1  Modelo qwen2.5vl:7b (lento sin tarjeta grafica).
+- Grok (xAI, de pago): Direccion https://api.x.ai/v1 y un modelo grok con vision.
+- La IA gratis lee una lamina a la vez: con 15 laminas puede tardar unos 5 a 10 minutos.
+
+VOZ LOCAL GRATIS Y AZURE (Ajustes)
+- Voz local (Piper): doble clic en INSTALAR-VOZ-LOCAL.bat en la PC del estudio. Sin internet ni limite.
+- Azure: recurso "Speech" plan F0 en portal.azure.com (0,5 millones de caracteres gratis al mes, unas
+  240 clases). Pega la clave y la region. Voces de Peru: es-PE-CamilaNeural y es-PE-AlexNeural.
+
+GOOGLE DRIVE (Ajustes > Google Drive)
+- Los videos, la clase en HTML (un solo archivo que se abre en el navegador) y su codigo quedan en:
+  <carpeta compartida> / Videos de clases IA / Mes / Curso / Modulo / Clase.
+  Todos los que tienen acceso a la carpeta compartida los ven.
+- Pasos: 1) pega el cliente OAuth (JSON de Google Cloud, tipo "App de escritorio");
+  2) "Conectar Google Drive" desde la PC del estudio (o CONECTAR-DRIVE); 3) pega el enlace de la carpeta.
+  Sin Google Cloud: Google Drive para escritorio y la ruta de la carpeta en "Plan B". Detalle en el LEEME del kit (PASO 8).
 
 SEGURIDAD
 - Todos los del equipo usan la misma clave; cualquiera con la clave puede cambiar los Ajustes.

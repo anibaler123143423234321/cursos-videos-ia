@@ -26,13 +26,20 @@ La primera prueba es gratis: la clase de ejemplo `html-semantico-w3c` se renderi
 ## Cómo funciona
 
 ```
-FICHA-CLASE.txt ──► Claude Code (lee CLAUDE.md = prompt maestro)
-                        │  escribe clases/<nombre>/clase.json + diapositivas.js
+FICHA o web ──► láminas: opción 1 = las del docente (PDF / imágenes; la IA las lee)
+                         opción 2 = HTML animadas (las crea la IA)
+            ──► guion: el docente, IA gratis (Groq / Gemini / Ollama) o Claude
+                        │  clases/<nombre>/clase.json (+ laminas/ o diapositivas.js)
                         ▼
-motor/crear-video.mjs ──► voz (grabación propia / ElevenLabs / sistema)
+motor/crear-video.mjs ──► voz (grabación propia / ElevenLabs / Azure / Piper local gratis / sistema)
                         ──► tiempos de cada bloque + movimiento de la boca
                         ──► cuadros 1920x1080 con Playwright (HTML + GSAP)
                         ──► ffmpeg ──► salidas/<nombre>.mp4
+                        ──► motor/drive.mjs ──► Google Drive (carpeta compartida):
+                                                Videos de clases IA / AAAA-MM / Curso / Módulo / clase
 ```
+
+La propuesta de costos está en `propuesta/` (fuente editable en `propuesta/fuente/`; se regenera con
+`node propuesta/fuente/generar-pdf.mjs`).
 
 `motor/` es idéntico en las dos carpetas; si lo cambias, cópialo a la otra.

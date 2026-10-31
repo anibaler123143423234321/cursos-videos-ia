@@ -284,6 +284,17 @@ dialog.galeria-modal { width: min(1200px, calc(100vw - 32px)); max-height: calc(
 .nueva fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .nueva-lado { position: sticky; top: 24px; }
 .modos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.modos.dos { grid-template-columns: repeat(2, 1fr); }
+/* laminas subidas por el docente (imagenes o PDF) */
+.laminas-cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0 8px; min-height: 30px; }
+.laminas-rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.laminas-rejilla figure { margin: 0; border: 1px solid var(--linea); border-radius: 10px; overflow: hidden; background: var(--panel-2); }
+.laminas-rejilla img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #fff; }
+.laminas-rejilla figcaption { display: flex; gap: 6px; padding: 6px 8px; font-size: 11.5px; color: var(--gris); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.laminas-rejilla figcaption b { color: var(--tinta); font-family: var(--mono); }
+.md-imagen .md-area { padding: 0; background: #f3f3f6; }
+.md-imagen img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.soltar.chico { padding: 10px 12px; }
 .modo { position: relative; display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 16px; border-radius: var(--r); border: 1.5px solid var(--linea);
   background: var(--panel); cursor: pointer; transition: border-color .15s, box-shadow .15s, background .15s; }
 .modo:hover { border-color: var(--linea-2); }
@@ -555,7 +566,7 @@ video.reproductor { width: 100%; display: block; border-radius: 10px; background
   .cifra b { font-size: 19px; }
   .ed-cabecera { position: static; }
   .ed-lado { order: 0; }
-  .modos, .opciones, .campos2, .campos3, .pasos-voz { grid-template-columns: 1fr; }
+  .modos, .modos.dos, .opciones, .campos2, .campos3, .pasos-voz { grid-template-columns: 1fr; }
   .buscar, .buscar input { width: 100%; }
   .cabecera .acciones { width: 100%; }
   .cabecera .acciones .boton { flex: 1; }

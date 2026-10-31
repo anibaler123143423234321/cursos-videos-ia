@@ -15,7 +15,12 @@
 //   2. clases/<clase>/voz/completa.m4a  una sola grabacion con pausas de 2 s entre bloques (se corta sola)
 //   3. clases/<clase>/voz/01.m4a ...    grabaciones por bloque (reemplazan al bloque de la grabacion completa)
 //   4. ElevenLabs (voz clonada) si .env tiene ELEVENLABS_API_KEY y ELEVENLABS_VOICE_ID
-//   5. voz del sistema (macOS / Windows)
+//   5. Azure (voces neurales, p. ej. de Peru) si .env tiene AZURE_SPEECH_KEY y AZURE_SPEECH_REGION
+//   6. voz local gratis: Piper (instalada con INSTALAR-VOZ-LOCAL) o un servidor como Kokoro (VOZ_LOCAL_URL)
+//   7. voz del sistema (macOS / Windows)
+//   Opcional: --voz=azure | --voz=local
+//
+// Despues del video final, si Google Drive esta conectado (CONECTAR-DRIVE), se sube solo: motor/drive.mjs
 //
 // NO editar para una clase concreta: cada clase vive en clases/<nombre-corto>/.
 
@@ -29,6 +34,7 @@ import { fileURLToPath } from 'node:url';
 
 const MOTOR = path.dirname(fileURLToPath(import.meta.url));
 const RAIZ = path.resolve(MOTOR, '..');
+const DIR_VOCES = path.join(RAIZ, 'voces'); // voz local gratis (Piper), la instala INSTALAR-VOZ-LOCAL
 const ANCHO = 1920;
 const ALTO = 1080;
 const INICIO = 0.8;   // silencio antes de la primera frase
@@ -157,6 +163,24 @@ async function principal() {
     await renderizar(pagina, tiempos.total, fps, salidaMp4, avatar, camara, capa);
     if (erroresPagina.length) console.log('[!] Avisos de la pagina:\n    ' + [...new Set(erroresPagina)].slice(0, 5).join('\n    '));
     console.log(`\n==================================================\n  LISTO: salidas/${path.basename(salidaMp4)}\n==================================================`);
+    if (!RAPIDO) {
+      // la misma clase en un solo archivo HTML (se abre en cualquier navegador)
+      try {
+        (await import('./exportar-html.mjs')).exportarHtml(slug);
+      } catch (e) {
+        console.log(`[!] No pude crear la version HTML de la clase: ${texto(e)}`);
+      }
+    }
+    if (!RAPIDO && !flags.has('--sin-drive')) {
+      const drive = await import('./drive.mjs');
+      if (drive.conectado()) {
+        try {
+          await drive.subirClase(slug);
+        } catch (e) {
+          console.log(`[!] El video esta listo, pero no se pudo subir a Google Drive: ${texto(e)}\n    Reintenta con: node motor/drive.mjs subir ${slug}`);
+        }
+      }
+    }
   } finally {
     await navegador.close().catch(() => {});
     srv.close();
@@ -178,19 +202,27 @@ function validar(clase) {
 async function prepararVoz(clase) {
   const dirVoz = path.join(SAL, 'voz');
   fs.mkdirSync(dirVoz, { recursive: true });
-  // limpia lo temporal de corridas anteriores (se conserva la cache de ElevenLabs)
+  // limpia lo temporal de corridas anteriores (se conserva la cache de las voces sinteticas)
   for (const f of fs.readdirSync(dirVoz)) {
-    if (!/\.elevenlabs\.mp3$|^firmas-elevenlabs\.json$/.test(f)) fs.rmSync(path.join(dirVoz, f), { force: true });
+    if (!/\.(elevenlabs|azure|local)\.(mp3|wav)$|^firmas-(elevenlabs|azure|local)\.json$/.test(f)) fs.rmSync(path.join(dirVoz, f), { force: true });
   }
   // la voz se puede elegir por clase (desde la web): clase.voz = { proveedor, elevenlabs_voz }
   const vozClase = clase.voz || {};
   if (vozClase.elevenlabs_voz) process.env.ELEVENLABS_VOICE_ID = vozClase.elevenlabs_voz;
   const pref = (opcion('voz') || vozClase.proveedor || process.env.VOZ || 'auto').toLowerCase();
   const usarGrabaciones = pref === 'auto' || pref === 'grabacion';
-  const hayEleven = !!(process.env.ELEVENLABS_API_KEY && process.env.ELEVENLABS_VOICE_ID);
-  if (pref === 'elevenlabs' && !hayEleven) {
-    console.log('[!] Pediste ElevenLabs pero falta ELEVENLABS_API_KEY o ELEVENLABS_VOICE_ID en .env');
-  }
+  // voces sinteticas configuradas, de mejor a peor (en auto se usa la primera que funcione)
+  const sinteticas = [
+    { id: 'elevenlabs', hay: !!(process.env.ELEVENLABS_API_KEY && process.env.ELEVENLABS_VOICE_ID), crear: vozElevenLabs,
+      nombre: () => 'ElevenLabs (' + (process.env.ELEVENLABS_MODELO || 'eleven_multilingual_v2') + ')', falta: 'ELEVENLABS_API_KEY o ELEVENLABS_VOICE_ID' },
+    { id: 'azure', hay: !!(process.env.AZURE_SPEECH_KEY && process.env.AZURE_SPEECH_REGION), crear: vozAzure,
+      nombre: () => `Azure (${process.env.AZURE_VOZ || 'es-PE-CamilaNeural'})`, falta: 'AZURE_SPEECH_KEY o AZURE_SPEECH_REGION' },
+    { id: 'local', hay: hayVozLocal(), crear: vozLocal,
+      nombre: () => (process.env.VOZ_LOCAL_URL ? `voz local (${process.env.VOZ_LOCAL_VOZ || 'ef_dora'})` : `Piper (${vozPiper()})`),
+      falta: `la voz local: instala Piper con INSTALAR-VOZ-LOCAL (voz ${vozPiper()}) o pon VOZ_LOCAL_URL` },
+  ];
+  const elegida = sinteticas.find(s => s.id === pref);
+  if (elegida && !elegida.hay) console.log(`[!] Pediste la voz "${pref}" pero falta ${elegida.falta} en .env`);
 
   // 1) tu video de camara: se respeta su linea de tiempo (imagen y voz quedan sincronizadas)
   const camara = ['camara.mp4', 'camara.mov', 'camara.m4v', 'camara.webm'].map(n => path.join(DIR, n)).find(f => fs.existsSync(f));
@@ -220,12 +252,15 @@ async function prepararVoz(clase) {
   let fuentes = { ...propias };
   if (faltan.length) {
     let usado = null;
-    if ((pref === 'auto' || pref === 'elevenlabs') && hayEleven) {
+    const candidatas = sinteticas.filter(s => s.hay && (pref === 'auto' || pref === s.id));
+    for (const s of candidatas) {
       try {
-        Object.assign(fuentes, await vozElevenLabs(clase, faltan, dirVoz));
-        usado = 'ElevenLabs (' + (process.env.ELEVENLABS_MODELO || 'eleven_multilingual_v2') + ')';
+        Object.assign(fuentes, await s.crear(clase, faltan, dirVoz));
+        usado = s.nombre();
+        break;
       } catch (e) {
-        console.log(`[!] ElevenLabs fallo: ${texto(e)}\n    Uso la voz del sistema para TODA la clase (para que no se mezclen voces).`);
+        const otra = candidatas[candidatas.indexOf(s) + 1];
+        console.log(`[!] ${s.nombre()} fallo: ${texto(e)}\n    Uso ${otra ? otra.nombre() : 'la voz del sistema'} para TODA la clase (para que no se mezclen voces).`);
       }
     }
     if (!usado) {
@@ -471,51 +506,157 @@ async function vozElevenLabs(clase, bloques, dirVoz) {
     style: num(process.env.ELEVENLABS_ESTILO, 0),
     use_speaker_boost: true,
   };
-  const firmasF = path.join(dirVoz, 'firmas-elevenlabs.json');
-  const firmas = fs.existsSync(firmasF) ? JSON.parse(fs.readFileSync(firmasF, 'utf8')) : {};
   const todos = clase.bloques;
+  return conCache(clase, bloques, dirVoz, {
+    nombre: 'elevenlabs', ext: 'mp3', etiqueta: 'ElevenLabs', pago: true, firma: { vozId, modelo, ajustes },
+    generar: async (b, t) => {
+      const i = todos.indexOf(b);
+      const cuerpo = { text: t, model_id: modelo, voice_settings: ajustes };
+      if (i > 0) cuerpo.previous_text = textoVoz(clase, todos[i - 1].texto);
+      if (i < todos.length - 1) cuerpo.next_text = textoVoz(clase, todos[i + 1].texto);
+      let r;
+      try {
+        r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(vozId)}?output_format=mp3_44100_128`, {
+          method: 'POST',
+          headers: { 'xi-api-key': clave, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
+          body: JSON.stringify(cuerpo),
+        });
+      } catch (e) {
+        throw new Error(`no hay conexion con api.elevenlabs.io (${texto(e.cause || e)}). Revisa tu internet.`);
+      }
+      if (!r.ok) {
+        const detalle = (await r.text().catch(() => '')).slice(0, 300);
+        const pista = /library|free.?users?/i.test(detalle) ? ' (en el plan Free solo funcionan las voces "Default" de ElevenLabs, no las de la biblioteca: elige otra voz o pasa a Starter)'
+          : r.status === 401 ? ' (API key invalida o sin permiso de Text to Speech)'
+          : r.status === 404 ? ' (ELEVENLABS_VOICE_ID no existe en tu cuenta)'
+          : r.status === 402 || /quota/i.test(detalle) ? ' (sin creditos en tu plan)' : '';
+        throw new Error(`HTTP ${r.status}${pista}: ${detalle}`);
+      }
+      return Buffer.from(await r.arrayBuffer());
+    },
+  });
+}
+
+// Voz sintetica con cache: solo se vuelve a generar el bloque cuyo texto (o voz) cambio.
+async function conCache(clase, bloques, dirVoz, { nombre, ext, etiqueta, pago = false, firma, generar }) {
+  const firmasF = path.join(dirVoz, `firmas-${nombre}.json`);
+  const firmas = fs.existsSync(firmasF) ? JSON.parse(fs.readFileSync(firmasF, 'utf8')) : {};
   const salida = {};
   for (const b of bloques) {
-    const i = todos.indexOf(b);
     const t = textoVoz(clase, b.texto);
-    const destino = path.join(dirVoz, `${b.id}.elevenlabs.mp3`);
-    const firma = crypto.createHash('sha1').update(JSON.stringify({ vozId, modelo, ajustes, t })).digest('hex');
-    if (firmas[b.id] === firma && fs.existsSync(destino)) {
-      console.log(`   voz ${b.id}: reutilizada (sin gastar creditos)`);
+    const destino = path.join(dirVoz, `${b.id}.${nombre}.${ext}`);
+    const huella = crypto.createHash('sha1').update(JSON.stringify({ ...firma, t })).digest('hex');
+    if (firmas[b.id] === huella && fs.existsSync(destino)) {
+      console.log(`   voz ${b.id}: reutilizada${pago ? ' (sin gastar creditos)' : ''}`);
       salida[b.id] = destino;
       continue;
     }
-    process.stdout.write(`   voz ${b.id}: generando con ElevenLabs... `);
-    const cuerpo = { text: t, model_id: modelo, voice_settings: ajustes };
-    if (i > 0) cuerpo.previous_text = textoVoz(clase, todos[i - 1].texto);
-    if (i < todos.length - 1) cuerpo.next_text = textoVoz(clase, todos[i + 1].texto);
-    let r;
+    process.stdout.write(`   voz ${b.id}: generando con ${etiqueta}... `);
     try {
-      r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(vozId)}?output_format=mp3_44100_128`, {
-        method: 'POST',
-        headers: { 'xi-api-key': clave, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
-        body: JSON.stringify(cuerpo),
-      });
+      fs.writeFileSync(destino, await generar(b, t));
     } catch (e) {
       console.log('');
-      throw new Error(`no hay conexion con api.elevenlabs.io (${texto(e.cause || e)}). Revisa tu internet.`);
+      throw e;
     }
-    if (!r.ok) {
-      console.log('');
-      const detalle = (await r.text().catch(() => '')).slice(0, 300);
-      const pista = /library|free.?users?/i.test(detalle) ? ' (en el plan Free solo funcionan las voces "Default" de ElevenLabs, no las de la biblioteca: elige otra voz o pasa a Starter)'
-        : r.status === 401 ? ' (API key invalida o sin permiso de Text to Speech)'
-        : r.status === 404 ? ' (ELEVENLABS_VOICE_ID no existe en tu cuenta)'
-        : r.status === 402 || /quota/i.test(detalle) ? ' (sin creditos en tu plan)' : '';
-      throw new Error(`HTTP ${r.status}${pista}: ${detalle}`);
-    }
-    fs.writeFileSync(destino, Buffer.from(await r.arrayBuffer()));
-    firmas[b.id] = firma;
+    firmas[b.id] = huella;
     fs.writeFileSync(firmasF, JSON.stringify(firmas, null, 2));
     console.log('ok');
     salida[b.id] = destino;
   }
   return salida;
+}
+
+// Azure AI Speech: voces neurales (es-PE-CamilaNeural, es-PE-AlexNeural, es-MX-DaliaNeural...).
+// Plan gratis F0: 0,5 millones de caracteres al mes (una clase usa unos 2 000).
+async function vozAzure(clase, bloques, dirVoz) {
+  const clave = process.env.AZURE_SPEECH_KEY;
+  const region = String(process.env.AZURE_SPEECH_REGION || '').trim().toLowerCase();
+  const voz = process.env.AZURE_VOZ || 'es-PE-CamilaNeural';
+  const velocidad = process.env.AZURE_VOZ_VELOCIDAD || '0%';
+  if (!/^[a-z0-9]+$/.test(region)) throw new Error(`AZURE_SPEECH_REGION "${region}" no es valida (ej.: eastus, brazilsouth)`);
+  const idioma = (/^[a-z]{2}-[A-Z]{2}/.exec(voz) || ['es-PE'])[0];
+  const xml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return conCache(clase, bloques, dirVoz, {
+    nombre: 'azure', ext: 'mp3', etiqueta: `Azure (${voz})`, pago: true, firma: { voz, velocidad },
+    generar: async (b, t) => {
+      const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${idioma}"><voice name="${xml(voz)}">` +
+        `<prosody rate="${xml(velocidad)}">${xml(t)}</prosody></voice></speak>`;
+      let r;
+      try {
+        r = await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`, {
+          method: 'POST',
+          headers: { 'Ocp-Apim-Subscription-Key': clave, 'Content-Type': 'application/ssml+xml', 'X-Microsoft-OutputFormat': 'audio-48khz-192kbitrate-mono-mp3', 'User-Agent': 'clases-video-uss' },
+          body: ssml,
+        });
+      } catch (e) {
+        throw new Error(`no hay conexion con Azure (${region}.tts.speech.microsoft.com): ${texto(e.cause || e)}. Revisa tu internet y la region.`);
+      }
+      if (!r.ok) {
+        const detalle = (await r.text().catch(() => '')).slice(0, 300);
+        const pista = r.status === 401 ? ' (clave invalida o la region no es la de tu recurso de Speech)'
+          : r.status === 400 ? ` (revisa el nombre de la voz: ${voz})`
+          : r.status === 429 ? ' (limite del plan: espera un minuto; el plan gratis F0 tambien tiene tope mensual)' : '';
+        throw new Error(`HTTP ${r.status}${pista}${detalle ? `: ${detalle}` : ''}`);
+      }
+      return Buffer.from(await r.arrayBuffer());
+    },
+  });
+}
+
+// Voz local gratis, sin cuenta: Piper (python -m piper, instalada por INSTALAR-VOZ-LOCAL en voces/) o un
+// servidor compatible con OpenAI en esta PC, como Kokoro-FastAPI en Docker (VOZ_LOCAL_URL=http://localhost:8880/v1).
+function vozPiper() { return process.env.PIPER_VOZ || 'es_MX-claude-high'; }
+function pythonPiper() {
+  if (process.env.PIPER_PYTHON) return process.env.PIPER_PYTHON;
+  const venv = process.platform === 'win32' ? path.join(DIR_VOCES, 'venv', 'Scripts', 'python.exe') : path.join(DIR_VOCES, 'venv', 'bin', 'python');
+  return fs.existsSync(venv) ? venv : process.platform === 'win32' ? 'python' : 'python3';
+}
+function hayVozLocal() {
+  return !!process.env.VOZ_LOCAL_URL || fs.existsSync(path.join(DIR_VOCES, `${vozPiper()}.onnx`));
+}
+
+async function vozLocal(clase, bloques, dirVoz) {
+  const url = String(process.env.VOZ_LOCAL_URL || '').replace(/\/+$/, '');
+  if (url) {
+    const voz = process.env.VOZ_LOCAL_VOZ || 'ef_dora';
+    const modelo = process.env.VOZ_LOCAL_MODELO || 'kokoro';
+    return conCache(clase, bloques, dirVoz, {
+      nombre: 'local', ext: 'wav', etiqueta: `voz local (${voz})`, firma: { url, voz, modelo },
+      generar: async (b, t) => {
+        let r;
+        try {
+          r = await fetch(`${url}/audio/speech`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: modelo, input: t, voice: voz, response_format: 'wav' }),
+          });
+        } catch (e) {
+          throw new Error(`no responde la voz local en ${url} (${texto(e.cause || e)}). ¿Esta encendido el contenedor de Docker?`);
+        }
+        if (!r.ok) throw new Error(`la voz local respondio ${r.status}: ${(await r.text().catch(() => '')).slice(0, 200)}`);
+        return Buffer.from(await r.arrayBuffer());
+      },
+    });
+  }
+  const voz = vozPiper();
+  const modelo = path.join(DIR_VOCES, `${voz}.onnx`);
+  if (!fs.existsSync(modelo)) throw new Error(`falta la voz ${voz} en la carpeta voces. Instalala con INSTALAR-VOZ-LOCAL (ver LEEME).`);
+  const python = pythonPiper();
+  return conCache(clase, bloques, dirVoz, {
+    nombre: 'local', ext: 'wav', etiqueta: `Piper (${voz})`, firma: { motor: 'piper', voz },
+    generar: async b => {
+      const txt = path.join(dirVoz, `${b.id}.piper.txt`);
+      const wav = path.join(dirVoz, `${b.id}.piper.wav`);
+      fs.writeFileSync(txt, textoVoz(clase, b.texto), 'utf8');
+      // PYTHONUTF8: en Windows Python leeria el texto como cp1252 y la voz diria mal las tildes
+      const r = spawnSync(python, ['-m', 'piper', '-m', modelo, '--data-dir', DIR_VOCES, '-f', wav, '--input-file', txt],
+        { encoding: 'utf8', windowsHide: true, env: { ...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8' } });
+      if (r.error || r.status !== 0 || !fs.existsSync(wav)) {
+        const detalle = r.error ? texto(r.error) : (r.stderr || '').trim().split('\n').slice(-3).join(' ');
+        throw new Error(`Piper no pudo hablar (${detalle}). Vuelve a correr INSTALAR-VOZ-LOCAL.`);
+      }
+      return fs.readFileSync(wav);
+    },
+  });
 }
 
 function vozSistema(clase, bloques, dirVoz) {
