@@ -5,80 +5,54 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { TIPOS as TIPOS_MOTOR, NOMBRES_ICONOS } from '../motor/diapos-auto.js';
 
-export const TIPOS = ['portada', 'idea', 'lista', 'codigo', 'comparacion', 'tarjetas', 'pasos', 'dato', 'cierre'];
-const TIPOS_VALIDOS = [...TIPOS, 'imagen']; // "imagen" = una lamina subida; la IA no la elige
+export const TIPOS = TIPOS_MOTOR.filter(t => t !== 'imagen');
+const TIPOS_VALIDOS = TIPOS_MOTOR; // "imagen" = una lamina subida; la IA no la elige
 const texto = e => String((e && e.message) || e);
 export const rutaLamina = v => (/^laminas\/\d{2}\.(jpg|png|webp)$/.test(String(v || '')) ? String(v) : '');
 
-// ---------------------------------------------------------------- prompt
-const INTRO = `Eres el productor de clases en video de 2 a 3 minutos de la Universidad Señor de Sipán (USS).
-Cada clase se ve como una clase por Zoom: una diapositiva compartida con animaciones y un avatar que habla.
-Son clases universitarias reales: el contenido debe ser correcto, claro y bien escrito.`;
+// ---------------------------------------------------------------- prompt (skills)
+// Las guias que lee la IA estan en web/skills/*.md y las mejora el equipo. Se leen en cada pedido: una mejora se usa
+// en la siguiente clase sin reiniciar la web. Las notas <!-- ... --> son para el equipo y no se envian a la IA.
+const DIR_SKILLS = path.join(path.dirname(fileURLToPath(import.meta.url)), 'skills');
+function skill(nombre, vars = {}) {
+  const t = fs.readFileSync(path.join(DIR_SKILLS, `${nombre}.md`), 'utf8');
+  const todas = { ICONOS: NOMBRES_ICONOS.join(', '), ...vars };
+  return t.replace(/<!--[\s\S]*?-->/g, '').replace(/\{\{(\w+)\}\}/g, (m, k) => (k in todas ? todas[k] : m)).trim();
+}
 
-const REGLAS_PLAN = `- "pronunciacion": siglas, URLs o palabras en inglés que una voz en español leería mal, con cómo deben sonar
-  (ej.: {"escrito": "CSS", "dice": "ce ese ese"}, {"escrito": "HTML", "dice": "hache te eme ele"}). Solo afecta a la voz.
-- "agenda": 3 a 6 puntos cortos (máx. 24 caracteres) con el bloque donde empieza cada uno ("desde").`;
+// Clases modelo ya revisadas (web/skills/ejemplos/*.json). En cada pedido se le muestra a la IA la mas parecida al
+// tema (por curso, tema y palabras clave): los modelos gratis imitan un ejemplo completo mucho mejor que una regla.
+const DIR_EJEMPLOS = path.join(DIR_SKILLS, 'ejemplos');
+export function ejemploPara(ficha) {
+  let lista = [];
+  try {
+    lista = fs.readdirSync(DIR_EJEMPLOS).filter(f => f.endsWith('.json')).sort()
+      .map(f => { try { return JSON.parse(fs.readFileSync(path.join(DIR_EJEMPLOS, f), 'utf8')); } catch { return null; } })
+      .filter(e => e && Array.isArray(e.bloques) && Array.isArray(e.diapositivas));
+  } catch { /* sin carpeta de ejemplos */ }
+  const palabras = t => new Set(planoTxt(t).match(/[a-z0-9ñ]{4,}/g) || []);
+  const buscadas = palabras([ficha.tema, ficha.curso, ficha.modulo, ficha.puntos].join(' '));
+  let mejor = lista.find(e => e.predeterminado) || lista[0] || null; // si ninguno se parece al tema
+  let puntos = 0;
+  for (const e of lista) {
+    const p = [...palabras([e.tema, e.curso, e.centro, ...(e.palabras || [])].join(' '))].filter(w => buscadas.has(w)).length;
+    if (p > puntos) { mejor = e; puntos = p; }
+  }
+  return mejor;
+}
+const guionDeEjemplo = e => (e ? `EJEMPLO DE GUION YA REVISADO (otra clase: ${e.curso} · ${e.tema}). Imita su estructura, su tono, su largo y lo concreto que es; no copies su contenido:
+${e.bloques.map(b => `${b.id} [${b.parte}] ${b.texto}`).join('\n')}` : '');
+const diapositivasDeEjemplo = e => (e ? { EJEMPLO_TEMA: `${e.curso} · ${e.tema}`, EJEMPLO: `{"diapositivas": [\n${e.diapositivas.map(d => ` ${JSON.stringify(d)}`).join(',\n')}\n]}` }
+  : { EJEMPLO_TEMA: 'sin ejemplo', EJEMPLO: '' });
+const INTRO = () => skill('rol');
+const REGLAS_PLAN = () => skill('agenda');
+const REGLAS_GUION = () => `${skill('guion')}\n${REGLAS_PLAN()}`;
+const REGLAS_DIAPOS = ficha => skill('diapositivas', diapositivasDeEjemplo(ejemploPara(ficha || {})));
+const REGLAS_LAMINAS = () => skill('laminas'); // incluye los efectos
 
-const REGLAS_GUION = `GUION: lo que dice la voz, a partir de la ficha del docente.
-Si la ficha deja campos vacíos (objetivo, puntos, ejemplo, reto), decide tú lo más útil para el tema y el nivel:
-un objetivo claro, 3 o 4 ideas clave, un ejemplo concreto (código si aplica) y un reto práctico corto.
-
-REGLAS DEL GUION
-- La voz habla unas 2,4 palabras por segundo: 2:30 = 330-360 palabras en total; 2:00 = ~270; 3:00 = ~420.
-- 8 a 10 bloques. Cada bloque: 1 a 4 oraciones, 20 a 55 palabras, una idea. Ids "01", "02", ...
-- Estructura: 1) saludo y gancho (el avatar se presenta por su nombre y dice el tema), 2) el problema o pregunta,
-  3) contexto o definición, 4-7) desarrollo con ejemplos concretos, 8) resumen o beneficios, 9) reto práctico y despedida.
-- Español latinoamericano (Perú) claro y natural, oraciones cortas, trato de "tú" (nunca "vosotros": nada de
-  "recordad" ni "mirad"), al nivel indicado. Escribe como se habla. Cuida la ortografía y la concordancia (el/la, los/las).
-- El texto de cada bloque es SOLO lo que la voz dice en voz alta: sin comillas, sin código y sin símbolos sueltos.
-  Los símbolos se dicen con palabras: "un punto", "el numeral", "dos puntos", "las llaves". El código va en las diapositivas.
-- Las siglas se escriben normal en el texto (CSS, HTML, ID). Cómo suenan va SOLO en "pronunciacion", nunca en el texto.
-- Exactitud: solo datos verificables. No inventes cifras, fechas, citas ni funciones.
-${REGLAS_PLAN}`;
-
-const REGLAS_DIAPOS = `DIAPOSITIVAS: una por bloque, en el mismo orden ("bloque" = id del bloque al que acompaña).
-Haz EXACTAMENTE una por cada bloque que se te pida. La del bloque 01 es portada y la del último bloque es cierre.
-Tipos disponibles:
-- portada: kicker, titulo, sub, items (2-5 chips cortos, p. ej. etiquetas o conceptos). Úsala solo en el bloque 01.
-- idea: kicker, titulo, sub. Para una idea o pregunta clave.
-- lista: kicker, titulo, items (2-5 viñetas de máx. 10 palabras).
-- pasos: kicker, titulo, items (2-5 pasos numerados).
-- codigo: kicker, titulo, sub, codigo (máx. 14 líneas y 50 caracteres por línea; HTML, CSS o JS real, correcto y en inglés,
-  que funcione tal cual: "color: blue;", nunca "color: azul;").
-- comparacion: kicker, titulo, izq y der, los DOS llenos (etiqueta corta en mayúsculas, titulo, texto de máx. 15 palabras).
-- tarjetas: kicker, titulo, tarjetas (2-4 con titulo y texto de máx. 12 palabras).
-- dato: kicker, dato (número o palabra corta, p. ej. "404" o "1994"), titulo, sub.
-- cierre: kicker, titulo, items (resumen y reto), despedida (ej.: "¡Nos vemos en la próxima clase! · NOMBRE DEL AVATAR").
-Reglas de diapositivas:
-- titulo de máx. 7 palabras; marca la palabra clave entre asteriscos: "Semántica = *significado*".
-- kicker: 1 a 4 palabras en español, en mayúsculas o tipo etiqueta ("El problema", "Paso 2 · La petición").
-- En pantalla van las ideas clave, no el texto de la voz. Todo lo que se ve debe ser correcto.
-- "cuando": una palabra o frase corta copiada TAL CUAL (con tildes) del texto de ESE bloque; el elemento aparece cuando la voz la dice.
-- Usa variedad de tipos: al menos 1 codigo o comparacion o tarjetas cuando el tema lo permita.`;
-
-const REGLAS_LAMINAS = `GUION A PARTIR DE LÁMINAS: el docente ya hizo sus láminas (imágenes de sus diapositivas).
-Mira cada lámina y escribe lo que dice la voz mientras esa lámina está en pantalla.
-- Explica el contenido de la lámina con tus palabras, como un buen docente: no la leas palabra por palabra
-  ni describas su diseño (nada de "en esta lámina vemos" o "la imagen muestra").
-- 20 a 60 palabras por lámina (10 a 25 segundos). Una lámina de título o de sección: 15 a 30 palabras.
-- Primera lámina: el avatar saluda, se presenta por su nombre y dice el tema. Última lámina: resumen o reto y despedida.
-- Si la lámina tiene código, explica qué hace; no lo dictes símbolo por símbolo.
-- Español latinoamericano (Perú) claro y natural, oraciones cortas, trato de "tú" (nunca "vosotros"). Escribe como se habla.
-- Exactitud: di solo lo que está en la lámina o es verificable. No inventes cifras, fechas ni citas.
-- El texto es SOLO lo que la voz dice en voz alta: sin comillas, sin código y sin símbolos sueltos.
-- Las siglas y direcciones se escriben normal en el texto (CSS, HTML, uss.edu.pe): no las deletrees.
-- "pronunciacion": cómo se dicen EN ESPAÑOL las siglas de esa lámina (HTML = "hache te eme ele", HTTP = "hache te te pe"),
-  nunca en inglés. Solo afecta a la voz.`;
-const REGLAS_EFECTOS = `EFECTOS (opcionales, 0 a 5 por lámina): señalan en la lámina lo que la voz va nombrando.
-- "numero": en una lista o en pasos SIN números, uno por cada punto, en el orden en que la voz los nombra.
-  Si los puntos ya tienen número o viñeta en la lámina, usa "foco" en cada punto (no "numero").
-- "foco": enmarca una parte (un recuadro, una imagen, un dato) y oscurece lo demás.
-- "resaltar": subraya como plumón una frase clave.
-- "zoom": acerca la cámara a un detalle pequeño (una captura, un menú, un código). Máximo 1 por lámina.
-- "que": el elemento que señala, con el texto que se lee en él (ej.: "fila 2: Configuración inicial y personalización").
-- "cuando": una palabra o frase corta copiada TAL CUAL de tu "texto": el efecto aparece cuando la voz la dice.
-- En la portada no uses efectos. Si la lámina no tiene una lista ni nada que señalar, deja "efectos": [].`;
 const CAJA_CLAUDE = `- "caja": [x1, y1, x2, y2] del elemento, de 0 a 1000 sobre el cuadrado blanco (0,0 = arriba a la izquierda;
   1000,1000 = abajo a la derecha). Debe encerrar el elemento completo, con poco margen.`;
 const FORMATO_LAMINA = `Responde SOLO con un objeto JSON, sin texto antes ni después:
@@ -170,10 +144,20 @@ const PRONUNCIACION_BASE = {
   DNS: 'de ene ese', IP: 'i pe', URL: 'u erre ele', API: 'a pe i', JSON: 'yeison', SQL: 'ese cu ele', PHP: 'pe hache pe',
   JavaScript: 'yavascript', JS: 'jota ese', W3C: 'doble u tres ce', USS: 'u ese ese', 'uss.edu.pe': 'u ese ese punto edu punto pe',
   F12: 'efe doce', GET: 'guet', PDF: 'pe de efe', UX: 'u equis', UI: 'u i', SEO: 'seo', WWW: 'doble u doble u doble u',
-  SIPANCITOBOT: 'sipancitobot', Gmail: 'ge meil', Google: 'gúgol', Workspace: 'uórkspeis', Drive: 'draiv', Classroom: 'clásrum',
+  SIPANCITOBOT: 'sipancitobot', Gmail: 'yi meil', Gemini: 'yéminai', Word: 'uord', Excel: 'éksel', PowerPoint: 'páuer póint',
+  Office: 'ófis', Microsoft: 'maicrosoft', Canva: 'canva', Teams: 'tims', Outlook: 'áutluk', Zoom: 'zum', ChatGPT: 'chat yi pi ti', Google: 'gúgol', Workspace: 'uórkspeis', Drive: 'draiv', Classroom: 'clásrum',
 };
-function pronunciacionBase(clase) {
+export function pronunciacionBase(clase) {
   const texto = clase.bloques.map(b => b.texto).join(' ');
+  // se quita lo que la IA propuso para palabras que la voz no dice ("AI" en una clase sin "AI") o que no cambia nada
+  for (const [escrito, dice] of Object.entries(clase.pronunciacion)) {
+    const re = new RegExp(`(?<![\\p{L}\\p{N}])${escrito.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'u');
+    if (!re.test(texto) || dice.trim().toLowerCase() === escrito.trim().toLowerCase()) delete clase.pronunciacion[escrito];
+  }
+  const base = Object.fromEntries(Object.entries(PRONUNCIACION_BASE).map(([k, v]) => [k.toLowerCase(), v]));
+  for (const url of new Set(texto.match(/\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|pe|org|net|edu|io|app|dev)\b/gi) || [])) {
+    if (!base[url.toLowerCase()]) clase.pronunciacion[url] = url.split('.').map(p => base[p.toLowerCase()] || p).join(' punto ');
+  }
   for (const [escrito, dice] of Object.entries(PRONUNCIACION_BASE)) {
     const re = new RegExp(`(?<![\\p{L}\\p{N}])${escrito.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'u');
     if (re.test(texto)) clase.pronunciacion[escrito] = dice;
@@ -181,30 +165,41 @@ function pronunciacionBase(clase) {
 }
 
 // Claude lo hace todo en una sola respuesta (salida estructurada, sin tope corto)
-const REGLAS = `${INTRO}
+const REGLAS = ficha => `${INTRO()}
 Escribe el GUION y las DIAPOSITIVAS (plantillas) de la clase.
 
-${REGLAS_GUION}
+${REGLAS_GUION()}
 
-${REGLAS_DIAPOS}`;
+${guionDeEjemplo(ejemploPara(ficha))}
+
+${REGLAS_DIAPOS(ficha)}`;
 
 // La IA gratis trabaja POR PARTES (guion, luego diapositivas) y cada diapositiva lleva solo los campos de su
 // tipo: asi cada respuesta es corta. Si aun asi se corta por el tope de tokens, se pide la parte que falta.
 const FORMATO_GUION = `Responde SOLO con un objeto JSON, sin texto antes ni después, con esta forma:
 {"tema": "...", "agenda": [{"titulo": "...", "desde": "02"}], "pronunciacion": [{"escrito": "CSS", "dice": "ce ese ese"}],
- "bloques": [{"id": "01", "texto": "..."}, {"id": "02", "texto": "..."}]}`;
-const FORMATO_SIGUE = `Responde SOLO con un objeto JSON, sin texto antes ni después: {"bloques": [{"id": "07", "texto": "..."}]}`;
+ "bloques": [{"id": "01", "parte": "portada", "texto": "..."}, {"id": "02", "parte": "logro", "texto": "..."}]}\nDentro de los textos no uses comillas dobles: si citas algo, usa «comillas latinas».`;
+const FORMATO_SIGUE = `Responde SOLO con un objeto JSON, sin texto antes ni después: {"bloques": [{"id": "07", "parte": "desarrollo", "texto": "..."}]}\nDentro de los textos no uses comillas dobles: si citas algo, usa «comillas latinas».`;
+
+// Estructura de sesion USS (web/skills/guion.md): cada bloque trae su "parte" y algunas partes tienen su diapositiva fija.
+// La del cierre (la despedida con el logo al centro) la arma el programa: no se le pide a la IA.
+export const PARTES = ['portada', 'logro', 'motivacion', 'temario', 'desarrollo', 'practica', 'conclusiones', 'cierre'];
+const TIPO_DE_PARTE = { portada: 'portada', logro: 'definicion', motivacion: 'pregunta', temario: 'temario', practica: 'tarjetas', conclusiones: 'cierre' };
+const parteDe = v => { const t = String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim(); return PARTES.includes(t) ? t : ''; };
 const FORMATO_PLAN = `Responde SOLO con un objeto JSON, sin texto antes ni después:
 {"agenda": [{"titulo": "...", "desde": "02"}], "pronunciacion": [{"escrito": "CSS", "dice": "ce ese ese"}]}`;
 const FORMATO_DIAPOS = `Responde SOLO con un objeto JSON, sin texto antes ni después, con esta forma:
 {"diapositivas": [
-  {"bloque": "01", "tipo": "portada", "kicker": "...", "titulo": "... *clave*", "sub": "...", "items": [{"texto": "...", "cuando": ""}]},
-  {"bloque": "02", "tipo": "comparacion", "kicker": "...", "titulo": "...", "izq": {"etiqueta": "...", "titulo": "...", "texto": "...", "cuando": "..."}, "der": {"etiqueta": "...", "titulo": "...", "texto": "...", "cuando": "..."}},
-  {"bloque": "03", "tipo": "codigo", "kicker": "...", "titulo": "...", "sub": "...", "codigo": "p {\n  color: blue;\n}"}]}
-En cada diapositiva escribe SOLO los campos que usa su tipo; no pongas campos vacíos.`;
+  {"bloque": "01", "tipo": "portada", "kicker": "...", "titulo": "... *clave*", "sub": "...", "icono": "...", "items": [{"texto": "...", "cuando": ""}]},
+  {"bloque": "02", "tipo": "comparacion", "kicker": "...", "titulo": "...", "izq": {"etiqueta": "...", "titulo": "...", "texto": "...", "icono": "...", "cuando": "..."}, "der": {"etiqueta": "...", "titulo": "...", "texto": "...", "icono": "...", "cuando": "..."}},
+  {"bloque": "03", "tipo": "ruta", "kicker": "...", "titulo": "...", "app": "...", "items": [{"texto": "...", "cuando": "..."}]},
+  {"bloque": "04", "tipo": "codigo", "kicker": "...", "titulo": "...", "sub": "...", "archivo": "estilos.css", "codigo": "p {\n  color: blue;\n}"}]}
+En cada diapositiva escribe SOLO los campos que usa su tipo; no pongas campos vacíos.\nDentro de los textos no uses comillas dobles: si citas algo, usa «comillas latinas».`;
 
-function fichaTexto(ficha) {
+// "extension": cuantas palabras y bloques debe tener el guion (los modelos gratis siguen mejor un numero que una regla)
+function fichaTexto(ficha, { extension = true } = {}) {
   const f = k => (ficha[k] || '').toString().trim();
+  const objetivo = palabrasObjetivo(ficha);
   return [
     'FICHA DE LA CLASE',
     `Nombre del avatar: ${f('avatar') || 'SIPANCITOBOT'}`,
@@ -220,8 +215,10 @@ function fichaTexto(ficha) {
     `Ejemplo o código a mostrar: ${f('ejemplo')}`,
     `Reto o tarea final: ${f('reto')}`,
     `Notas: ${f('notas')}`,
-  ].join('\n');
+    extension ? `Extensión del guion: unas ${objetivo} palabras en total (entre ${Math.round(objetivo * 0.95)} y ${Math.round(objetivo * 1.05)}), repartidas en las partes de la sesión.` : '',
+  ].filter(Boolean).join('\n');
 }
+const palabrasObjetivo = ficha => Math.round((segundos(ficha.duracion) || 150) * 2.3);
 
 function pedido(ficha, bloquesFijos) {
   const lineas = [fichaTexto(ficha)];
@@ -235,19 +232,20 @@ function pedido(ficha, bloquesFijos) {
 // ---------------------------------------------------------------- esquema (salida estructurada de Claude)
 const str = { type: 'string' };
 const obj = (props) => ({ type: 'object', properties: props, required: Object.keys(props), additionalProperties: false });
-const ITEM = obj({ texto: str, cuando: str });
-const LADO = obj({ etiqueta: str, titulo: str, texto: str, cuando: str });
-const TARJETA = obj({ titulo: str, texto: str, cuando: str });
+const ICONO = { type: 'string', enum: ['', ...NOMBRES_ICONOS] };
+const ITEM = obj({ texto: str, cuando: str, icono: ICONO });
+const LADO = obj({ etiqueta: str, titulo: str, texto: str, cuando: str, icono: ICONO });
+const TARJETA = obj({ titulo: str, texto: str, cuando: str, icono: ICONO });
 const DIAPO = obj({
-  bloque: str, tipo: { type: 'string', enum: TIPOS }, kicker: str, titulo: str, sub: str, nota: str,
-  items: { type: 'array', items: ITEM }, codigo: str, izq: LADO, der: LADO,
-  tarjetas: { type: 'array', items: TARJETA }, dato: str, despedida: str,
+  bloque: str, tipo: { type: 'string', enum: TIPOS }, kicker: str, titulo: str, sub: str, nota: str, icono: ICONO,
+  items: { type: 'array', items: ITEM }, codigo: str, archivo: str, app: str, izq: LADO, der: LADO,
+  tarjetas: { type: 'array', items: TARJETA }, dato: str, reto: str, despedida: str,
 });
 export const ESQUEMA_CLASE = obj({
   tema: str,
   agenda: { type: 'array', items: obj({ titulo: str, desde: str }) },
   pronunciacion: { type: 'array', items: obj({ escrito: str, dice: str }) },
-  bloques: { type: 'array', items: obj({ id: str, texto: str }) },
+  bloques: { type: 'array', items: obj({ id: str, parte: { type: 'string', enum: ['', ...PARTES] }, texto: str }) },
   diapositivas: { type: 'array', items: DIAPO },
 });
 // con laminas: un texto por lamina, en orden ("desde" de la agenda = numero de lamina con dos digitos)
@@ -261,7 +259,7 @@ const ESQUEMA_LAMINAS = obj({
 
 // ---------------------------------------------------------------- proveedores
 async function conClaude(ficha, bloquesFijos, env) {
-  return claudeJson(env, `${REGLAS}\n- Rellena con "" o [] los campos que no use el tipo elegido.`, pedido(ficha, bloquesFijos), ESQUEMA_CLASE);
+  return claudeJson(env, `${REGLAS(ficha)}\n- Rellena con "" o [] los campos que no use el tipo elegido.`, pedido(ficha, bloquesFijos), ESQUEMA_CLASE);
 }
 
 // Una peticion a Claude con salida JSON segun el esquema. "contenido" puede llevar imagenes (laminas).
@@ -304,14 +302,17 @@ async function conIaGratis(ficha, bloquesFijos, env) {
   const pedir = clienteGratis(env, usos);
   // 1) guion (o el del docente) con agenda y pronunciacion
   const guion = bloquesFijos ? { bloques: bloquesFijos } : await guionPorPartes(pedir, ficha);
+  if (!bloquesFijos) guion.bloques = await revisarGuion(pedir, ficha, await alargarGuion(pedir, ficha, await completarPartes(pedir, ficha, guion.bloques)));
   if (!(Array.isArray(guion.agenda) && guion.agenda.length)) {
-    const { datos } = await pedir(`${INTRO}\n\n${REGLAS_PLAN}\n\n${FORMATO_PLAN}`,
-      `${fichaTexto(ficha)}\n\nGUION:\n${JSON.stringify(guion.bloques)}\n\nCrea solo la agenda y la pronunciación de este guion.`);
+    const { datos } = await pedir(`${INTRO()}\n\n${REGLAS_PLAN()}\n\n${FORMATO_PLAN}`,
+      `${fichaTexto(ficha, { extension: false })}\n\nGUION:\n${JSON.stringify(guion.bloques)}\n\nCrea solo la agenda y la pronunciación de este guion.`);
     guion.agenda = datos.agenda;
     if (!(Array.isArray(guion.pronunciacion) && guion.pronunciacion.length)) guion.pronunciacion = datos.pronunciacion;
   }
   // 2) diapositivas: se piden las que falten hasta tenerlas todas completas
   const diapositivas = await diapositivasPorPartes(pedir, ficha, guion.bloques);
+  // 3) ortografia de todo lo que se oye y se ve
+  await corregirOrtografia(pedir, guion.bloques, bloquesFijos ? [] : diapositivas, !bloquesFijos);
   const uso = {
     partes: usos.length,
     prompt_tokens: usos.reduce((t, u) => t + (u.prompt_tokens || 0), 0),
@@ -322,22 +323,22 @@ async function conIaGratis(ficha, bloquesFijos, env) {
 }
 
 async function guionPorPartes(pedir, ficha) {
-  const objetivo = Math.round((segundos(ficha.duracion) || 150) * 2.3);
+  const objetivo = palabrasObjetivo(ficha);
   let plan = {};
   let bloques = [];
   let sinAvance = 0;
-  for (let parte = 0; parte < 6 && bloques.length < 14; parte++) {
+  for (let parte = 0; parte < 6 && bloques.length < 16; parte++) {
     const sigue = bloques.length > 0;
     const usuario = sigue
       ? [fichaTexto(ficha), '', 'TU RESPUESTA ANTERIOR SE CORTÓ. Estos bloques ya están escritos (no los repitas ni los cambies):',
         JSON.stringify(bloques), '',
-        `Escribe SOLO los bloques que faltan, desde el "${dosDigitos(bloques.length + 1)}", siguiendo la estructura hasta el reto y la despedida.`,
+        `Escribe SOLO los bloques que faltan, desde el "${dosDigitos(bloques.length + 1)}", siguiendo la estructura de la sesión hasta la práctica, las conclusiones y el cierre.`,
         `Van ${contarPalabras(bloques)} palabras; el guion completo debe tener unas ${objetivo}.`].join('\n')
-      : fichaTexto(ficha);
-    const { datos, cortada } = await pedir(`${INTRO}\n\n${REGLAS_GUION}\n\n${sigue ? FORMATO_SIGUE : FORMATO_GUION}`, usuario);
+      : `${fichaTexto(ficha)}\n\n${guionDeEjemplo(ejemploPara(ficha))}`;
+    const { datos, cortada } = await pedir(`${INTRO()}\n\n${REGLAS_GUION()}\n\n${sigue ? FORMATO_SIGUE : FORMATO_GUION}`, usuario);
     if (!sigue) plan = { tema: datos.tema, agenda: datos.agenda, pronunciacion: datos.pronunciacion };
     const nuevos = (Array.isArray(datos.bloques) ? datos.bloques : []).filter(b => b && String(b.texto || '').trim());
-    bloques = [...bloques, ...nuevos].slice(0, 14).map((b, i) => ({ id: dosDigitos(i + 1), texto: String(b.texto).replace(/\s+/g, ' ').trim() }));
+    bloques = [...bloques, ...nuevos].slice(0, 16).map((b, i) => ({ id: dosDigitos(i + 1), parte: parteDe(b.parte), texto: String(b.texto).replace(/\s+/g, ' ').trim() }));
     if (bloques.length && !cortada) break;
     if (!nuevos.length && ++sinAvance >= 2) break;
   }
@@ -345,25 +346,148 @@ async function guionPorPartes(pedir, ficha) {
   return { ...plan, bloques };
 }
 
+// Los modelos gratis suelen quedarse cortos (2:00 en vez de 2:30): se alargan los bloques mas cortos con un
+// detalle concreto. Si falla, queda el guion como vino.
+async function alargarGuion(pedir, ficha, bloques) {
+  const objetivo = palabrasObjetivo(ficha);
+  const total = contarPalabras(bloques);
+  if (total >= objetivo * 0.88 || bloques.length < 4) return bloques;
+  const n = b => String(b.texto).split(/\s+/).filter(Boolean).length;
+  const cortos = bloques.slice(1, -1).filter(b => n(b) < 45 && !['portada', 'logro', 'temario', 'cierre'].includes(b.parte)).sort((a, z) => n(a) - n(z))
+    .slice(0, Math.min(6, Math.ceil((objetivo - total) / 12))).map(b => b.id).sort();
+  if (!cortos.length) return bloques;
+  try {
+    const { datos } = await pedir(`${INTRO()}\n\n${REGLAS_GUION()}\n\n${FORMATO_SIGUE}`, [
+      fichaTexto(ficha, { extension: false }), '', 'GUION COMPLETO:', JSON.stringify(bloques), '',
+      `El guion tiene ${total} palabras y debe tener unas ${objetivo}. Reescribe SOLO los bloques ${cortos.join(', ')}.`,
+      'Mantén la idea de cada uno y agrégale un detalle concreto (un ejemplo, un paso con el nombre real del menú o un error común)',
+      'hasta que tenga entre 35 y 50 palabras. No repitas lo que dicen los otros bloques.'].join('\n'));
+    const nuevos = Object.fromEntries((Array.isArray(datos.bloques) ? datos.bloques : []).filter(b => b && b.texto).map(b => [dosDigitos(parseInt(b.id, 10) || 0), String(b.texto).replace(/\s+/g, ' ').trim()]));
+    return bloques.map(b => (cortos.includes(b.id) && nuevos[b.id] && n({ texto: nuevos[b.id] }) > n(b) && n({ texto: nuevos[b.id] }) <= 70 ? { ...b, texto: nuevos[b.id] } : b));
+  } catch (e) {
+    console.warn(`[!] No se pudo alargar el guion (${texto(e).slice(0, 120)}): queda como vino.`);
+    return bloques;
+  }
+}
+
+// Si el guion se salto una parte de la sesion (suele faltar el temario), se pide solo esa parte y se pone en su lugar.
+// Si la IA tampoco la escribe, el temario se arma con los puntos de la ficha ("Qué es Gemini: ..." -> "qué es Gemini").
+export async function completarPartes(pedir, ficha, bloques) {
+  if (!bloques.some(b => b.parte)) return bloques;
+  const faltantes = () => PARTES.filter(p => p !== 'desarrollo' && !lista.some(b => b.parte === p));
+  const poner = nb => {
+    const orden = PARTES.indexOf(nb.parte);
+    let k = -1;
+    lista.forEach((b, i) => { const o = PARTES.indexOf(b.parte); if (o >= 0 && o < orden) k = i; });
+    lista.splice(k + 1, 0, nb);
+  };
+  let lista = [...bloques];
+  const faltan = faltantes();
+  if (faltan.length) {
+    try {
+      const { datos } = await pedir(`${INTRO()}\n\n${REGLAS_GUION()}\n\n${FORMATO_SIGUE}`, [fichaTexto(ficha, { extension: false }), '',
+        'GUION (le faltan partes):', JSON.stringify(lista), '',
+        `Faltan estas partes de la sesión: ${faltan.join(', ')}. Escribe SOLO esos bloques, uno por parte y con su "parte", coherentes con el resto.`,
+        faltan.includes('temario') ? 'El temario nombra, en una frase y en orden, los temas de los bloques de desarrollo.' : ''].filter(Boolean).join('\n'));
+      for (const b of Array.isArray(datos.bloques) ? datos.bloques : []) {
+        const parte = parteDe(b && b.parte);
+        const t = String((b && b.texto) || '').replace(/\s+/g, ' ').trim();
+        if (t && faltantes().includes(parte)) poner({ parte, texto: t });
+      }
+    } catch (e) {
+      console.warn(`[!] No se pudieron completar las partes del guion (${texto(e).slice(0, 120)}).`);
+    }
+  }
+  const temas = String(ficha.puntos || '').split('\n').map(l => l.split(':')[0].trim()).filter(t => t && t.split(/\s+/).length <= 6);
+  if (faltantes().includes('temario') && temas.length >= 2) {
+    const nombres = temas.map(t => (PROPIOS.includes(t.split(/\s+/)[0]) ? t : t.replace(/^./, c => c.toLowerCase()))); // "Gemini en Gmail" queda igual
+    poner({ parte: 'temario', texto: `Hoy veremos: ${nombres.slice(0, -1).join(', ')} y ${nombres[nombres.length - 1]}.` });
+  }
+  // en el orden de la sesion: a veces la IA pone un tema despues de la practica (los temas conservan su orden)
+  const orden = b => (PARTES.includes(b.parte) ? PARTES.indexOf(b.parte) : -1);
+  const ordenada = lista.map((b, i) => ({ b, i, o: orden(b) })).sort((x, y) => (x.o < 0 || y.o < 0 ? x.i - y.i : x.o - y.o || x.i - y.i)).map(x => x.b);
+  return ordenada.map((b, i) => ({ ...b, id: dosDigitos(i + 1) }));
+}
+
+// Segundo pedido que corrige el guion ya escrito (web/skills/revision.md): erratas, "identificó" en vez de "identificaste",
+// menus o direcciones inventados. Solo se aceptan cambios que no alteren mucho el largo del bloque.
+async function revisarGuion(pedir, ficha, bloques) {
+  const n = t => String(t).split(/\s+/).filter(Boolean).length;
+  try {
+    const { datos } = await pedir(`${INTRO()}\n\n${skill('revision')}\n\n${FORMATO_SIGUE}`, [
+      fichaTexto(ficha, { extension: false }), '', 'GUION:', JSON.stringify(bloques.map(b => ({ id: b.id, parte: b.parte, texto: b.texto })))].join('\n'));
+    const nuevos = Object.fromEntries((Array.isArray(datos.bloques) ? datos.bloques : []).filter(b => b && b.texto)
+      .map(b => [dosDigitos(parseInt(b.id, 10) || 0), String(b.texto).replace(/\s+/g, ' ').trim()]));
+    return bloques.map(b => {
+      const t = nuevos[b.id];
+      return t && n(t) >= n(b.texto) * 0.7 && n(t) <= n(b.texto) * 1.4 + 3 ? { ...b, texto: t } : b;
+    });
+  } catch (e) {
+    console.warn(`[!] No se pudo revisar el guion (${texto(e).slice(0, 120)}): queda como vino.`);
+    return bloques;
+  }
+}
+
+// Textos de una diapositiva que se ven en pantalla (y sus "cuando"), para revisarlos o corregirlos todos juntos
+const CAMPOS_TEXTO = ['kicker', 'titulo', 'sub', 'nota', 'reto', 'despedida'];
+function cambiarTextos(d, f, { cuando = true } = {}) {
+  for (const k of CAMPOS_TEXTO) if (d[k]) d[k] = f(d[k]);
+  for (const x of [...(Array.isArray(d.items) ? d.items : []), ...(Array.isArray(d.tarjetas) ? d.tarjetas : []), d.izq, d.der]) {
+    if (!x || typeof x !== 'object') continue;
+    for (const k of ['etiqueta', 'titulo', 'texto', ...(cuando ? ['cuando'] : [])]) if (x[k]) x[k] = f(x[k]);
+  }
+}
+const FORMATO_ORTOGRAFIA = `Responde SOLO con un objeto JSON, sin texto antes ni después: {"errores": [{"mal": "resumentes", "bien": "resumir"}]}
+Si no hay ningún error: {"errores": []}`;
+
+// Ultimo pedido (web/skills/ortografia.md): la IA solo LISTA lo mal escrito o mal usado y el programa lo cambia en el
+// guion y en las diapositivas (tambien en "cuando"). Es una tarea corta: los modelos gratis la hacen mejor que reescribir.
+// Con el guion del docente (fijo) solo se corrigen las diapositivas.
+async function corregirOrtografia(pedir, bloques, diapositivas, conGuion) {
+  const textos = [];
+  if (conGuion) textos.push(...bloques.map(b => b.texto));
+  for (const d of diapositivas) cambiarTextos(d, t => { textos.push(t); return t; }, { cuando: false });
+  const todo = textos.join('\n');
+  if (!todo.trim()) return;
+  try {
+    const pedido = [`${INTRO()}\n\n${skill('ortografia')}\n\n${FORMATO_ORTOGRAFIA}`, `TEXTOS DE LA CLASE (uno por línea):\n${todo}`];
+    let { datos, cortada } = await pedir(...pedido, { pensar: true });
+    if (cortada && !Array.isArray(datos.errores)) ({ datos } = await pedir(...pedido)); // penso tanto que no alcanzo a responder
+    const errores = (Array.isArray(datos.errores) ? datos.errores : [])
+      .map(e => ({ mal: String((e && e.mal) || '').trim(), bien: String((e && e.bien) || '').trim() }))
+      .filter(e => e.mal && e.bien && e.mal !== e.bien && e.mal.length <= 60 && e.mal.split(/\s+/).length <= 8 && todo.includes(e.mal)
+        && !/[.:/]\w/.test(e.mal)); // nunca direcciones ni comandos
+    if (!errores.length) return;
+    const arreglar = t => errores.reduce((s, e) => s.replace(new RegExp(`(?<![\\p{L}\\p{N}])${escRe(e.mal)}(?![\\p{L}\\p{N}])`, 'gu'), e.bien), String(t));
+    if (conGuion) for (const b of bloques) b.texto = arreglar(b.texto);
+    for (const d of diapositivas) cambiarTextos(d, arreglar);
+  } catch (e) {
+    console.warn(`[!] No se pudo revisar la ortografía (${texto(e).slice(0, 120)}): queda como vino.`);
+  }
+}
+
 // Una diapositiva cuenta solo si tiene todo lo que su tipo necesita (una comparacion sin lado derecho no sirve)
 function diapositivaCompleta(d) {
-  if (!d || !TIPOS.includes(d.tipo) || !String(d.titulo || '').trim()) return false;
+  if (!d || !TIPOS.includes(d.tipo) || (d.tipo !== 'logo' && !String(d.titulo || '').trim())) return false;
   const lleno = x => x && String(x.titulo || x.texto || '').trim();
   const cuantos = a => (Array.isArray(a) ? a.filter(lleno).length : 0);
   switch (d.tipo) {
-    case 'lista': case 'pasos': return cuantos(d.items) >= 2;
-    case 'cierre': return cuantos(d.items) >= 1 || !!String(d.despedida || '').trim();
+    case 'lista': case 'pasos': case 'temario': case 'ruta': return cuantos(d.items) >= 2;
+    case 'cierre': return cuantos(d.items) >= 1 || !!String(d.despedida || d.reto || '').trim();
     case 'codigo': return !!String(d.codigo || '').trim();
     case 'comparacion': return !!(lleno(d.izq) && lleno(d.der));
-    case 'tarjetas': return cuantos(d.tarjetas) >= 2;
+    case 'tarjetas': case 'flujo': return cuantos(d.tarjetas) >= 2;
+    case 'definicion': return !!String(d.sub || '').trim();
     case 'dato': return !!String(d.dato || '').trim();
     default: return true;
   }
 }
 
 async function diapositivasPorPartes(pedir, ficha, bloques) {
-  const ids = bloques.map(b => b.id);
+  const conPartes = bloques.some(b => b.parte);
+  const ids = bloques.filter(b => b.parte !== 'cierre').map(b => b.id); // la del cierre la arma el programa
   const ultimo = ids[ids.length - 1];
+  const tipoPedido = b => (TIPO_DE_PARTE[b.parte] ? `${b.id} ${TIPO_DE_PARTE[b.parte]} (${b.parte})` : `${b.id} ${b.parte || 'libre'}`);
   const hechas = {};
   let sinAvance = 0;
   let porParte = ids.length; // si una respuesta se corta, las siguientes piden menos diapositivas a la vez
@@ -372,13 +496,14 @@ async function diapositivasPorPartes(pedir, ficha, bloques) {
     if (!faltan.length) break;
     const listas = ids.filter(id => hechas[id]).map(id => `${id} (${hechas[id].tipo})`);
     const usuario = [
-      fichaTexto(ficha), '',
+      fichaTexto(ficha, { extension: false }), '',
       'GUION COMPLETO (cada diapositiva acompaña a su bloque):', JSON.stringify(bloques), '',
       listas.length ? `Ya están hechas las diapositivas de los bloques ${listas.join(', ')}: no las repitas y varía los tipos.` : '',
       `Crea las diapositivas SOLO para estos bloques, una por bloque y en orden: ${faltan.join(', ')}.`,
-      faltan.includes(ultimo) ? `La del bloque ${ultimo} es de tipo cierre.` : '',
+      conPartes ? `Tipo de cada bloque (los de "desarrollo" los eliges tú): ${bloques.filter(b => faltan.includes(b.id)).map(tipoPedido).join(' · ')}.`
+        : faltan.includes(ultimo) ? `La del bloque ${ultimo} es de tipo cierre.` : '',
     ].filter(Boolean).join('\n');
-    const { datos, cortada } = await pedir(`${INTRO}\n\n${REGLAS_DIAPOS}\n\n${FORMATO_DIAPOS}`, usuario);
+    const { datos, cortada } = await pedir(`${INTRO()}\n\n${REGLAS_DIAPOS(ficha)}\n\n${FORMATO_DIAPOS}`, usuario);
     let lista = (Array.isArray(datos.diapositivas) ? datos.diapositivas : []).filter(d => d && typeof d === 'object');
     if (cortada) lista = lista.slice(0, -1); // la ultima pudo quedar a medias: se vuelve a pedir
     let nuevas = 0;
@@ -413,13 +538,20 @@ function clienteGratis(env, usos, { vision = false } = {}) {
   else if (!/localhost|127\.0\.0\.1/.test(url)) throw new Error(`Falta la API key de la IA ${vision ? 'que lee láminas' : 'gratis'} (Ajustes).`);
   let maximo = Number(env.IA_GRATIS_MAX_TOKENS) || 8000;
   let formatoJson = true; // algunos servicios no aceptan response_format: se quita y se pide JSON en el texto
+  // Qwen3 en Groq "piensa" antes de responder y ese razonamiento gasta el tope de tokens de salida por minuto
+  // (en el plan gratis puede ser de solo 1000): se apaga. Si el servicio no lo acepta, se quita.
+  let razonar = /groq\.com/.test(url) && /qwen3/i.test(modelo) ? 'none' : null;
 
-  return async function pedir(sistema, usuario) {
-    let r, cuerpo, esperas = 0;
-    for (let intento = 0; intento < 8; intento++) {
+  // pensar: para tareas cortas que piden atencion (la ortografia) se deja razonar al modelo, con el razonamiento oculto
+  return async function pedir(sistema, usuario, { pensar = false } = {}) {
+    let r, cuerpo, esperas = 0, malFormados = 0;
+    let esfuerzo = pensar && razonar === 'none' ? 'default' : razonar;
+    for (let intento = 0; intento < 10; intento++) {
       const peticion = { model: modelo, messages: [{ role: 'system', content: sistema }, { role: 'user', content: usuario }] };
       if (formatoJson) peticion.response_format = { type: 'json_object' };
       if (maximo) peticion.max_tokens = maximo;
+      if (esfuerzo) peticion.reasoning_effort = esfuerzo;
+      if (esfuerzo && esfuerzo !== 'none') peticion.reasoning_format = 'hidden';
       try {
         r = await fetch(`${url}/chat/completions`, { method: 'POST', headers: cabeceras, body: JSON.stringify(peticion) });
       } catch (e) {
@@ -427,24 +559,42 @@ function clienteGratis(env, usos, { vision = false } = {}) {
       }
       cuerpo = await r.text();
       if (r.ok) break;
-      // "Request too large ... (OTPM): Limit 1000, Requested 1041": pedir menos tokens por respuesta (no sirve esperar)
+      // "Request too large ... (OTPM): Limit 1000, Requested 1039": pedir menos tokens por respuesta
       const muyGrande = /request too large|max_(completion_)?tokens/i.test(cuerpo);
       if (r.status === 429 && !muyGrande) {
         const s = esperaDe(r, cuerpo);
-        if (s != null && s <= 65 && esperas < 4) { esperas++; await dormir((s + 1) * 1000); continue; }
+        if (s != null && s <= 65 && esperas < 5) { esperas++; await dormir((s + 1) * 1000); continue; }
         break;
       }
+      // Groq rechaza el JSON mal formado ("json_validate_failed") pero devuelve lo que el modelo escribio: casi siempre se
+      // rescata (eran comillas sueltas dentro de un texto). Si no, se pide de nuevo: cada intento sale distinto.
+      if (r.status === 400 && /json_validate_failed/i.test(cuerpo)) {
+        let generado = '';
+        try { generado = JSON.parse(cuerpo).error.failed_generation || ''; } catch { /* sin texto */ }
+        const rescate = rescatarJson(generado);
+        if (rescate) { usos.push({ fin: 'rescatado' }); return rescate; }
+        if (malFormados++ >= 1) formatoJson = false; // al segundo fallo, sin modo JSON (extraerJson limpia el texto)
+        continue;
+      }
       if (r.status === 400 && formatoJson && /response_format|json_object/i.test(cuerpo)) { formatoJson = false; continue; }
+      if (r.status === 400 && esfuerzo && /reasoning/i.test(cuerpo)) { if (esfuerzo === razonar) razonar = null; esfuerzo = razonar; continue; }
       if (([400, 413].includes(r.status) || muyGrande) && maximo) {
-        const nuevo = maximoPermitido(cuerpo, maximo);
-        if (nuevo !== maximo) { maximo = nuevo; continue; }
+        const { nuevo, esperar } = maximoPermitido(cuerpo, maximo);
+        if (nuevo !== maximo || (esperar && esperas < 5)) {
+          maximo = nuevo;
+          // el tope es por minuto y este minuto ya se gasto en otras partes de la clase: se espera a que se renueve
+          if (esperar) { esperas++; await dormir(61000); }
+          continue;
+        }
       }
       break;
     }
     if (!r.ok) {
       const sinVision = vision && r.status >= 400 && r.status < 500 && /image|vision|multimodal|image_url|content type/i.test(cuerpo);
+      const otpm = /output tokens per minute|\(OTPM\): Limit (\d+)/i.exec(cuerpo);
       const pista = r.status === 401 ? ' (API key inválida)'
         : sinVision ? ` (el modelo ${modelo} no lee imágenes: en Ajustes › IA que lee láminas usa qwen/qwen3.8-27b en Groq o gemini-3.8-flash en Gemini)`
+        : otpm ? ` (tu plan gratis de ${modelo} solo deja escribir ${otpm[1] || 'pocos'} tokens por minuto: en Ajustes › IA gratis usa openai/gpt-oss-120b, que escribe la clase de una vez)`
         : r.status === 413 || r.status === 429 ? ' (límite del plan gratis: espera un minuto o usa otro modelo)' : '';
       throw new Error(`La IA ${vision ? 'que lee láminas' : 'gratis'} respondió ${r.status}${pista}: ${cuerpo.slice(0, 300)}`);
     }
@@ -475,17 +625,21 @@ function esperaDe(r, cuerpo) {
 }
 
 // "...tokens per minute (TPM): Limit 6000, Requested 10098" -> pedir menos para entrar en el limite.
+// Con un tope por minuto muy chico (OTPM 1000) cada respuesta pide a lo mas el 90 % del tope; si aun asi no entra
+// es que el minuto ya se gasto: hay que esperar ("esperar"). Con poco espacio por respuesta la clase sale en mas partes.
 // "max_tokens must be less than or equal to 4096" -> pedir ese maximo. Si no acepta max_tokens, sin limite (0).
 function maximoPermitido(cuerpo, maximo) {
   let m = /Limit (\d+), Requested (\d+)/i.exec(cuerpo);
   if (m) {
-    const n = maximo - (+m[2] - +m[1]) - 100;
-    return n >= 400 ? n : maximo; // con poco espacio por respuesta, la clase se pide en mas partes
+    const limite = +m[1];
+    const n = Math.min(maximo - (+m[2] - limite) - 100, Math.floor(limite * 0.9));
+    if (n >= 300) return { nuevo: n, esperar: false };
+    return { nuevo: Math.min(maximo, Math.floor(limite * 0.9)), esperar: /per minute|\b[OT]PM\b/i.test(cuerpo) };
   }
   m = /max_(?:completion_)?tokens\D*?(?:less than or equal to|at most|<=)\D*(\d+)/i.exec(cuerpo);
-  if (m && +m[1] < maximo) return +m[1];
-  if (/max_(?:completion_)?tokens/i.test(cuerpo)) return 0;
-  return maximo;
+  if (m && +m[1] < maximo) return { nuevo: +m[1], esperar: false };
+  if (/max_(?:completion_)?tokens/i.test(cuerpo)) return { nuevo: 0, esperar: false };
+  return { nuevo: maximo, esperar: false };
 }
 
 // Algunos modelos abiertos (Qwen, DeepSeek...) escriben su razonamiento en <think>...</think> o envuelven el
@@ -498,12 +652,47 @@ function extraerJson(contenido, cortada = false) {
   if (a >= 0 && z > a) {
     try { return JSON.parse(limpio.slice(a, z + 1)); } catch { /* sigue */ }
   }
+  if (a >= 0 && z > a) {
+    try { return JSON.parse(repararComillas(limpio.slice(a, z + 1))); } catch { /* sigue */ }
+  }
   // respuesta cortada a la mitad: se aprovecha hasta el ultimo elemento completo
-  const rescatado = a >= 0 ? cerrarJson(limpio.slice(a)) : null;
+  const rescatado = a >= 0 ? cerrarJson(repararComillas(limpio.slice(a))) : null;
   if (rescatado) return rescatado;
   throw new Error(cortada
     ? 'La respuesta de la IA gratis se cortó (límite de tokens). Intenta de nuevo o usa otro modelo.'
     : 'La IA gratis no devolvió un JSON válido. Intenta de nuevo o usa otro modelo.');
+}
+
+// Lo que escribio el modelo cuando el servicio lo rechazo por JSON mal formado: { datos, cortada } o null.
+// Si solo se salva una parte, va como "cortada" para que se pida lo que falta.
+export function rescatarJson(t) {
+  const limpio = String(t || '').replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, '').replace(/```(?:json)?/gi, '').trim();
+  const a = limpio.indexOf('{');
+  if (a < 0) return null;
+  const z = limpio.lastIndexOf('}');
+  for (const intento of z > a ? [limpio.slice(a, z + 1), repararComillas(limpio.slice(a, z + 1))] : []) {
+    try { const v = JSON.parse(intento); if (v && typeof v === 'object' && !Array.isArray(v)) return { datos: v, cortada: false }; } catch { /* sigue */ }
+  }
+  const parcial = cerrarJson(repararComillas(limpio.slice(a)));
+  return parcial ? { datos: parcial, cortada: true } : null;
+}
+
+// Comillas dobles sueltas dentro de un texto ("puedes pedir: "Resume esto"...") -> «Resume esto». Una comilla cierra
+// el texto solo si despues viene : } ] o una coma seguida de otra clave o valor; si no, es parte del texto.
+function repararComillas(s) {
+  let out = '';
+  let enTexto = false;
+  let abierta = false;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (enTexto && c === '\\') { out += c + (s[i + 1] || ''); i++; continue; }
+    if (c !== '"') { out += c; continue; }
+    if (!enTexto) { enTexto = true; abierta = false; out += c; continue; }
+    if (/^\s*(?:$|[}\]:]|,\s*["{[\]}\d\-tfn])/.test(s.slice(i + 1, i + 40))) { enTexto = false; out += c; continue; }
+    out += abierta ? '»' : '«';
+    abierta = !abierta;
+  }
+  return out;
 }
 
 // Cierra un JSON cortado: prueba a cortar despues de cada } o ] (del final hacia atras) y cerrar lo que quede abierto.
@@ -546,14 +735,14 @@ async function laminasConIaGratis(ficha, laminas, dir, env) {
   for (let i = 0; i < n; i++) {
     const anterior = hechas[i - 1];
     const indicaciones = [
-      fichaTexto(ficha), '',
+      fichaTexto(ficha, { extension: false }), '',
       `LÁMINA ${i + 1} DE ${n} (la imagen va adjunta).`,
       i === 0 ? 'Es la primera lámina: saludo; el avatar se presenta por su nombre y dice el tema.' : '',
       i === n - 1 && n > 1 ? 'Es la última lámina: resumen o reto práctico y despedida.' : '',
       anterior ? `La voz acaba de decir, en la lámina anterior (no lo repitas, continúa la clase): ${anterior.texto}` : '',
     ].filter(Boolean).join('\n');
     const { url, w, h } = cuadradas[i];
-    const { datos } = await pedir(`${INTRO}\n\n${REGLAS_LAMINAS}\n\n${REGLAS_EFECTOS}\n\n${FORMATO_LAMINA}`,
+    const { datos } = await pedir(`${INTRO()}\n\n${REGLAS_LAMINAS()}\n\n${FORMATO_LAMINA}`,
       [{ type: 'text', text: `${indicaciones}\n(La lámina va arriba a la izquierda de un cuadrado blanco: ignora el blanco de relleno.)` },
         { type: 'image_url', image_url: { url } }]);
     const t = String(datos.texto || '').replace(/\s+/g, ' ').trim();
@@ -565,8 +754,8 @@ async function laminasConIaGratis(ficha, laminas, dir, env) {
   const bloques = hechas.map((x, i) => ({ id: dosDigitos(i + 1), texto: x.texto }));
   let agenda = [];
   try {
-    const { datos } = await pedir(`${INTRO}\n\n${REGLAS_PLAN}\n\n${FORMATO_PLAN}`,
-      `${fichaTexto(ficha)}\n\nTÍTULOS DE LAS LÁMINAS: ${JSON.stringify(hechas.map(x => x.titulo))}\n\nGUION (un bloque por lámina):\n${JSON.stringify(bloques)}\n\nCrea solo la agenda y la pronunciación de este guion.`);
+    const { datos } = await pedir(`${INTRO()}\n\n${REGLAS_PLAN()}\n\n${FORMATO_PLAN}`,
+      `${fichaTexto(ficha, { extension: false })}\n\nTÍTULOS DE LAS LÁMINAS: ${JSON.stringify(hechas.map(x => x.titulo))}\n\nGUION (un bloque por lámina):\n${JSON.stringify(bloques)}\n\nCrea solo la agenda y la pronunciación de este guion.`);
     agenda = Array.isArray(datos.agenda) ? datos.agenda : [];
     if (Array.isArray(datos.pronunciacion)) pronunciacion.push(...datos.pronunciacion.filter(p => p && /^[A-Z0-9.]{2,}$/.test(String(p.escrito || '').trim())));
   } catch (e) {
@@ -587,12 +776,12 @@ function agendaDeTitulos(titulos) {
 // Claude: todas las laminas en una sola peticion
 async function laminasConClaude(ficha, laminas, dir, env) {
   const n = laminas.length;
-  const contenido = [{ type: 'text', text: `${fichaTexto(ficha)}\n\nSon ${n} láminas, en orden. Escribe EXACTAMENTE ${n} textos en "laminas" (uno por lámina, en el mismo orden). ` +
+  const contenido = [{ type: 'text', text: `${fichaTexto(ficha, { extension: false })}\n\nSon ${n} láminas, en orden. Escribe EXACTAMENTE ${n} textos en "laminas" (uno por lámina, en el mismo orden). ` +
     'En la agenda, "desde" es el número de la lámina donde empieza cada punto, con dos dígitos ("01", "02"...).' }];
   const cuadradas = await laminasCuadradas(dir, laminas);
   cuadradas.forEach((c, i) => contenido.push({ type: 'text', text: `Lámina ${i + 1} (arriba a la izquierda de un cuadrado blanco):` },
     { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: c.url.split(',')[1] } }));
-  const { datos, uso } = await claudeJson(env, `${INTRO}\n\n${REGLAS_LAMINAS}\n\n${REGLAS_EFECTOS}\n${CAJA_CLAUDE}\n${REGLAS_PLAN}`, contenido, ESQUEMA_LAMINAS);
+  const { datos, uso } = await claudeJson(env, `${INTRO()}\n\n${REGLAS_LAMINAS()}\n${CAJA_CLAUDE}\n${REGLAS_PLAN()}`, contenido, ESQUEMA_LAMINAS);
   const textos = (datos.laminas || []).map(x => String(x.texto || '').replace(/\s+/g, ' ').trim());
   if (textos.length !== n || textos.some(t => !t)) throw new Error(`Claude devolvió ${textos.filter(Boolean).length} textos para ${n} láminas. Intenta de nuevo.`);
   const efectos = (datos.laminas || []).map((x, i) => (i === 0 ? [] : efectosDe(x.efectos, cuadradas[i].w, cuadradas[i].h)));
@@ -640,7 +829,9 @@ async function claseDeLaminas({ ficha, modo, guion, env, laminas, dir, base }) {
   if (!avanza(agenda) && r.titulos) agenda = aBloques(agendaDeTitulos(r.titulos));
   const clase = normalizar({ tema: r.tema, agenda, pronunciacion: r.pronunciacion, bloques, diapositivas }, { ...ficha, tema: ficha.tema || r.tema }, base);
   if (modo !== 'manual') sinDeletreos(clase);
+  pulir(clase);
   pronunciacionBase(clase);
+  conSemilla(clase);
   return { clase, uso: r.uso, aviso: '' };
 }
 
@@ -703,8 +894,9 @@ function arreglarPlantilla(d) {
     if (lado && pareceCodigo(lado.texto)) return { ...d, tipo: 'codigo', codigo: lado.texto, sub: d.sub || lado.titulo };
     return { ...d, tipo: 'idea', sub: d.sub || (lado ? [lado.titulo, lado.texto].filter(Boolean).join(': ') : '') };
   }
-  if (['lista', 'pasos', 'cierre'].includes(d.tipo) && !d.items.length && !d.despedida) return { ...d, tipo: 'idea' };
-  if (d.tipo === 'tarjetas' && !d.tarjetas.length) return { ...d, tipo: 'idea' };
+  if (['lista', 'pasos', 'temario', 'ruta', 'cierre'].includes(d.tipo) && !d.items.length && !(d.tipo === 'cierre' && (d.despedida || d.reto))) return { ...d, tipo: 'idea' };
+  if (['tarjetas', 'flujo'].includes(d.tipo) && !d.tarjetas.length) return { ...d, tipo: 'idea' };
+  if (d.tipo === 'definicion' && !d.sub) return { ...d, tipo: 'idea' };
   if (d.tipo === 'codigo' && !d.codigo.trim()) return { ...d, tipo: 'idea' };
   if (d.tipo === 'dato' && !d.dato) return { ...d, tipo: 'idea' };
   return d;
@@ -712,8 +904,10 @@ function arreglarPlantilla(d) {
 
 // ---------------------------------------------------------------- normalizacion
 const corto = (s, n) => String(s == null ? '' : s).replace(/\s+/g, ' ').trim().slice(0, n);
+const icono = v => (NOMBRES_ICONOS.includes(v) ? v : '');
+const conIcono = x => (icono(x && x.icono) ? { icono: x.icono } : {});
 const items = (arr, n, largo) => (Array.isArray(arr) ? arr : []).filter(x => x && (x.texto || x.titulo))
-  .slice(0, n).map(x => ({ texto: corto(x.texto, largo), cuando: corto(x.cuando, 40) }));
+  .slice(0, n).map(x => ({ texto: corto(x.texto, largo), cuando: corto(x.cuando, 40), ...conIcono(x) }));
 
 export function normalizar(datos, ficha, base = {}) {
   const bloquesIn = (Array.isArray(datos.bloques) ? datos.bloques : []).filter(x => x && String(x.texto || '').trim());
@@ -737,16 +931,17 @@ export function normalizar(datos, ficha, base = {}) {
           cuando: corto(e.cuando, 40), bloque: idOk(e.bloque) || bloque }));
       return { bloque, tipo, imagen: rutaLamina(d.imagen), ...(efectos.length ? { efectos } : {}) };
     }
-    const lado = x => ({ etiqueta: corto(x && x.etiqueta, 24), titulo: corto(x && x.titulo, 60), texto: corto(x && x.texto, 140), cuando: corto(x && x.cuando, 40) });
+    const lado = x => ({ etiqueta: corto(x && x.etiqueta, 24), titulo: corto(x && x.titulo, 60), texto: corto(x && x.texto, 140), cuando: corto(x && x.cuando, 40), ...conIcono(x) });
     return {
       bloque,
       tipo,
-      kicker: corto(d.kicker, 40), titulo: corto(d.titulo, 90), sub: corto(d.sub, 180), nota: corto(d.nota, 180),
-      items: items(d.items, 6, 110),
-      codigo: String(d.codigo || '').split('\n').slice(0, 18).map(l => l.slice(0, 72)).join('\n'),
+      variante: corto(d.variante, 20), kicker: corto(d.kicker, 40), titulo: corto(d.titulo, 90), sub: corto(d.sub, 200), nota: corto(d.nota, 180), icono: icono(d.icono),
+      items: items(d.items, 8, 110),
+      codigo: String(d.codigo || '').split('\n').slice(0, 18).map(l => l.slice(0, 72)).join('\n'), archivo: corto(d.archivo, 40), app: corto(d.app, 40),
       izq: lado(d.izq), der: lado(d.der),
-      tarjetas: (Array.isArray(d.tarjetas) ? d.tarjetas : []).slice(0, 4).map(x => ({ titulo: corto(x.titulo, 40), texto: corto(x.texto, 110), cuando: corto(x.cuando, 40) })),
-      dato: corto(d.dato, 12), despedida: corto(d.despedida, 80),
+      tarjetas: (Array.isArray(d.tarjetas) ? d.tarjetas : []).filter(x => x && (x.titulo || x.texto)).slice(0, 5)
+        .map(x => ({ titulo: corto(x.titulo, 40), texto: corto(x.texto, 110), cuando: corto(x.cuando, 40), ...conIcono(x) })),
+      dato: corto(d.dato, 12), reto: corto(d.reto, 220), despedida: corto(d.despedida, 80),
     };
   });
   if (!diapositivas.length) diapositivas.push(...diapositivasBasicas(ficha, bloques));
@@ -790,19 +985,94 @@ export async function generarClase({ ficha, modo, guion, env, base, laminas, dir
   if (modo === 'manual') {
     const bloques = guionManual(guion);
     if (!bloques.length) throw new Error('Pega el guion: un párrafo por bloque, separados por una línea en blanco.');
-    return { clase: normalizar({ bloques, diapositivas: diapositivasBasicas(ficha, bloques) }, ficha, base), uso: null };
+    return { clase: conSemilla(normalizar({ bloques, diapositivas: diapositivasBasicas(ficha, bloques) }, ficha, base)), uso: null };
   }
   const bloquesFijos = guion ? (Array.isArray(guion) ? guion : guionManual(guion)) : null;
   const { datos, uso } = modo === 'claude' ? await conClaude(ficha, bloquesFijos, env) : await conIaGratis(ficha, bloquesFijos, env);
   if (bloquesFijos) datos.bloques = bloquesFijos; // el guion del docente no se toca
+  else aplicarEstructura(datos, ficha);
   const clase = normalizar(datos, ficha, base);
   if (!bloquesFijos) sinDeletreos(clase);
   pronunciacionBase(clase);
   const simples = completarDiapositivas(clase, ficha);
+  pulir(clase);
+  conSemilla(clase);
   const aviso = simples.length
     ? `La IA no completó las diapositivas de los bloques ${simples.join(', ')}: puse unas simples. Revísalas o pulsa «Diapositivas con IA».`
     : '';
   return { clase, uso, aviso };
+}
+
+// Estructura de sesion: cada parte con su diapositiva (si la IA eligio otro tipo y se puede, se cambia) y, al final,
+// la despedida con el logo al centro, que arma el programa.
+const OTROS_VALIDOS = { practica: ['pasos', 'lista'] };
+export function aplicarEstructura(datos, ficha) {
+  const bloques = Array.isArray(datos.bloques) ? datos.bloques : [];
+  const parte = Object.fromEntries(bloques.map(b => [String(b.id), parteDe(b.parte)]));
+  if (!Object.values(parte).some(Boolean)) return;
+  const diapos = (Array.isArray(datos.diapositivas) ? datos.diapositivas : []).filter(d => d && parte[String(d.bloque)] !== 'cierre');
+  for (const d of diapos) {
+    const p = parte[String(d.bloque)];
+    const fijo = TIPO_DE_PARTE[p];
+    if (!fijo || d.tipo === fijo || (OTROS_VALIDOS[p] || []).includes(d.tipo)) continue;
+    const items = Array.isArray(d.items) && d.items.length ? d.items : (d.tarjetas || []).map(x => ({ texto: x.titulo, cuando: x.cuando, icono: x.icono }));
+    const tarjetas = Array.isArray(d.tarjetas) && d.tarjetas.length ? d.tarjetas : (d.items || []).map(x => ({ titulo: x.texto, texto: '', cuando: x.cuando, icono: x.icono }));
+    if (['temario', 'cierre'].includes(fijo) && items.length >= 2) Object.assign(d, { tipo: fijo, items });
+    else if (fijo === 'tarjetas' && tarjetas.length >= 2) Object.assign(d, { tipo: fijo, tarjetas: tarjetas.slice(0, 4) });
+    else if ((fijo === 'definicion' && d.sub) || (fijo === 'pregunta' && /\?/.test(d.titulo || '')) || fijo === 'portada') d.tipo = fijo;
+  }
+  // el logro en pantalla es el mismo del guion ("al finalizar la sesión, configuras...") con su titulo fijo
+  for (const d of diapos) {
+    if (parte[String(d.bloque)] !== 'logro' || d.tipo !== 'definicion') continue;
+    const b = bloques.find(x => String(x.id) === String(d.bloque));
+    const m = /al finalizar la sesi[oó]n,?\s*(.+)$/i.exec((b && b.texto) || '');
+    if (m && m[1].length <= 200) Object.assign(d, { titulo: 'Al finalizar la *sesión*', sub: m[1].replace(/^./, c => c.toUpperCase()) });
+  }
+  // las conclusiones no se despiden: despues viene la diapositiva con el logo
+  for (const d of diapos) if (parte[String(d.bloque)] === 'conclusiones') Object.assign(d, { despedida: '', reto: '' });
+  const agenda = agendaDeEstructura(bloques, parte, diapos);
+  if (agenda.length >= 2) datos.agenda = agenda;
+  const fin = bloques[bloques.length - 1];
+  if (fin && parte[String(fin.id)] === 'cierre') {
+    diapos.push({ bloque: fin.id, tipo: 'logo', titulo: '¡Nos vemos en la *próxima sesión*!', sub: `${ficha.avatar || 'SIPANCITOBOT'} · ${ficha.rol_avatar || 'Asistente docente IA'}` });
+  }
+  datos.diapositivas = diapos;
+}
+
+// Cada clase nueva trae su semilla de diseño (motor/diapos-auto.js: estilo de la clase y variante de cada plantilla),
+// asi no todas se ven iguales. Las que ya tenian una (o se rehacen desde el editor) la conservan.
+function conSemilla(clase) {
+  if (clase.semilla == null) clase.semilla = Math.floor(Math.random() * 1e6);
+  return clase;
+}
+
+// Agenda de la columna derecha: un punto por tema del temario (desde su bloque de desarrollo), mas el logro y la
+// practica, hasta 6 puntos. La IA suele contar mal los bloques ("desde"), asi que se arma con la estructura.
+function agendaDeEstructura(bloques, parte, diapos) {
+  const de = p => bloques.filter(b => parte[String(b.id)] === p);
+  const desarrollo = de('desarrollo');
+  if (!desarrollo.length) return [];
+  const temario = diapos.find(d => parte[String(d.bloque)] === 'temario' && Array.isArray(d.items)) || { items: [] };
+  // hasta 24 letras sin cortar palabras ni dejar "de", "del"... al final ("Uso responsable del" -> "Uso responsable")
+  const corta = t => {
+    let s = String(t || '').replace(/\*/g, '').split(/:\s/)[0].replace(/[.:;]\s*$/, '').trim();
+    if (s.length > 24) s = s.slice(0, 25).replace(/\s+\S*$/, '');
+    while (/\s(\S+)$/.test(s) && MENORES.has(planoTxt(/\s(\S+)$/.exec(s)[1]))) s = s.replace(/\s+\S+$/, '');
+    return s;
+  };
+  let temas = desarrollo.map((b, i) => {
+    const d = diapos.find(x => String(x.bloque) === String(b.id)) || {};
+    return { titulo: corta((temario.items[i] && temario.items[i].texto) || d.titulo), desde: b.id };
+  }).filter(a => a.titulo);
+  if (temas.length === 6) return temas; // justo 6: un punto por tema
+  if (temas.length >= 7) { // de dos en dos: "Etiquetas y filtros"
+    temas = temas.reduce((r, a, i) => (i % 2 ? r : [...r, { titulo: temas[i + 1] && `${a.titulo} y ${temas[i + 1].titulo.toLowerCase()}`.length <= 26 ? `${a.titulo} y ${temas[i + 1].titulo.toLowerCase()}` : a.titulo, desde: a.desde }]), []);
+  }
+  const practica = de('practica')[0];
+  const agenda = [...temas, ...(practica ? [{ titulo: 'Práctica y cierre', desde: practica.id }] : [])];
+  const logro = de('logro')[0];
+  if (logro && agenda.length < 6) agenda.unshift({ titulo: 'Logro y motivación', desde: logro.id });
+  return agenda.slice(0, 6);
 }
 
 // Algunos modelos escriben "Ce Ese Ese" en el texto en vez de "CSS": se deja la sigla y la voz la lee
@@ -812,5 +1082,81 @@ function sinDeletreos(clase) {
     if (dice.trim().split(/\s+/).length < 2) continue; // solo deletreos ("ce ese ese"), no palabras sueltas
     const re = new RegExp(`(?<![\\p{L}\\p{N}])${dice.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'giu');
     for (const bl of clase.bloques) bl.texto = bl.texto.replace(re, escrito);
+  }
+}
+
+// ---------------------------------------------------------------- pulido final
+// Lo que los modelos gratis suelen hacer mal en pantalla y se arregla sin otra peticion: Title Case ("Tres Niveles
+// De Acceso"), puntos finales en titulos y viñetas, titulo sin palabra clave marcada y "cuando" que la voz no dice
+// (el elemento apareceria a destiempo). Tambien la despedida del cierre.
+const MENORES = new Set(['a', 'al', 'ante', 'con', 'de', 'del', 'el', 'en', 'es', 'la', 'las', 'lo', 'los', 'o', 'para', 'por', 'que', 'se',
+  'sin', 'su', 'sus', 'tu', 'tus', 'un', 'una', 'unos', 'unas', 'y', 'e', 'u', 'mi', 'mis', 'como', 'mas', 'menos', 'muy', 'este', 'esta', 'esto', 'cada', 'entre']);
+const PROPIOS = ['Google', 'Gmail', 'Drive', 'Docs', 'Sheets', 'Slides', 'Meet', 'Classroom', 'Workspace', 'Calendar', 'Contactos', 'Word', 'Excel',
+  'PowerPoint', 'Outlook', 'Teams', 'Microsoft', 'Canva', 'Chrome', 'Windows', 'Zoom', 'WhatsApp', 'YouTube', 'JavaScript', 'Python', 'Internet',
+  'Universidad', 'Señor', 'Sipán', 'Perú', 'Chiclayo', 'Lambayeque'];
+const planoTxt = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const PALABRA = /\p{L}[\p{L}\p{N}'-]*/gu;
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+export function pulir(clase) {
+  const textoDe = Object.fromEntries(clase.bloques.map(b => [b.id, b.texto]));
+  // nombres propios: los de la lista y las palabras que el guion escribe con mayuscula a mitad de oracion
+  const propios = new Set(PROPIOS);
+  for (const b of clase.bloques) {
+    const pal = b.texto.split(/\s+/);
+    pal.forEach((w, i) => {
+      const limpia = w.replace(/^[¡¿"«(]+|[.,;:!?"»)]+$/g, '');
+      if (i > 0 && /^\p{Lu}/u.test(limpia) && !/[.!?:]$/.test(pal[i - 1])) propios.add(limpia);
+    });
+  }
+  // "Tres Niveles De Acceso" -> "Tres niveles de acceso" (respeta siglas, nombres propios y palabras como JavaScript)
+  const sinTitleCase = s => {
+    const t = String(s || '');
+    const resto = (t.match(PALABRA) || []).slice(1).filter(w => w.length > 3 && !propios.has(w) && !/^\p{Lu}{2,}/u.test(w));
+    if (!resto.length || resto.some(w => !/^\p{Lu}\p{Ll}/u.test(w))) return t;
+    let primera = true;
+    return t.replace(PALABRA, w => {
+      if (primera) { primera = false; return w; }
+      return propios.has(w) || !/^\p{Lu}\p{Ll}+$/u.test(w) ? w : w.toLowerCase();
+    });
+  };
+  const sinPunto = s => String(s || '').replace(/(\.{3}|…)\s*$/, '').replace(/(?<!\.)\.\s*$/, '').replace(/[:;,]\s*$/, '').trim();
+  const corta = s => sinPunto(sinTitleCase(s));
+  // sin *palabra clave*: se marca la ultima palabra con peso ("¿Cómo organizas tu *proyecto*?")
+  const conAcento = s => {
+    const t = String(s || '');
+    if (!t || t.includes('*')) return t;
+    const pal = [...t.matchAll(PALABRA)].filter(m => m[0].length >= 4 && !MENORES.has(planoTxt(m[0])));
+    const m = pal[pal.length - 1];
+    return m ? `${t.slice(0, m.index)}*${m[0]}*${t.slice(m.index + m[0].length)}` : t;
+  };
+  // "cuando" que no esta en el texto del bloque: se busca una palabra del elemento que la voz si diga
+  const dice = (c, id) => c && planoTxt(textoDe[id]).includes(planoTxt(c));
+  const cuandoDe = (x, id, ...campos) => {
+    if (dice(x.cuando, id)) return x.cuando;
+    const t = planoTxt(textoDe[id]);
+    const pal = campos.flatMap(c => String(x[c] || '').match(PALABRA) || []).filter(w => w.length >= 3 && !MENORES.has(planoTxt(w)));
+    const esta = r => new RegExp(`(?<![\\p{L}\\p{N}])${escRe(r)}`, 'u').test(t);
+    const largas = [...pal].sort((a, z) => z.length - a.length);
+    if (largas.find(w => esta(planoTxt(w)))) return largas.find(w => esta(planoTxt(w))); // la palabra tal cual
+    // o su raiz, cada vez mas corta ("verificación" -> "verifica"), sin bajar de 5 letras
+    for (const w of largas) for (let n = w.length - 1; n >= Math.max(5, w.length - 4); n--) if (esta(planoTxt(w).slice(0, n))) return planoTxt(w).slice(0, n);
+    return '';
+  };
+
+  for (const d of clase.diapositivas) {
+    if (!d || d.tipo === 'imagen') continue;
+    d.kicker = sinPunto(d.kicker);
+    if (d.titulo) d.titulo = d.tipo === 'logo' ? d.titulo : conAcento(corta(d.titulo).replace(/^(.)/, c => c.toUpperCase()));
+    if (d.sub) d.sub = sinTitleCase(d.sub);
+    (d.items || []).forEach(x => { x.texto = corta(x.texto); if (d.tipo !== 'portada') x.cuando = cuandoDe(x, d.bloque, 'texto'); });
+    (d.tarjetas || []).forEach(x => { x.titulo = corta(x.titulo); x.texto = sinTitleCase(x.texto); x.cuando = cuandoDe(x, d.bloque, 'titulo', 'texto'); });
+    for (const lado of [d.izq, d.der]) {
+      if (!lado || !(lado.titulo || lado.texto)) continue;
+      lado.titulo = corta(lado.titulo);
+      lado.texto = sinTitleCase(lado.texto);
+      lado.cuando = cuandoDe(lado, d.bloque, 'titulo', 'texto', 'etiqueta');
+    }
+    if (d.tipo === 'cierre' && !d.despedida && d === clase.diapositivas[clase.diapositivas.length - 1]) d.despedida = `¡Nos vemos en la próxima clase! · ${clase.avatar || 'SIPANCITOBOT'}`;
   }
 }

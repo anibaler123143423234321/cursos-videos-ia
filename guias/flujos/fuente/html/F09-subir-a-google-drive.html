@@ -1,0 +1,64 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><title>F09 · Subir a Google Drive</title><style>
+  @font-face { font-family: Inter; font-weight: 400; src: url(file:///Users/dagnerchumanlluen/Documents/USS/VideosAnuncios/clases-mac/node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2); }
+  @font-face { font-family: Inter; font-weight: 600; src: url(file:///Users/dagnerchumanlluen/Documents/USS/VideosAnuncios/clases-mac/node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2); }
+  @font-face { font-family: Inter; font-weight: 700; src: url(file:///Users/dagnerchumanlluen/Documents/USS/VideosAnuncios/clases-mac/node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2); }
+  @font-face { font-family: Inter; font-weight: 800; src: url(file:///Users/dagnerchumanlluen/Documents/USS/VideosAnuncios/clases-mac/node_modules/@fontsource/inter/files/inter-latin-800-normal.woff2); }
+  @font-face { font-family: Inter; font-weight: 900; src: url(file:///Users/dagnerchumanlluen/Documents/USS/VideosAnuncios/clases-mac/node_modules/@fontsource/inter/files/inter-latin-900-normal.woff2); }
+  @font-face { font-family: Serif; font-style: italic; src: url(file:///Users/dagnerchumanlluen/Documents/USS/VideosAnuncios/clases-mac/node_modules/@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2); }
+  :root { --verde: #a6c61a; --verde-osc: #5b6e00; --verde-50: #f3f8dc; --tinta: #121214; --gris: #5d616c; --linea: #e3e4e8; --caja: #f4f4f7; --morado: #3e32d4; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 400 9.6pt/1.5 Inter, sans-serif; color: var(--tinta); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .etiqueta { font-size: 7.4pt; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--verde-osc); margin: 0 0 2mm; }
+  h1 { display: flex; align-items: center; gap: 4mm; font-size: 18pt; line-height: 1.05; letter-spacing: -0.035em; font-weight: 900; margin: 0 0 2.5mm; }
+  h1 .cod { flex: none; font: 800 12pt/1 Inter; letter-spacing: .02em; color: #fff; background: var(--tinta); border-radius: 2mm; padding: 2mm 3mm; }
+  .proposito { font-size: 9.8pt; color: #34343f; margin: 0 0 4mm; max-width: 172mm; }
+  h2 { font-size: 11.5pt; font-weight: 800; letter-spacing: -0.01em; margin: 5mm 0 2mm; display: flex; align-items: center; gap: 2.5mm; }
+  h2::before { content: ''; width: 5mm; height: 1.4mm; border-radius: 1mm; background: var(--verde); }
+  .ficha { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--linea); border: 1px solid var(--linea); border-radius: 2.5mm; overflow: hidden; }
+  .ficha div { background: #fff; padding: 1.3mm 3mm; }
+  .ficha div.c2 { grid-column: span 2; }
+  .ficha div.c4 { grid-column: 1 / -1; }
+  .bloque-diagrama { break-inside: avoid; }
+  .ficha b { display: block; font-size: 7pt; letter-spacing: .12em; text-transform: uppercase; color: var(--gris); margin-bottom: .4mm; }
+  .ficha span { font-size: 8.9pt; line-height: 1.4; }
+  .diagrama { width: 100%; height: auto; border: 1px solid var(--linea); border-radius: 2.5mm; }
+  .leyenda { font-size: 7.8pt; color: var(--gris); margin: 1.5mm 0 0; }
+  .salto { break-before: page; }
+  table { width: 100%; border-collapse: collapse; font-size: 8.7pt; }
+  th { text-align: left; font-size: 7pt; letter-spacing: .12em; text-transform: uppercase; color: var(--gris); padding: 1.6mm 2mm; border-bottom: 1.5px solid var(--tinta); }
+  td { padding: 1.5mm 2mm; border-bottom: 1px solid var(--linea); vertical-align: top; line-height: 1.42; }
+  tr { break-inside: avoid; }
+  td.n { width: 9mm; font-weight: 800; color: var(--verde-osc); }
+  td.actor { width: 33mm; font-weight: 700; }
+  td.paso { width: 52mm; font-weight: 600; }
+  .dec td.n { color: #a08300; }
+  ul.reglas { margin: 0; padding-left: 4.5mm; } ul.reglas li { margin-bottom: .8mm; }
+  .chips { display: flex; flex-wrap: wrap; gap: 2mm; } .chips span { font: 600 8.4pt Consolas, monospace; background: var(--caja); border-radius: 1.5mm; padding: .8mm 2.2mm; }
+  .rel span { font-family: Inter; font-weight: 800; background: var(--verde-50); color: var(--verde-osc); }
+  .indice td.cod { width: 14mm; font-weight: 900; }
+</style></head><body>
+    <p class="etiqueta">Manual de flujos · Estudio de clases USS</p>
+    <h1><span class="cod">F09</span>Subir a Google Drive</h1>
+    <p class="proposito">Dejar el video, la clase en HTML y su código en la carpeta compartida del curso, ordenados por mes, curso, tipo y módulo.</p>
+    <div class="ficha"><div class=""><b>Código</b><span>F09</span></div><div class=""><b>Responsable</b><span>Equipo del estudio (conecta) · Docente (sube)</span></div><div class=""><b>Frecuencia</b><span>Al terminar cada video final</span></div><div class=""><b>Tiempo</b><span>≈ 1 minuto</span></div><div class="c2"><b>Disparador</b><span>Termina un video final o se pulsa «Subir a Google Drive»</span></div><div class="c2"><b>Requisitos</b><span>Drive conectado una vez en la PC del estudio (CONECTAR-DRIVE) o Google Drive para escritorio</span></div><div class="c2"><b>Entradas</b><span>Video, HTML, clase.json y láminas</span></div><div class="c2"><b>Salidas</b><span>Archivos en la carpeta compartida</span></div><div class="c4"><b>Sistemas</b><span>motor/drive.mjs · API de Google Drive o carpeta local de Drive</span></div></div>
+    <div class="bloque-diagrama"><h2>Diagrama del flujo</h2><svg class="diagrama" viewBox="0 0 680 262" xmlns="http://www.w3.org/2000/svg" font-family="Inter, Arial, sans-serif"><defs><marker id="punta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0 0L10 5L0 10z" fill="#1d1d22"/></marker></defs><rect x="0" y="0" width="170" height="262" fill="#ffffff"/><rect x="3" y="3" width="164" height="28" rx="6" fill="#eef6cf"/><text x="85" y="21" text-anchor="middle" font-size="11" font-weight="800" fill="#1d1d22">Docente</text><rect x="170" y="0" width="170" height="262" fill="#fbfbfd"/><rect x="173" y="3" width="164" height="28" rx="6" fill="#ecebff"/><text x="255" y="21" text-anchor="middle" font-size="11" font-weight="800" fill="#1d1d22">Web del estudio</text><line x1="170" y1="0" x2="170" y2="262" stroke="#d9dbe2" stroke-dasharray="3 4"/><rect x="340" y="0" width="170" height="262" fill="#ffffff"/><rect x="343" y="3" width="164" height="28" rx="6" fill="#fff1e6"/><text x="425" y="21" text-anchor="middle" font-size="11" font-weight="800" fill="#1d1d22">Motor de video</text><line x1="340" y1="0" x2="340" y2="262" stroke="#d9dbe2" stroke-dasharray="3 4"/><rect x="510" y="0" width="170" height="262" fill="#fbfbfd"/><rect x="513" y="3" width="164" height="28" rx="6" fill="#e8f1ff"/><text x="595" y="21" text-anchor="middle" font-size="11" font-weight="800" fill="#1d1d22">Google Drive</text><line x1="510" y1="0" x2="510" y2="262" stroke="#d9dbe2" stroke-dasharray="3 4"/><path d="M85 81 V87" fill="none" stroke="#1d1d22" stroke-width="1.3" marker-end="url(#punta)"/><rect x="8" y="46" width="154" height="35" rx="7" fill="#fff" stroke="#7d9a0c"
+      stroke-width="1.4" /><rect x="8" y="46" width="5" height="35" rx="2" fill="#7d9a0c"/><circle cx="26" cy="63.5" r="9" fill="#7d9a0c"/><text x="26" y="67" text-anchor="middle" font-size="9" font-weight="800" fill="#fff">1</text><text x="40" y="61.599999999999994" font-size="9.2" font-weight="600" fill="#1d1d22">Conecta Drive una vez</text><text x="40" y="72" font-size="9.2" font-weight="600" fill="#1d1d22">(Ajustes)</text><path d="M85 123 V126.5 H425 V129" fill="none" stroke="#1d1d22" stroke-width="1.3" marker-end="url(#punta)"/><text x="91" y="133" font-size="8.5" font-weight="700" fill="#5b6e00">Sí</text><rect x="8" y="88" width="154" height="35" rx="18" fill="#fffbe6" stroke="#c9a400"
+      stroke-width="1.4" stroke-dasharray="4 3"/><rect x="8" y="88" width="5" height="35" rx="2" fill="#c9a400"/><circle cx="26" cy="105.5" r="9" fill="#c9a400"/><text x="26" y="109" text-anchor="middle" font-size="9" font-weight="800" fill="#fff">2</text><text x="40" y="108.8" font-size="9.2" font-weight="600" fill="#1d1d22">¿Subir ahora?</text><path d="M425 165 V168.5 H595 V171" fill="none" stroke="#1d1d22" stroke-width="1.3" marker-end="url(#punta)"/><rect x="348" y="130" width="154" height="35" rx="7" fill="#fff" stroke="#c2410c"
+      stroke-width="1.4" /><rect x="348" y="130" width="5" height="35" rx="2" fill="#c2410c"/><circle cx="366" cy="147.5" r="9" fill="#c2410c"/><text x="366" y="151" text-anchor="middle" font-size="9" font-weight="800" fill="#fff">3</text><text x="380" y="150.8" font-size="9.2" font-weight="600" fill="#1d1d22">Arma la ruta de carpetas</text><path d="M595 207 V210.5 H255 V213" fill="none" stroke="#1d1d22" stroke-width="1.3" marker-end="url(#punta)"/><rect x="518" y="172" width="154" height="35" rx="7" fill="#fff" stroke="#1f5fd1"
+      stroke-width="1.4" /><rect x="518" y="172" width="5" height="35" rx="2" fill="#1f5fd1"/><circle cx="536" cy="189.5" r="9" fill="#1f5fd1"/><text x="536" y="193" text-anchor="middle" font-size="9" font-weight="800" fill="#fff">4</text><text x="550" y="187.60000000000002" font-size="9.2" font-weight="600" fill="#1d1d22">Recibe video, HTML y</text><text x="550" y="198.00000000000003" font-size="9.2" font-weight="600" fill="#1d1d22">código de la clase</text><rect x="178" y="214" width="154" height="35" rx="7" fill="#fff" stroke="#3e32d4"
+      stroke-width="1.4" /><rect x="178" y="214" width="5" height="35" rx="2" fill="#3e32d4"/><circle cx="196" cy="231.5" r="9" fill="#3e32d4"/><text x="196" y="235" text-anchor="middle" font-size="9" font-weight="800" fill="#fff">5</text><text x="210" y="229.60000000000002" font-size="9.2" font-weight="600" fill="#1d1d22">Avisa «Subido a Google</text><text x="210" y="240.00000000000003" font-size="9.2" font-weight="600" fill="#1d1d22">Drive»</text></svg>
+    <p class="leyenda">Cada carril es un actor y los pasos van de arriba abajo. Las cajas punteadas son decisiones: «Sí» sigue la flecha; la otra salida está en la tabla de pasos (◆).</p></div>
+    <div class="salto"></div>
+    <h2>Pasos del flujo</h2><table><tr><th>N.°</th><th>Actor</th><th>Paso</th><th>Qué pasa</th></tr><tr class=""><td class="n">1</td>
+    <td class="actor">Docente</td><td class="paso">Conecta Drive una vez (Ajustes)</td><td>Se sube el JSON del cliente de Google y se pulsa «Conectar»; el permiso queda en drive-token.json.</td></tr><tr class="dec"><td class="n">2 ◆</td>
+    <td class="actor">Docente</td><td class="paso">¿Subir ahora?</td><td>Automático al terminar el video final, o con «Subir a Google Drive» en «Producción».</td></tr><tr class=""><td class="n">3</td>
+    <td class="actor">Motor de video</td><td class="paso">Arma la ruta de carpetas</td><td>Videos de clases IA / AAAA-MM / Curso / Video con HTML o Video con láminas / Módulo / clase.</td></tr><tr class=""><td class="n">4</td>
+    <td class="actor">Google Drive</td><td class="paso">Recibe video, HTML y código de la clase</td><td>Nunca la voz ni la cámara del docente.</td></tr><tr class=""><td class="n">5</td>
+    <td class="actor">Web del estudio</td><td class="paso">Avisa «Subido a Google Drive»</td><td></td></tr></table>
+    <h2>Reglas del negocio</h2><ul class="reglas"><li>El curso y el módulo de la ficha deciden las carpetas: escríbelos bien antes del video final.</li><li>Sin Drive conectado no se sube nada.</li></ul>
+    <h2>Errores frecuentes</h2><table><tr><th>Lo que ves</th><th>Por qué pasa</th><th>Qué hacer</th></tr>
+      <tr><td class="paso">«Google Drive no está conectado»</td><td>Falta drive-token.json.</td><td>Abre CONECTAR-DRIVE en la PC del estudio.</td></tr><tr><td class="paso">«No existe DRIVE_RUTA_LOCAL»</td><td>La carpeta de Google Drive para escritorio no está disponible.</td><td>Abre Google Drive para escritorio y revisa la ruta.</td></tr></table>
+    <h2>Archivos y datos</h2><div class="chips"><span>motor/drive.mjs</span><span>drive-token.json y google-drive-cliente.json (privados)</span></div>
+    <h2>Flujos relacionados</h2><div class="chips rel"><span>F08 · Crear el video final</span><span>F10 · Configurar servicios (Ajustes)</span></div>
+  </body></html>

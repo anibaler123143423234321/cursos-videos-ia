@@ -15,3 +15,5 @@ voces/
 google-drive-cliente.json
 drive-token.json
 clases/*/drive.json
+# sesiones abiertas de la web (se crean solas)
+.sesiones.json

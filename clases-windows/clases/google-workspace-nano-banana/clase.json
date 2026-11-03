@@ -1,0 +1,105 @@
+{
+  "avatar": "SIPANCITOBOT",
+  "rol_avatar": "Asistente docente IA",
+  "docente": "",
+  "institucion": "Universidad Señor de Sipán",
+  "curso": "Competencias Digitales",
+  "modulo": "Módulo I · Ecosistema Cloud",
+  "banda": "Competencias Digitales",
+  "tema": "Google Workspace: Herramientas Digitales y Colaboración",
+  "nivel": "Básico",
+  "duracion_objetivo": 120,
+  "voz": {
+    "proveedor": "auto",
+    "elevenlabs_voz": ""
+  },
+  "pronunciacion": {
+    "USS": "u ese ese",
+    "Google": "gúgol",
+    "Workspace": "uórkspeis",
+    "Drive": "draiv",
+    "Docs": "docs",
+    "Sheets": "shits",
+    "SIPANCITOBOT": "sipancitobot"
+  },
+  "agenda": [
+    {
+      "titulo": "Ecosistema Workspace",
+      "desde": "01"
+    },
+    {
+      "titulo": "Colaboración en vivo",
+      "desde": "02"
+    },
+    {
+      "titulo": "Buenas prácticas y reto",
+      "desde": "03"
+    }
+  ],
+  "bloques": [
+    {
+      "id": "01",
+      "texto": "¡Hola! Soy SIPANCITOBOT, tu asistente docente en la Universidad Señor de Sipán. Hoy exploraremos el ecosistema de Google Workspace y cómo estas herramientas digitales transforman el trabajo colaborativo en la universidad."
+    },
+    {
+      "id": "02",
+      "texto": "Observa el flujo de trabajo: Google Drive centraliza tus archivos y gestiona los permisos en la nube. Con Google Docs trabajas en coedición simultánea y comentarios con tu equipo. Y con Google Sheets analizas datos y organizas tus proyectos sin perder tiempo."
+    },
+    {
+      "id": "03",
+      "texto": "Para trabajar con éxito, aplica las reglas de oro: configura permisos de lectura o edición según corresponda, protege tu cuenta con doble factor y organiza tus carpetas. Tu reto de hoy es crear una carpeta en Drive y compartir un documento en Docs con tus compañeros. ¡Muchos éxitos en la USS!"
+    }
+  ],
+  "diapositivas": [
+    {
+      "bloque": "01",
+      "tipo": "imagen",
+      "imagen": "laminas/01.jpg"
+    },
+    {
+      "bloque": "02",
+      "tipo": "imagen",
+      "imagen": "laminas/02.jpg",
+      "efectos": [
+        {
+          "tipo": "foco",
+          "caja": [5, 25, 28, 65],
+          "cuando": "Google Drive",
+          "bloque": "02"
+        },
+        {
+          "tipo": "foco",
+          "caja": [36, 25, 28, 65],
+          "cuando": "Google Docs",
+          "bloque": "02"
+        },
+        {
+          "tipo": "foco",
+          "caja": [67, 25, 28, 65],
+          "cuando": "Google Sheets",
+          "bloque": "02"
+        }
+      ]
+    },
+    {
+      "bloque": "03",
+      "tipo": "imagen",
+      "imagen": "laminas/03.jpg",
+      "efectos": [
+        {
+          "tipo": "foco",
+          "caja": [5, 20, 44, 75],
+          "cuando": "reglas de oro",
+          "bloque": "03"
+        },
+        {
+          "tipo": "zoom",
+          "caja": [51, 20, 44, 75],
+          "cuando": "reto de hoy",
+          "bloque": "03"
+        }
+      ]
+    }
+  ],
+  "slug": "google-workspace-nano-banana"
+}

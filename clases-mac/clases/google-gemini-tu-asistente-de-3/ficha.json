@@ -1,0 +1,16 @@
+{
+  "tema": "Google Gemini: tu asistente de inteligencia artificial",
+  "nivel": "Básico",
+  "duracion": "3:00",
+  "objetivo": "Al finalizar la sesión, el estudiante accede a Gemini, redacta instrucciones claras y usa sus respuestas de forma responsable en Google Workspace.",
+  "puntos": "Qué es Gemini: el asistente de inteligencia artificial de Google; responde, resume y redacta, pero puede equivocarse, así que siempre verificas sus respuestas.\nCómo entrar: en gemini.google.com con tu cuenta de Google. En Gmail, Docs y Drive, si tu cuenta lo tiene activado, aparece el ícono de Gemini (una estrella de cuatro puntas) arriba a la derecha.\nTu primera instrucción: escribe tu pedido en el cuadro de texto de abajo y envíalo; por ejemplo, pide el resumen de un texto en tres puntos.\nInstrucciones efectivas: indica rol, tarea, contexto y formato (como recomienda la guía de instrucciones de Google). Ejemplo: Eres mi tutor de estadística; explícame la mediana con un ejemplo, en tres viñetas.\nGemini en Gmail y Docs: «Ayúdame a escribir» crea un borrador que tú revisas y editas; en Gmail también puede resumir un correo largo.\nUso responsable: no compartas contraseñas ni datos personales, revisa los datos antes de usarlos y no entregues como tuyo un texto que no revisaste.",
+  "ejemplo": "Una instrucción con rol, tarea, contexto y formato, y cómo cambia la respuesta",
+  "reto": "",
+  "curso": "Google Workspace",
+  "modulo": "",
+  "avatar": "SIPANCITOBOT",
+  "rol_avatar": "Asistente docente IA",
+  "docente": "",
+  "modo": "gratis",
+  "creada": "2026-11-03T20:53:30.709Z"
+}

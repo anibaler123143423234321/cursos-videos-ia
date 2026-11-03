@@ -1,0 +1,607 @@
+{
+  "avatar": "SIPANCITOBOT",
+  "rol_avatar": "Asistente docente IA",
+  "docente": "",
+  "institucion": "Universidad Señor de Sipán",
+  "curso": "Microsoft Office",
+  "modulo": "",
+  "banda": "Microsoft Office",
+  "tema": "Microsoft Word: estilos y tabla de contenido",
+  "nivel": "Básico",
+  "duracion_objetivo": 150,
+  "voz": {
+    "proveedor": "auto",
+    "elevenlabs_voz": ""
+  },
+  "pronunciacion": {
+    "SIPANCITOBOT": "sipancitobot"
+  },
+  "agenda": [
+    {
+      "titulo": "Qué son los estilos",
+      "desde": "05"
+    },
+    {
+      "titulo": "Cambiar su apariencia",
+      "desde": "06"
+    },
+    {
+      "titulo": "Insertar tabla",
+      "desde": "07"
+    },
+    {
+      "titulo": "Actualizar el índice",
+      "desde": "08"
+    },
+    {
+      "titulo": "Error común al indexar",
+      "desde": "10"
+    },
+    {
+      "titulo": "Práctica y cierre",
+      "desde": "09"
+    }
+  ],
+  "bloques": [
+    {
+      "id": "01",
+      "texto": "¡Hola! Soy SIPANCITOBOT, tu asistente docente de la Universidad Señor de Sipán. Bienvenido a Microsoft Office: hoy aprenderás a organizar tus documentos con estilos y una tabla de contenido automática."
+    },
+    {
+      "id": "02",
+      "texto": "Tu logro de aprendizaje: al finalizar la sesión, aplicas estilos de título a tus secciones y insertas una tabla de contenido que se actualiza sola cuando cambias el texto."
+    },
+    {
+      "id": "03",
+      "texto": "¿Te ha pasado que cambias el grosor de una letra en un título y luego te toca hacerlo en los otros diez? Con los estilos, un clic cambia todo el documento al instante."
+    },
+    {
+      "id": "04",
+      "texto": "Hoy veremos: qué son los estilos, cómo cambiar su apariencia, cómo insertar la tabla de contenido, cómo actualizarla y un error común al formar el índice."
+    },
+    {
+      "id": "05",
+      "texto": "Empecemos por los estilos. Son plantillas de formato que Word guarda para usar en todo el texto. En la pestaña Inicio, en la galería de Estilos, selecciona «Título 1» para marcar el encabezado principal de tu sección."
+    },
+    {
+      "id": "06",
+      "texto": "Ahora, cambia la apariencia de un estilo para todos los títulos a la vez. Haz clic derecho sobre «Título 1» y elige «Modificar». Cambia la fuente a Arial y el tamaño a 16; todos los títulos se actualizarán automáticamente."
+    },
+    {
+      "id": "07",
+      "texto": "Con los títulos listos, insertamos la tabla de contenido. Ve a la pestaña Referencias y pulsa el botón «Tabla de contenido». Elige «Tabla automática 1» o «2» y Word generará el índice con los números de página."
+    },
+    {
+      "id": "08",
+      "texto": "Por último, actualiza el índice si editas el texto. Después de cambiar un título o agregar páginas, clic derecho sobre la tabla y selecciona «Actualizar campos». Elige «Actualizar solo números de página» si solo cambió la extensión."
+    },
+    {
+      "id": "09",
+      "texto": "Ahora te toca practicar: aplica el estilo Título 1 a tres secciones, crea una tabla de contenido y renombra una sección para luego actualizar los números de página. Además, revisa las pautas y actividades que tu docente asignará en el aula virtual."
+    },
+    {
+      "id": "10",
+      "texto": "Cuidado con un error frecuente: si pones rojas las líneas del índice, Word no las reconoce como estilos. Asegúrate de aplicar el formato desde la galería, no manualmente, para que la tabla funcione correctamente y se genere sin problemas."
+    },
+    {
+      "id": "11",
+      "texto": "Repasemos: identificaste los estilos como plantillas de formato, modificaste su apariencia global, insertaste una tabla de contenido profesional, la actualizaste tras cambios y evitarás el error de formateo manual. Ya puedes ordenar tus documentos académicos."
+    },
+    {
+      "id": "12",
+      "texto": "Gracias por estudiar con nosotros. ¡Nos vemos en la próxima sesión de Microsoft Office!"
+    }
+  ],
+  "diapositivas": [
+    {
+      "bloque": "01",
+      "tipo": "portada",
+      "variante": "",
+      "kicker": "Microsoft Word · Básico",
+      "titulo": "Estilos y *índice* automático",
+      "sub": "Organiza tus documentos con formato profesional y actualizable.",
+      "nota": "",
+      "icono": "presentacion",
+      "items": [
+        {
+          "texto": "Estilos",
+          "cuando": ""
+        },
+        {
+          "texto": "Formato global",
+          "cuando": ""
+        },
+        {
+          "texto": "Tabla de contenido",
+          "cuando": ""
+        }
+      ],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "02",
+      "tipo": "definicion",
+      "variante": "",
+      "kicker": "Logro de aprendizaje",
+      "titulo": "Al finalizar la *sesión*",
+      "sub": "Aplicas estilos de título a tus secciones y insertas una tabla de contenido que se actualiza sola cuando cambias el texto.",
+      "nota": "",
+      "icono": "objetivo",
+      "items": [
+        {
+          "texto": "Aplicas estilos de título",
+          "cuando": "aplicas"
+        },
+        {
+          "texto": "Insertas tabla de contenido",
+          "cuando": "insertas"
+        },
+        {
+          "texto": "Actualización automática",
+          "cuando": "actualiza"
+        }
+      ],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "03",
+      "tipo": "pregunta",
+      "variante": "",
+      "kicker": "Motivación",
+      "titulo": "¿Cambias el formato *diez veces*?",
+      "sub": "Con los estilos, un clic cambia todo el documento al instante.",
+      "nota": "",
+      "icono": "",
+      "items": [],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "04",
+      "tipo": "temario",
+      "variante": "",
+      "kicker": "Temario",
+      "titulo": "Lo que veremos *hoy*",
+      "sub": "",
+      "nota": "",
+      "icono": "",
+      "items": [
+        {
+          "texto": "Qué son los estilos",
+          "cuando": "son"
+        },
+        {
+          "texto": "Cambiar su apariencia",
+          "cuando": "apariencia",
+          "icono": "editar"
+        },
+        {
+          "texto": "Insertar tabla de contenido",
+          "cuando": "contenido",
+          "icono": "tabla"
+        },
+        {
+          "texto": "Actualizar el índice",
+          "cuando": "actualizarla"
+        },
+        {
+          "texto": "Error común al indexar",
+          "cuando": "error",
+          "icono": "alerta"
+        }
+      ],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "05",
+      "tipo": "ruta",
+      "variante": "",
+      "kicker": "Tema 1 · Estilos",
+      "titulo": "Aplica «Título 1» a tu *texto*",
+      "sub": "Marca el encabezado principal desde la galería.",
+      "nota": "",
+      "icono": "",
+      "items": [
+        {
+          "texto": "Inicio",
+          "cuando": "pestaña Inicio"
+        },
+        {
+          "texto": "Estilos",
+          "cuando": "galería de Estilos"
+        },
+        {
+          "texto": "Título 1",
+          "cuando": "«Título 1»"
+        }
+      ],
+      "codigo": "",
+      "archivo": "",
+      "app": "Microsoft Word",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "06",
+      "tipo": "pasos",
+      "variante": "",
+      "kicker": "Tema 2 · Modificar",
+      "titulo": "Cambia el estilo *una sola vez*",
+      "sub": "",
+      "nota": "",
+      "icono": "",
+      "items": [
+        {
+          "texto": "Haz clic derecho en Título 1",
+          "cuando": "clic derecho"
+        },
+        {
+          "texto": "Elige la opción Modificar",
+          "cuando": "«Modificar»"
+        },
+        {
+          "texto": "Cambia fuente a Arial 16",
+          "cuando": "Arial"
+        },
+        {
+          "texto": "Todo el documento se actualiza",
+          "cuando": "automáticamente"
+        }
+      ],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "07",
+      "tipo": "ruta",
+      "variante": "",
+      "kicker": "Tema 3 · Índice",
+      "titulo": "Inserta la *tabla* de contenido",
+      "sub": "Genera el índice automático con números de página.",
+      "nota": "",
+      "icono": "",
+      "items": [
+        {
+          "texto": "Referencias",
+          "cuando": "pestaña Referencias"
+        },
+        {
+          "texto": "Tabla de contenido",
+          "cuando": "«Tabla de contenido»"
+        },
+        {
+          "texto": "Tabla automática 1",
+          "cuando": "«Tabla automática 1»"
+        }
+      ],
+      "codigo": "",
+      "archivo": "",
+      "app": "Microsoft Word",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "08",
+      "tipo": "flujo",
+      "variante": "",
+      "kicker": "Tema 4 · Actualizar",
+      "titulo": "Sincroniza el índice tras *cambios*",
+      "sub": "Refresca los datos si editas tu documento.",
+      "nota": "",
+      "icono": "",
+      "items": [],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [
+        {
+          "titulo": "Editar",
+          "texto": "Cambia títulos o agrega texto",
+          "cuando": "editas",
+          "icono": "editar"
+        },
+        {
+          "titulo": "Clic derecho",
+          "texto": "Sobre la tabla generada",
+          "cuando": "clic derecho",
+          "icono": "clic"
+        },
+        {
+          "titulo": "Actualizar",
+          "texto": "Elige «Actualizar campos»",
+          "cuando": "«Actualizar campos»"
+        }
+      ],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "09",
+      "tipo": "tarjetas",
+      "variante": "",
+      "kicker": "Práctica",
+      "titulo": "Aplica y verifica el *índice*",
+      "sub": "Revisa las pautas y actividades del aula virtual.",
+      "nota": "",
+      "icono": "",
+      "items": [],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [
+        {
+          "titulo": "Estilos",
+          "texto": "Aplica Título 1 a tres secciones",
+          "cuando": "Título 1",
+          "icono": "estrella"
+        },
+        {
+          "titulo": "Índice",
+          "texto": "Inserta la tabla automática",
+          "cuando": "tabla de contenido",
+          "icono": "tabla"
+        },
+        {
+          "titulo": "Actualización",
+          "texto": "Renombra una sección y refresca",
+          "cuando": "Renombra"
+        }
+      ],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "10",
+      "tipo": "comparacion",
+      "variante": "",
+      "kicker": "Tema 5 · Error común",
+      "titulo": "Formato *manual* vs automático",
+      "sub": "El índice solo reconoce los estilos de la galería.",
+      "nota": "",
+      "icono": "",
+      "items": [],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "MANUAL",
+        "titulo": "Color y fuente a mano",
+        "texto": "Word no lo detecta como estilo.",
+        "cuando": "rojas",
+        "icono": "alerta"
+      },
+      "der": {
+        "etiqueta": "ESTILO",
+        "titulo": "Galería de formatos",
+        "texto": "El índice se genera y actualiza.",
+        "cuando": "galería",
+        "icono": "check"
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "11",
+      "tipo": "cierre",
+      "variante": "",
+      "kicker": "Qué aprendí",
+      "titulo": "Documentos ordenados *profesionalmente*",
+      "sub": "",
+      "nota": "",
+      "icono": "",
+      "items": [
+        {
+          "texto": "Estilos como plantillas de formato",
+          "cuando": "plantillas"
+        },
+        {
+          "texto": "Modificación global de la apariencia",
+          "cuando": "modificaste"
+        },
+        {
+          "texto": "Insertar tabla de contenido",
+          "cuando": "insertaste"
+        },
+        {
+          "texto": "Actualizar tras cambios",
+          "cuando": "actualizaste"
+        }
+      ],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "12",
+      "tipo": "logo",
+      "variante": "",
+      "kicker": "",
+      "titulo": "¡Nos vemos en la *próxima sesión*!",
+      "sub": "SIPANCITOBOT · Asistente docente IA",
+      "nota": "",
+      "icono": "",
+      "items": [],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    }
+  ],
+  "semilla": 643006,
+  "slug": "microsoft-word-estilos-y-tabla-de"
+}

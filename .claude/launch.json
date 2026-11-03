@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web-clases-mac",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["clases-mac/web/servidor.mjs"],
+      "port": 8080
+    }
+  ]
+}

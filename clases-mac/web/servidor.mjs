@@ -53,7 +53,14 @@ if (!ENV.WEB_CLAVE) {
 const PUERTO = parseInt(process.env.WEB_PUERTO || ENV.WEB_PUERTO || '8080', 10);
 
 // ---------------------------------------------------------------- sesiones (clave compartida)
-const sesiones = new Map(); // token -> vence (ms)
+// token -> vence (ms). Se guardan en .sesiones.json (no se sube a GitHub): al reiniciar la web nadie tiene que volver a entrar.
+const SESIONES_F = path.join(RAIZ, '.sesiones.json');
+const sesiones = new Map((() => {
+  try { return Object.entries(JSON.parse(fs.readFileSync(SESIONES_F, 'utf8'))).filter(([t, v]) => /^[a-f0-9]{48}$/.test(t) && v > Date.now()); } catch { return []; }
+})());
+function guardarSesiones() {
+  try { fs.writeFileSync(SESIONES_F, JSON.stringify(Object.fromEntries(sesiones))); } catch { /* sin permiso de escritura: solo duran hasta reiniciar */ }
+}
 const intentos = new Map(); // ip -> [ms...]
 function sesionValida(req) {
   const m = /(?:^|;\s*)sesion=([a-f0-9]{48})/.exec(req.headers.cookie || '');
@@ -259,6 +266,7 @@ async function rutaApi(req, res, url) {
     if (!claveCorrecta(clave)) { recientes.push(Date.now()); intentos.set(ip, recientes); return json(res, 401, { error: 'Clave incorrecta' }); }
     const token = crypto.randomBytes(24).toString('hex');
     sesiones.set(token, Date.now() + 12 * 3600e3);
+    guardarSesiones();
     res.setHeader('Set-Cookie', `sesion=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=43200`);
     return json(res, 200, { ok: true });
   }
@@ -266,7 +274,7 @@ async function rutaApi(req, res, url) {
 
   if (p === '/api/salir' && req.method === 'POST') {
     const t = /(?:^|;\s*)sesion=([a-f0-9]{48})/.exec(req.headers.cookie || '');
-    if (t) sesiones.delete(t[1]);
+    if (t) { sesiones.delete(t[1]); guardarSesiones(); }
     res.setHeader('Set-Cookie', 'sesion=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');
     return json(res, 200, { ok: true });
   }

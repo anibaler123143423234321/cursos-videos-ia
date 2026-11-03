@@ -12,9 +12,11 @@ let estado = null;   // lo que esta configurado (IA, voz, logo)
 let editor = null;   // clase abierta
 let sondeo = null;
 
-const TIPOS = [['', '— Sigue la diapositiva anterior —'], ['portada', 'Portada'], ['idea', 'Idea clave'], ['lista', 'Lista'],
-  ['pasos', 'Pasos numerados'], ['codigo', 'Código'], ['comparacion', 'Comparación'], ['tarjetas', 'Tarjetas'], ['dato', 'Dato grande'], ['cierre', 'Cierre y reto'],
-  ['imagen', 'Lámina (imagen)']];
+
+const TIPOS = [['', '— Sigue la diapositiva anterior —'], ['portada', 'Portada'], ['pregunta', 'Pregunta (fondo oscuro)'], ['idea', 'Idea clave'],
+['definicion', 'Definición o logro'], ['temario', 'Temario'], ['lista', 'Lista'], ['pasos', 'Pasos en línea'], ['ruta', 'Clics en una app'],
+['flujo', 'Flujo con flechas'], ['codigo', 'Código o texto modelo'], ['comparacion', 'Comparación'], ['tarjetas', 'Tarjetas'], ['dato', 'Dato grande'],
+['cierre', 'Cierre y reto'], ['logo', 'Despedida con logo'], ['imagen', 'Lámina (imagen)']];
 const TRABAJOS = {
   voz: { nombre: 'Vista previa con voz', icono: 'volumen', desc: 'Escucha la clase en el navegador', dura: '≈ 1 min' },
   capturas: { nombre: 'Revisar diapositivas', icono: 'imagen', desc: 'Fotos de cada diapositiva', dura: '≈ 1 min' },
@@ -138,8 +140,10 @@ async function imagenAJpg(archivo) {
 async function pdfAJpgs(archivo, avance) {
   const pdfjs = await import('/node_modules/pdfjs-dist/build/pdf.min.mjs');
   pdfjs.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.min.mjs';
-  const doc = await pdfjs.getDocument({ data: await archivo.arrayBuffer(), cMapUrl: '/node_modules/pdfjs-dist/cmaps/', cMapPacked: true,
-    standardFontDataUrl: '/node_modules/pdfjs-dist/standard_fonts/' }).promise;
+  const doc = await pdfjs.getDocument({
+    data: await archivo.arrayBuffer(), cMapUrl: '/node_modules/pdfjs-dist/cmaps/', cMapPacked: true,
+    standardFontDataUrl: '/node_modules/pdfjs-dist/standard_fonts/'
+  }).promise;
   const res = [];
   for (let i = 1; i <= doc.numPages; i++) {
     avance(`${archivo.name}: página ${i} de ${doc.numPages}`);
@@ -153,7 +157,7 @@ async function pdfAJpgs(archivo, avance) {
   return res;
 }
 // varias imagenes (en orden de nombre: 1.png, 2.png ... 10.png) y/o PDF -> laminas
-async function aLaminas(archivos, avance = () => {}) {
+async function aLaminas(archivos, avance = () => { }) {
   const lista = [...archivos].sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }));
   const res = [];
   for (const f of lista) {
@@ -208,11 +212,11 @@ function pintarLateral(h) {
   $('#menu').innerHTML = [['/', 'clases', 'Clases'], ['/nueva', 'mas', 'Nueva clase'], ['/ajustes', 'ajustes', 'Ajustes']]
     .map(([r, i, n]) => `<a class="menu-item ${r === actual ? 'activo' : ''}" href="#${r}" ${r === actual ? 'aria-current="page"' : ''}>${ico(i, 18)}<span>${n}</span></a>`).join('');
   $('#servicios').innerHTML = [['IA gratis', estado.ia.gratis], ['IA que lee láminas', estado.ia.vision], ['Claude', estado.ia.claude],
-    ['Voz local gratis', estado.voz.local], ['Azure', estado.voz.azure], ['ElevenLabs', estado.voz.elevenlabs], ['Google Drive', estado.drive.conectado]]
+  ['Voz local gratis', estado.voz.local], ['Azure', estado.voz.azure], ['ElevenLabs', estado.voz.elevenlabs], ['Google Drive', estado.drive.conectado]]
     .map(([n, ok]) => `<li><a href="#/ajustes"><i class="punto ${ok ? 'on' : ''}"></i>${n}<span>${ok ? 'Configurado' : 'Sin configurar'}</span></a></li>`).join('');
   $('#salir').innerHTML = `${ico('salir', 18)}<span>Salir</span>`;
 }
-$('#salir').onclick = async () => { await api('/api/salir', { method: 'POST' }).catch(() => {}); mostrarLogin(); };
+$('#salir').onclick = async () => { await api('/api/salir', { method: 'POST' }).catch(() => { }); mostrarLogin(); };
 
 function mostrarLogin() {
   editor = null;
@@ -344,7 +348,7 @@ function vistaNueva() {
           <summary>${ico('bot')}Curso, módulo y avatar <span class="muted" id="resumen-avatar"></span>${ico('abajo')}</summary>
           <div>
             <div class="campos2">
-              <div><label for="n-cur">Curso</label><input type="text" id="n-cur" name="curso" value="Diseño Web"></div>
+              <div><label for="n-cur">Curso</label><input type="text" id="n-cur" name="curso" placeholder="Ej. Herramientas Digitales"></div>
               <div><label for="n-mod">Módulo <span class="ayuda">carpeta en Google Drive</span></label><input type="text" id="n-mod" name="modulo" placeholder="Ej.: Módulo 1 · HTML"></div>
               <div><label for="n-ava">Nombre del avatar</label><input type="text" id="n-ava" name="avatar" value="SIPANCITOBOT"></div>
               <div><label for="n-rol">Rol del avatar</label><input type="text" id="n-rol" name="rol_avatar" value="Asistente docente IA"></div>
@@ -499,7 +503,7 @@ function vistaNueva() {
         <div class="cronometro" id="crono">0:00</div>
         <ol class="pasos-ia"><li><b>1</b>Lo que dice la voz en cada lámina</li><li><b>2</b>Agenda y pronunciación</li><li><b>3</b>Se abre el editor para que revises</li></ol>
         <p class="ayuda" style="margin-top:14px">No cierres esta pestaña.</p></div>`
-      : `<div class="generando"><div class="orbita"></div><h3>La IA está escribiendo tu clase</h3>
+        : `<div class="generando"><div class="orbita"></div><h3>La IA está escribiendo tu clase</h3>
         <p>Trabaja por partes y completa lo que falte. Suele tardar de 1 a 3 minutos.</p>
         <div class="cronometro" id="crono">0:00</div>
         <ol class="pasos-ia"><li><b>1</b>Guion, agenda y pronunciación</li><li><b>2</b>Una diapositiva por bloque</li><li><b>3</b>Se abre el editor para que revises</li></ol>
@@ -649,6 +653,8 @@ function pintarPestana() {
 // ----- pestaña: guion y diapositivas
 function pintarGuion(cont) {
   const fijo = !editor.plantillas;
+  // la vista «Así se verá» usa el mismo dibujo del video: cuando termina de cargar, se redibujan los bloques
+  if (!fijo && !motor) cargarMotor().then(() => { if (editor && editor.pestana === 'guion' && $('#bloques')) pintarGuion($('#contenido')); }).catch(() => { });
   cont.innerHTML = `
     ${fijo ? `<div class="aviso-caja">${ico('info')}<span>Esta clase usa <b>diapositivas programadas</b> (código). Puedes corregir lo que dice la voz, pero no agregar ni quitar bloques.</span></div>` : editor.laminas ? `
     <div class="barra-ia">
@@ -662,6 +668,13 @@ function pintarGuion(cont) {
       <div><b>Diapositivas con IA</b><span>Respeta tu guion y propone diapositivas, agenda y pronunciación.</span></div>
       <button class="boton chico" id="ia-gratis" ${estado.ia.gratis ? '' : 'disabled'}>IA gratis</button>
       <button class="boton chico" id="ia-claude" ${estado.ia.claude ? '' : 'disabled'}>Claude</button>
+    </div>`}
+    ${fijo || !motor ? '' : `<div class="barra-ia">
+      <span class="ico-caja">${ico('capas', 18)}</span>
+      <div><b>Diseño de la clase</b><span>El estilo visual de todas las diapositivas. «Otro diseño» cambia el estilo y la variante de cada una.</span></div>
+      <select id="estilo-clase" class="chico" aria-label="Estilo visual"><option value="">Estilo automático</option>
+        ${Object.entries(motor.ESTILOS).map(([v, n]) => `<option value="${v}" ${editor.clase.estilo === v ? 'selected' : ''}>${n}</option>`).join('')}</select>
+      <button class="boton chico" id="otro-diseno">${ico('chispas', 14)}Otro diseño</button>
     </div>`}
     <div id="bloques" class="bloques"></div>
     ${fijo ? '' : `<button class="agregar" id="mas-bloque">${ico('mas')}Agregar bloque</button>`}`;
@@ -677,6 +690,16 @@ function pintarGuion(cont) {
     };
     $('#ia-gratis').onclick = () => rehacerConIa('gratis');
     $('#ia-claude').onclick = () => rehacerConIa('claude');
+    if ($('#estilo-clase')) {
+      $('#estilo-clase').onchange = e => { editor.clase.estilo = e.target.value; sucio(); pintarVistas(); };
+      // nueva semilla: otro estilo (si esta en automatico) y otra variante en cada diapositiva que no tenga una fija
+      $('#otro-diseno').onclick = () => {
+        editor.clase.semilla = Math.floor(Math.random() * 1e6);
+        sucio();
+        pintarVistas();
+        aviso(`Diseño nuevo: ${motor.ESTILOS[motor.elegirDiseno(editor.clase).estilo]}. Guarda si te gusta.`);
+      };
+    }
   }
 }
 
@@ -704,12 +727,13 @@ function pintarBloques() {
         <div class="bloque-voz">
           <label for="tx-${i}" style="margin:0">Lo que dice la voz</label>
           <textarea id="tx-${i}" data-k="texto" rows="5">${esc(it.texto)}</textarea>
-          ${fijo ? '' : `<div class="vista-tit"><span>Así se verá</span><span>${esc(nombreTipo(it.diapo))}</span></div><div data-vista>${miniDiapo(it.diapo)}</div>`}
+          ${fijo ? '' : `<div class="vista-tit"><span>Así se verá</span><span>${esc(nombreTipo(it.diapo))}</span></div><div data-vista></div>`}
         </div>
         ${fijo ? '' : edDiapo(it.diapo, i)}
       </div>
     </article>`).join('');
   requestAnimationFrame(() => $$('#bloques textarea').forEach(crecer));
+  if (!fijo) pintarVistas();
   $$('#bloques .bloque').forEach(el => {
     const i = +el.dataset.i;
     const contar = () => {
@@ -740,8 +764,7 @@ function pintarBloques() {
         editor.items[i].diapo = leerDiapo(ed);
         visibles(ed);
         $$('textarea', ed).forEach(crecer);
-        $('[data-vista]', el).innerHTML = miniDiapo(editor.items[i].diapo);
-        $('.vista-tit span:last-child', el).textContent = nombreTipo(editor.items[i].diapo);
+        pintarVistas();
         sucio();
       };
     }
@@ -759,36 +782,66 @@ document.addEventListener('input', e => { if (e.target.matches('.bloque textarea
 
 const nombreTipo = d => (TIPOS.find(([v]) => v === ((d && d.tipo) || '')) || ['', ''])[1].replace(/—/g, '').trim();
 
-// Vista aproximada de la diapositiva (mismo diseño que el video)
+// Vista «Así se verá»: el mismo HTML y CSS que dibujan el video (motor/diapos-auto.js y motor/plantilla.css), a escala
+// y con todo visible (sin animar). Va en un shadow DOM para que los estilos del video y los de la web no se mezclen.
+let motor = null;   // { htmlDiapo, NOMBRES_ICONOS, hoja } cuando ya cargo
+let cargandoMotor = null;
+function cargarMotor() {
+  cargandoMotor = cargandoMotor || Promise.all([import('/motor/diapos-auto.js'), fetch('/motor/plantilla.css').then(r => r.text())])
+    .then(([m, css]) => {
+      const hoja = new CSSStyleSheet();
+      hoja.replaceSync(css.replace(/:root\b/g, ':host') + m.ESTILO_AUTO + `
+        :host { display: block; position: relative; }
+        .escena { position: absolute; left: 0; top: 0; width: 1440px; height: 810px; transform-origin: 0 0; transform: scale(var(--k, .3));
+          background: var(--papel); overflow: hidden; font-family: var(--sans); color: var(--tinta); }
+        .sin-titulo .titulo { opacity: .3; }`);
+      motor = { ...m, hoja };
+      return motor;
+    })
+    .catch(e => { cargandoMotor = null; throw e; });
+  return cargandoMotor;
+}
+const escalas = new ResizeObserver(lista => lista.forEach(e => e.target.style.setProperty('--k', e.contentRect.width / 1440)));
 const urlLamina = rel => `/clases/${editor.slug}/${rel}?v=${editor.version}`;
-function miniDiapo(d) {
-  if (!d || !d.tipo) return `<div class="md md-vacia"><span>${ico('capas')}Continúa ${editor.laminas ? 'la lámina' : 'la diapositiva'} anterior</span></div>`;
+
+// Todas las vistas, con el estilo de la clase y la variante de cada diapositiva (como en el video)
+function pintarVistas() {
+  const lista = editor.items.map(it => it.diapo).filter(Boolean);
+  const diseno = motor ? motor.elegirDiseno({ estilo: editor.clase.estilo, semilla: editor.clase.semilla, diapositivas: lista }) : null;
+  let k = 0;
+  $$('#bloques .bloque').forEach(el => {
+    const d = editor.items[+el.dataset.i].diapo;
+    const j = d ? k++ : -1;
+    const v = diseno && j >= 0 ? diseno.variantes[j] : '';
+    const opciones = diseno && j >= 0 ? { estilo: diseno.estilo, variante: v, indice: j, tinte: diseno.tinte } : {};
+    const titulo = $('.vista-tit span:last-child', el);
+    if (titulo) titulo.textContent = [nombreTipo(d), v && motor.VARIANTES[d.tipo] ? motor.VARIANTES[d.tipo][v] : ''].filter(Boolean).join(' · ');
+    if ($('[data-vista]', el)) pintarVista($('[data-vista]', el), d, opciones);
+  });
+}
+
+function pintarVista(cont, d, diseno = {}) {
+  if (!d || !d.tipo) { cont.innerHTML = `<div class="md md-vacia"><span>${ico('capas')}Continúa ${editor.laminas ? 'la lámina' : 'la diapositiva'} anterior</span></div>`; return; }
   const banda = esc(editor.clase.banda || editor.clase.curso || '');
   if (d.tipo === 'imagen') {
-    return `<div class="md md-imagen"><div class="md-area">${d.imagen ? `<img src="${esc(urlLamina(d.imagen))}" alt="" loading="lazy">` : ''}</div>
+    cont.innerHTML = `<div class="md md-imagen"><div class="md-area">${d.imagen ? `<img src="${esc(urlLamina(d.imagen))}" alt="" loading="lazy">` : ''}</div>
       <div class="md-banda"><b>USS</b><span>${banda}</span></div></div>`;
+    return;
   }
-  const k = d.kicker ? `<span class="md-k">${esc(d.kicker)}</span>` : '';
-  const t = d.titulo ? `<b class="md-t">${acento(d.titulo)}</b>` : '<b class="md-t md-falta">Título de la diapositiva</b>';
-  const s = d.sub ? `<span class="md-s">${acento(d.sub)}</span>` : '';
-  const items = (d.items || []).filter(x => x && x.texto);
-  const lado = (x, oscura) => `<span class="${oscura ? 'oscura' : ''}"><small>${esc((x && x.etiqueta) || '')}</small><b>${acento((x && x.titulo) || '')}</b>${acento((x && x.texto) || '')}</span>`;
-  let cuerpo;
-  switch (d.tipo) {
-    case 'portada': cuerpo = `${k}${t}${s}${items.length ? `<span class="md-chips">${items.map(x => `<i>${esc(x.texto)}</i>`).join('')}</span>` : ''}`; break;
-    case 'lista': case 'pasos': case 'cierre':
-      cuerpo = `${k}${t}${s}<span class="md-items ${d.tipo === 'pasos' ? 'num' : ''}">${items.map((x, j) => `<span><i>${d.tipo === 'pasos' ? j + 1 : ''}</i>${acento(x.texto)}</span>`).join('')}</span>
-        ${d.tipo === 'cierre' && d.despedida ? `<span class="md-desp">${esc(d.despedida)}</span>` : ''}`; break;
-    case 'codigo': cuerpo = `<span class="md-dos"><span>${k}${t}${s}</span><code class="md-code">${esc(d.codigo || '')}</code></span>`; break;
-    case 'comparacion': cuerpo = `${k}${t}${s}<span class="md-comp">${lado(d.izq)}${lado(d.der, true)}</span>`; break;
-    case 'tarjetas': {
-      const ts = (d.tarjetas || []).filter(x => x && (x.titulo || x.texto)).slice(0, 4);
-      cuerpo = `${k}${t}${s}<span class="md-tarj t${Math.max(2, ts.length)}">${ts.map((x, j) => lado({ etiqueta: dos(j + 1), titulo: x.titulo, texto: x.texto }, j === ts.length - 1 && ts.length > 1)).join('')}</span>`; break;
-    }
-    case 'dato': cuerpo = `${k}<b class="md-dato-n">${acento(d.dato || '—')}</b>${t}${s}`; break;
-    default: cuerpo = `${k}${t}${s}`;
+  if (!motor) { cont.innerHTML = '<div class="md md-vacia"><span>Preparando la vista…</span></div>'; return; }
+  let host = cont.querySelector('.md-vivo');
+  if (!host) {
+    cont.innerHTML = '<div class="md md-vivo"></div>';
+    host = cont.firstChild;
+    host.attachShadow({ mode: 'open' }).adoptedStyleSheets = [motor.hoja];
+    escalas.observe(host);
   }
-  return `<div class="md md-${d.tipo}"><div class="md-area">${cuerpo}</div><div class="md-banda"><b>USS</b><span>${banda}</span></div></div>`;
+  const logo = estado.logo ? '/marca/logo.png' : '';
+  const sinTitulo = !d.titulo && d.tipo !== 'logo';
+  const r = motor.htmlDiapo(sinTitulo ? { ...d, titulo: 'Título de la diapositiva' } : d, { logo, institucion: editor.clase.institucion, ...diseno });
+  host.shadowRoot.innerHTML = `<div class="escena${sinTitulo ? ' sin-titulo' : ''}"><div id="diapos"><section class="diapo ${r.clase}">${r.html}</section></div>
+    <div id="banda"><div class="banda-logo">${logo ? `<img id="logo" src="${logo}" alt="">` : '<span class="logo-texto"><b>USS</b><small>Universidad<br>Señor de Sipán</small></span>'}</div>
+    <div id="banda-der">${banda}</div></div></div>`;
 }
 
 async function moverBloque(i, acc) {
@@ -804,6 +857,8 @@ async function moverBloque(i, acc) {
   pintarBloques();
 }
 
+// tipos con etiqueta superior, titulo y subtitulo (todos menos "logo" e "imagen")
+const CON_TEXTO = 'portada pregunta idea definicion temario lista pasos ruta flujo codigo comparacion tarjetas dato cierre';
 function edDiapo(d, i) {
   d = d || {};
   const lineas = (arr, f) => (arr || []).map(f).join('\n');
@@ -821,22 +876,31 @@ function edDiapo(d, i) {
       ${(d.efectos || []).length ? `<button type="button" class="boton chico" data-quitar-efectos style="margin-top:6px">${ico('x', 14)}Quitar efectos</button>` : ''}
       <label class="soltar chico" style="margin-top:12px"><input type="file" data-lamina accept="image/png,image/jpeg,image/webp">
         <span class="modo-ico">${ico('imagen', 16)}</span><span><b>Reemplazar esta lámina</b><small>${esc(d.imagen)} · PNG o JPG</small></span></label>`) : ''}
-    ${campo('portada idea lista pasos codigo comparacion tarjetas dato cierre', `${lbl('kicker', 'Etiqueta superior')}${inp('kicker', d.kicker, 'Ej.: Paso 1 · El DNS')}`)}
-    ${campo('portada idea lista pasos codigo comparacion tarjetas dato cierre', `${lbl('titulo', 'Título', 'máx. 7 palabras · *clave* en morado')}${inp('titulo', d.titulo, 'Ej.: Semántica = *significado*')}`)}
-    ${campo('portada idea lista pasos codigo comparacion tarjetas dato', `${lbl('sub', 'Subtítulo')}${inp('sub', d.sub)}`)}
+    ${campo(CON_TEXTO, `${lbl('kicker', 'Etiqueta superior')}${inp('kicker', d.kicker, 'Ej.: Paso 1 · El DNS')}`)}
+    ${campo(`${CON_TEXTO} logo`, `${lbl('titulo', d.tipo === 'logo' ? 'Despedida' : 'Título', 'máx. 7 palabras · *clave* en morado')}${inp('titulo', d.titulo, d.tipo === 'logo' ? '¡Nos vemos en la *próxima sesión*!' : 'Ej.: Semántica = *significado*')}`)}
+    ${campo(`${CON_TEXTO} logo`, `${lbl('sub', d.tipo === 'logo' ? 'Firma' : d.tipo === 'definicion' ? 'Definición o logro' : 'Subtítulo')}${inp('sub', d.sub, d.tipo === 'logo' ? 'SIPANCITOBOT · Asistente docente IA' : '')}`)}
+    ${campo('portada idea definicion cierre', `${lbl('icono', 'Icono', 'vacío = lo elige según el texto')}<select id="icono-${i}" data-k="icono">
+      <option value="">Automático</option>${(motor ? motor.NOMBRES_ICONOS : d.icono ? [d.icono] : []).map(n => `<option value="${n}" ${n === d.icono ? 'selected' : ''}>${n}</option>`).join('')}</select>`)}
+    ${motor ? Object.entries(motor.VARIANTES).map(([t, vs]) => campo(t, `${lbl(`variante-${t}`, 'Variante', 'automática = la elige «Otro diseño»')}
+      <select id="variante-${t}-${i}" data-k="variante-${t}"><option value="">Automática</option>${Object.entries(vs).map(([v, n]) =>
+    `<option value="${v}" ${d.tipo === t && d.variante === v ? 'selected' : ''}>${n}</option>`).join('')}</select>`)).join('') : ''}
     ${campo('dato', `${lbl('dato', 'Dato grande')}${inp('dato', d.dato, 'Ej.: 404')}`)}
-    ${campo('portada', `${lbl('chips', 'Etiquetas', 'una por línea')}<textarea id="chips-${i}" data-k="chips" rows="3">${esc(lineas(d.items, x => x.texto))}</textarea>`)}
-    ${campo('lista pasos cierre', `${lbl('items', 'Puntos', 'uno por línea · «texto | palabra que dice la voz»')}
-      <textarea id="items-${i}" data-k="items" rows="4">${esc(lineas(d.items, x => x.cuando ? `${x.texto} | ${x.cuando}` : x.texto))}</textarea>`)}
-    ${campo('codigo', `${lbl('codigo', 'Código', 'máx. 14 líneas')}<textarea id="codigo-${i}" class="mono" data-k="codigo" rows="7" spellcheck="false">${esc(d.codigo)}</textarea>`)}
+    ${campo('portada definicion', `${lbl('chips', 'Etiquetas', 'una por línea')}<textarea id="chips-${i}" data-k="chips" rows="3">${esc(lineas(d.items, x => x.texto))}</textarea>`)}
+    ${campo('ruta', `${lbl('app', 'Aplicación', 'se ve en la barra de la ventana')}${inp('app', d.app, 'Ej.: Gmail · Configuración')}`)}
+    ${campo('lista pasos temario ruta cierre', `${lbl('items', d.tipo === 'ruta' ? 'Botones o menús, en orden' : 'Puntos', 'uno por línea · «texto | palabra que dice la voz | icono»')}
+      <textarea id="items-${i}" data-k="items" rows="4">${esc(lineas(d.items, x => [x.texto, x.cuando, x.icono].join(' | ').replace(/( \| )+$/, '')))}</textarea>`)}
+    ${campo('codigo', `${lbl('archivo', 'Nombre de la ventana', 'opcional')}${inp('archivo', d.archivo, 'Ej.: index.html · Buscar en Gmail')}
+      ${lbl('codigo', 'Código o texto', 'máx. 14 líneas')}<textarea id="codigo-${i}" class="mono" data-k="codigo" rows="7" spellcheck="false">${esc(d.codigo)}</textarea>`)}
     ${campo('comparacion', `<div class="campos2"><div>${lbl('izq_etiqueta', 'Izquierda · etiqueta')}${inp('izq_etiqueta', d.izq && d.izq.etiqueta, 'SIN')}
       ${lbl('izq_titulo', 'Izquierda · título')}${inp('izq_titulo', d.izq && d.izq.titulo)}${lbl('izq_texto', 'Izquierda · texto')}${inp('izq_texto', d.izq && d.izq.texto)}</div>
       <div>${lbl('der_etiqueta', 'Derecha · etiqueta')}${inp('der_etiqueta', d.der && d.der.etiqueta, 'CON')}${lbl('der_titulo', 'Derecha · título')}${inp('der_titulo', d.der && d.der.titulo)}
-      ${lbl('der_texto', 'Derecha · texto')}${inp('der_texto', d.der && d.der.texto)}</div></div>`)}
-    ${campo('tarjetas', `${lbl('tarjetas', 'Tarjetas', 'una por línea: «título | texto | palabra»')}
-      <textarea id="tarjetas-${i}" data-k="tarjetas" rows="4">${esc(lineas(d.tarjetas, x => [x.titulo, x.texto, x.cuando].filter(Boolean).join(' | ')))}</textarea>`)}
+      ${lbl('der_texto', 'Derecha · texto')}${inp('der_texto', d.der && d.der.texto)}</div></div>
+      ${['izq', 'der'].flatMap(l => ['cuando', 'icono'].map(k => `<input type="hidden" data-k="${l}_${k}" value="${esc((d[l] && d[l][k]) || '')}">`)).join('')}`)}
+    ${campo('tarjetas flujo', `${lbl('tarjetas', d.tipo === 'flujo' ? 'Etapas, en orden' : 'Tarjetas', 'una por línea: «título | texto | palabra | icono»')}
+      <textarea id="tarjetas-${i}" data-k="tarjetas" rows="4">${esc(lineas(d.tarjetas, x => [x.titulo, x.texto, x.cuando, x.icono].join(' | ').replace(/( \| )+$/, '')))}</textarea>`)}
+    ${campo('cierre', `${lbl('reto', 'Reto', 'opcional · se ve en una tarjeta oscura')}${inp('reto', d.reto, 'Ej.: Crea tu firma y dos etiquetas')}`)}
     ${campo('cierre', `${lbl('despedida', 'Despedida')}${inp('despedida', d.despedida, '¡Nos vemos en la próxima clase!')}`)}
-    ${campo('idea lista pasos codigo comparacion tarjetas dato cierre', `${lbl('nota', 'Nota al pie', 'opcional')}${inp('nota', d.nota)}`)}
+    ${campo('pregunta idea definicion temario lista pasos ruta flujo codigo comparacion tarjetas dato cierre logo', `${lbl('nota', 'Nota al pie', 'opcional')}${inp('nota', d.nota)}`)}
   </div>`;
 }
 
@@ -868,11 +932,17 @@ function leerDiapo(ed) {
   }
   const partes = l => l.split('|').map(x => x.trim());
   const filas = k => v(k).split('\n').map(x => x.trim()).filter(Boolean);
-  const d = { tipo, kicker: v('kicker'), titulo: v('titulo'), sub: v('sub'), nota: v('nota'), dato: v('dato'), despedida: v('despedida'), codigo: $('[data-k=codigo]', ed).value };
-  d.items = tipo === 'portada' ? filas('chips').map(texto => ({ texto, cuando: '' })) : filas('items').map(l => { const [texto, cuando = ''] = partes(l); return { texto, cuando }; });
-  d.tarjetas = filas('tarjetas').map(l => { const [titulo, texto = '', cuando = ''] = partes(l); return { titulo, texto, cuando }; });
-  d.izq = { etiqueta: v('izq_etiqueta'), titulo: v('izq_titulo'), texto: v('izq_texto'), cuando: '' };
-  d.der = { etiqueta: v('der_etiqueta'), titulo: v('der_titulo'), texto: v('der_texto'), cuando: '' };
+  const d = {
+    tipo, variante: v(`variante-${tipo}`), kicker: v('kicker'), titulo: v('titulo'), sub: v('sub'), nota: v('nota'), icono: v('icono'), dato: v('dato'), reto: v('reto'),
+    despedida: v('despedida'), archivo: v('archivo'), app: v('app'), codigo: $('[data-k=codigo]', ed).value
+  };
+  const conIcono = icono => (icono ? { icono } : {});
+  d.items = ['portada', 'definicion'].includes(tipo) ? filas('chips').map(texto => ({ texto, cuando: '' }))
+    : filas('items').map(l => { const [texto, cuando = '', icono = ''] = partes(l); return { texto, cuando, ...conIcono(icono) }; });
+  d.tarjetas = filas('tarjetas').map(l => { const [titulo, texto = '', cuando = '', icono = ''] = partes(l); return { titulo, texto, cuando, ...conIcono(icono) }; });
+  const lado = l => ({ etiqueta: v(`${l}_etiqueta`), titulo: v(`${l}_titulo`), texto: v(`${l}_texto`), cuando: v(`${l}_cuando`), ...conIcono(v(`${l}_icono`)) });
+  d.izq = lado('izq');
+  d.der = lado('der');
   return d;
 }
 
@@ -1083,7 +1153,7 @@ function descargarGuion() {
 function pintarDatos(cont) {
   const c = editor.clase;
   const campos = [['tema', 'Tema'], ['curso', 'Curso'], ['modulo', 'Módulo (carpeta en Google Drive)'], ['banda', 'Texto de la franja verde'], ['nivel', 'Nivel'],
-    ['avatar', 'Nombre del avatar'], ['rol_avatar', 'Rol del avatar'], ['docente', 'Docente que revisó'], ['institucion', 'Institución']];
+  ['avatar', 'Nombre del avatar'], ['rol_avatar', 'Rol del avatar'], ['docente', 'Docente que revisó'], ['institucion', 'Institución']];
   cont.innerHTML = `
     <section class="panel">
       <div class="panel-cab"><div><h2>Datos de la clase</h2><p class="muted">El avatar aparece en el recuadro de cámara; el docente, abajo a la derecha del video.</p></div></div>
@@ -1223,139 +1293,459 @@ async function vistaAjustes() {
     ${ayuda ? `<p class="ayuda" style="margin-top:6px">${ayuda}</p>` : ''}`;
   const pild = (ok, si = 'Configurado', no = 'Sin configurar') => `<span class="pildora ${ok ? 'ok' : ''}"><i class="punto ${ok ? 'on' : ''}"></i>${ok ? si : no}</span>`;
   const dr = estado.drive;
-  const pasoDrive = dr.modo === 'local' ? (dr.conectado ? 'Copia a la carpeta de Google Drive para escritorio.' : 'No encuentro la carpeta de DRIVE_RUTA_LOCAL.')
-    : !dr.cliente ? 'Paso 1: pega el cliente OAuth (JSON) de Google Cloud.'
-    : !dr.conectado ? 'Paso 2: pulsa «Conectar Google Drive» en la PC del estudio.'
-    : dr.carpeta ? 'Listo: cada video final se sube solo a la carpeta compartida.' : 'Conectado. Falta la carpeta compartida (paso 3).';
-  app.innerHTML = `<div class="vista">
-  <header class="cabecera"><div><h1>Ajustes</h1><p class="muted">Se guardan solo en la PC del estudio (archivo .env). Las claves nunca se muestran completas.</p></div></header>
-  <form id="f-aj" class="ajustes" autocomplete="off">
-    <section class="ajuste">
-      <div class="ajuste-info"><h2>${ico('volumen', 18)}Voz por defecto</h2><p>Con qué voz hablan las clases nuevas. Cada clase puede cambiarla en «Voz y avatar».</p></div>
-      <div class="panel">
-        <label for="aj-VOZ">Voz por defecto de las clases</label>
-        <select id="aj-VOZ" name="VOZ">
-          <option value="auto">Automática (grabación › ElevenLabs › Azure › voz local › sistema)</option>
-          <option value="local">Voz local gratis (Piper)</option><option value="azure">Azure</option>
-          <option value="elevenlabs">ElevenLabs</option><option value="sistema">Voz del sistema</option></select>
-      </div>
-    </section>
-    <section class="ajuste">
-      <div class="ajuste-info"><h2>${ico('volumen', 18)}Voz local gratis</h2><p>Piper habla en la PC del estudio: sin internet, sin cuenta y sin límite de caracteres. Suena menos natural que ElevenLabs.</p>${pild(estado.voz.local, 'Instalada', 'Sin instalar')}</div>
-      <div class="panel">
-        <p class="ayuda" style="margin:0 0 4px">Para instalarla: en la PC del estudio, doble clic en <b>INSTALAR-VOZ-LOCAL</b> (unos 150 MB, una sola vez).</p>
-        ${campo('PIPER_VOZ', 'Voz de Piper', 'Vacío = es_MX-claude-high (México). Otras: es_MX-ald-medium, es_AR-daniela-high. Instálala con INSTALAR-VOZ-LOCAL &lt;voz&gt;.', { mono: true, ph: 'es_MX-claude-high' })}
-        ${campo('VOZ_LOCAL_URL', 'En vez de Piper: servidor de voz en Docker', 'Opcional. Kokoro: docker run -p 8880:8880 ghcr.io/remsky/kokoro-fastapi-cpu:latest y aquí http://localhost:8880/v1', { mono: true, ph: 'http://localhost:8880/v1' })}
-        ${campo('VOZ_LOCAL_VOZ', 'Voz del servidor', 'Kokoro en español: ef_dora (mujer) o em_alex (hombre).', { mono: true, ph: 'ef_dora' })}
-      </div>
-    </section>
-    <section class="ajuste">
-      <div class="ajuste-info"><h2>${ico('ondas', 18)}Voz · Azure</h2><p>Voces neurales de Microsoft, con acento de Perú. 0,5 millones de caracteres gratis al mes (unas 240 clases); después se paga por uso.</p>${pild(estado.voz.azure)}</div>
-      <div class="panel">
-        ${campo('AZURE_SPEECH_KEY', 'Clave (Key 1)', 'portal.azure.com › crea un recurso «Speech» (plan F0 gratis) › Keys and Endpoint.', { secreto: true })}
-        ${campo('AZURE_SPEECH_REGION', 'Región', 'La del recurso, en minúsculas: eastus, brazilsouth, westeurope…', { mono: true, ph: 'eastus' })}
-        ${campo('AZURE_VOZ', 'Voz', 'Perú: es-PE-CamilaNeural (mujer) o es-PE-AlexNeural (hombre). México: es-MX-DaliaNeural, es-MX-JorgeNeural.', { mono: true, ph: 'es-PE-CamilaNeural' })}
-      </div>
-    </section>
-    <section class="ajuste">
-      <div class="ajuste-info"><h2>${ico('ondas', 18)}Voz · ElevenLabs</h2><p>La voz más natural: tu voz clonada o una voz de la biblioteca. De pago desde el plan Starter.</p>${pild(estado.voz.elevenlabs)}</div>
-      <div class="panel">
-        ${campo('ELEVENLABS_API_KEY', 'API key', 'elevenlabs.io › Developers › API Keys (permiso: Text to Speech).', { secreto: true })}
-        ${campo('ELEVENLABS_VOICE_ID', 'Voice ID por defecto', 'Tu voz clonada o una voz «Default» (en el plan Free solo funcionan las Default).', { mono: true })}
-      </div>
-    </section>
-    <section class="ajuste">
-      <div class="ajuste-info"><h2>${ico('chispas', 18)}IA gratis</h2><p>Un modelo abierto escribe guion y diapositivas HTML. Groq (gratis con cuenta) u Ollama en esta PC.</p>${pild(estado.ia.gratis)}</div>
-      <div class="panel">
-        ${campo('IA_GRATIS_URL', 'Dirección', 'Groq: https://api.groq.com/openai/v1 · Ollama: http://localhost:11434/v1', { mono: true, ph: 'https://api.groq.com/openai/v1' })}
-        ${campo('IA_GRATIS_KEY', 'API key', 'Groq: console.groq.com › API Keys (gratis). Ollama no necesita.', { secreto: true })}
-        ${campo('IA_GRATIS_MODELO', 'Modelo', 'Groq: openai/gpt-oss-120b o qwen/qwen3.8-27b · Ollama: qwen2.5:7b', { mono: true, ph: 'openai/gpt-oss-120b' })}
-      </div>
-    </section>
-    <section class="ajuste">
-      <div class="ajuste-info"><h2>${ico('imagen', 18)}IA que lee láminas</h2><p>Mira tus láminas (imágenes o PDF) y escribe lo que dice la voz. Vacío = la misma IA gratis, con un modelo que lee imágenes.</p>
-        ${pild(estado.ia.vision)}${estado.ia.vision ? `<p class="ayuda" style="margin-top:8px">Modelo: <b class="mono">${esc(estado.ia.modeloVision)}</b></p>` : ''}</div>
-      <div class="panel">
-        ${campo('IA_VISION_URL', 'Dirección (opcional)', 'Vacío = la de la IA gratis (Groq). Gemini gratis: https://generativelanguage.googleapis.com/v1beta/openai · Ollama: http://localhost:11434/v1', { mono: true, ph: 'la de la IA gratis' })}
-        ${campo('IA_VISION_KEY', 'API key (solo si cambias la dirección)', 'Gemini: aistudio.google.com › Get API key (gratis; Google usa esos datos para mejorar sus productos).', { secreto: true })}
-        ${campo('IA_VISION_MODELO', 'Modelo que lee imágenes', 'Groq: qwen/qwen3.8-27b · Gemini: gemini-3.8-flash · Ollama: qwen2.5vl:7b o gemma3 · Grok (de pago, api.x.ai/v1): un modelo grok con visión.', { mono: true, ph: estado.ia.modeloVision || 'qwen/qwen3.8-27b' })}
-      </div>
-    </section>
-    <section class="ajuste">
-      <div class="ajuste-info"><h2>${ico('rayo', 18)}Claude</h2><p>La mejor calidad de redacción y lee láminas. Se paga por uso (API, aparte de la suscripción Pro): unos centavos por clase.</p>${pild(estado.ia.claude)}</div>
-      <div class="panel">
-        ${campo('ANTHROPIC_API_KEY', 'API key de Claude', 'platform.claude.com › API Keys. Recarga prepagada.', { secreto: true })}
-        ${campo('CLAUDE_MODELO', 'Modelo', 'Vacío = claude-opus-5-5 (recomendado).', { mono: true, ph: 'claude-opus-5-5' })}
-      </div>
-    </section>
-    <section class="ajuste">
-      <div class="ajuste-info"><h2>${ico('subir', 18)}Google Drive</h2><p>Cada video final y el código de su clase se guardan en la carpeta compartida del equipo: Mes / Curso / Video con HTML o Video con láminas / Módulo / Clase. Todos los que tienen acceso a la carpeta los ven.</p>
-        ${pild(dr.conectado && dr.carpeta, 'Listo', dr.conectado ? 'Falta la carpeta' : 'Sin conectar')}<p class="ayuda" style="margin-top:8px">${pasoDrive}</p></div>
-      <div class="panel">
-        ${campo('DRIVE_CARPETA_ID', '3 · Carpeta compartida', 'Pega el enlace de la carpeta (Compartir › Copiar enlace). Tu cuenta debe ser Editor de esa carpeta.', { mono: true, ph: 'https://drive.google.com/drive/folders/…' })}
-        ${campo('DRIVE_CARPETA', 'Subcarpeta para los videos', 'Se crea dentro de la carpeta compartida. Vacío = «Videos de clases IA».', { ph: 'Videos de clases IA' })}
-        <details class="plegable" ${dr.cliente ? '' : 'open'}>
-          <summary>${ico('candado')}1 · Cliente OAuth de Google Cloud ${dr.cliente ? '<span class="muted">· guardado</span>' : ''}${ico('abajo')}</summary>
-          <div>
-            <p class="ayuda">console.cloud.google.com con tu cuenta @uss.edu.pe › proyecto nuevo › activa «Google Drive API» › Pantalla de consentimiento: <b>Interno</b> › Credenciales › ID de cliente OAuth › <b>App de escritorio</b> › Descargar JSON. Abre el archivo y pega aquí todo su contenido.</p>
-            <textarea id="drive-json" rows="4" class="mono" spellcheck="false" placeholder='{"installed":{"client_id":"…","client_secret":"…"}}'></textarea>
-            <div class="acciones" style="margin-top:8px"><button type="button" class="boton chico" id="b-drive-json">${ico('guardar', 14)}Guardar cliente</button></div>
-          </div>
-        </details>
-        <div class="acciones" style="margin-top:12px">
-          <button type="button" class="boton chico ${dr.conectado ? '' : 'prim'}" id="b-drive-conectar" ${dr.cliente && dr.local && dr.modo === 'api' ? '' : 'disabled'}>${ico('flecha', 14)}${dr.conectado ? '2 · Volver a conectar' : '2 · Conectar Google Drive'}</button>
-          ${dr.local ? '' : '<span class="ayuda">Se conecta desde la PC del estudio (http://localhost) o con CONECTAR-DRIVE.</span>'}
-        </div>
-        <details class="plegable">
-          <summary>${ico('info')}Plan B sin Google Cloud: Google Drive para escritorio${ico('abajo')}</summary>
-          <div>
-            <p class="ayuda">Instala Google Drive para escritorio en la PC del estudio. En drive.google.com, en la carpeta compartida: clic derecho › Organizar › Agregar acceso directo › Mi unidad. Pega aquí la ruta como aparece en el Explorador. Si la llenas, se usa esta forma en vez de la API.</p>
-            ${campo('DRIVE_RUTA_LOCAL', 'Ruta de la carpeta en esta PC', '', { mono: true, ph: 'G:\\Mi unidad\\CINF GEX' })}
-          </div>
-        </details>
-      </div>
-    </section>
-    <section class="ajuste">
-      <div class="ajuste-info"><h2>${ico('candado', 18)}Acceso a la web</h2><p>Una sola clave para todo el equipo. Quien la tenga también puede cambiar estos ajustes.</p></div>
-      <div class="panel">${campo('WEB_CLAVE', 'Nueva clave del equipo', 'Déjala vacía para no cambiarla. Mínimo 6 caracteres.', { secreto: true })}</div>
-    </section>
-    <div class="barra-guardar"><span class="muted">Los cambios se aplican al guardar.</span><button class="boton prim">${ico('guardar')}Guardar ajustes</button></div>
-  </form></div>`;
-  $('#f-aj').VOZ.value = a.VOZ || 'auto';
   const recargar = async () => { estado = await api('/api/estado'); await vistaAjustes(); pintarLateral('/ajustes'); };
-  $('#f-aj').onsubmit = async e => {
-    e.preventDefault();
-    try {
-      await api('/api/ajustes', { method: 'POST', body: JSON.stringify(Object.fromEntries(new FormData(e.target))) });
-      aviso('Ajustes guardados');
-      await recargar();
-    } catch (err) { aviso(err.message, true); }
-  };
-  $('#b-drive-json').onclick = async () => {
-    try {
-      await api('/api/drive/cliente', { method: 'POST', body: JSON.stringify({ json: $('#drive-json').value }) });
-      aviso('Cliente de Google guardado. Ahora: Conectar Google Drive');
-      await recargar();
-    } catch (err) { aviso(err.message, true); }
-  };
-  $('#b-drive-conectar').onclick = async () => {
-    try {
-      await api('/api/drive/conectar', { method: 'POST' });
-      aviso('Se abrió el navegador de esta PC: entra con la cuenta que es Editor de la carpeta y acepta el permiso.');
-      // se pregunta cada 3 s hasta que termine (5 minutos como maximo)
-      const fin = Date.now() + 5 * 60 * 1000;
-      const mirar = async () => {
-        const s = await api('/api/estado').catch(() => null);
-        if (!s || !$('#b-drive-conectar')) return;
-        if (s.drive.conectando && Date.now() < fin) return setTimeout(mirar, 3000);
-        estado = s;
-        aviso(s.drive.conectado ? 'Google Drive conectado' : 'No se completó la conexión con Google Drive', !s.drive.conectado);
-        await vistaAjustes();
-        pintarLateral('/ajustes');
+
+  app.innerHTML = `<div class="vista">
+  <div class="ajustes-hero">
+    <div>
+      <h1>Ajustes y Conexiones del Estudio</h1>
+      <p>Administra los proveedores de Voz Neural, Inteligencia Artificial Multimodal (Gemini, Groq, Claude) y Google Drive para la Universidad Señor de Sipán.</p>
+    </div>
+    <div class="ajustes-badges">
+      <span class="ajustes-badge-pill ${estado.voz.elevenlabs || estado.voz.azure || estado.voz.local ? 'on' : ''}">
+        ${ico('mic', 14)} Voz: ${estado.voz.elevenlabs ? 'ElevenLabs' : estado.voz.azure ? 'Azure' : estado.voz.local ? 'Local' : 'Sistema'}
+      </span>
+      <span class="ajustes-badge-pill ${estado.ia.gratis || estado.ia.claude ? 'on' : ''}">
+        ${ico('chispas', 14)} IA: ${estado.ia.vision ? 'Visión Activa' : 'Texto'}
+      </span>
+      <span class="ajustes-badge-pill ${dr.conectado ? 'on' : ''}">
+        ${ico('subir', 14)} Drive: ${dr.conectado ? 'Conectado' : 'Sin conectar'}
+      </span>
+    </div>
+  </div>
+
+  <!-- Pestañas de Cuadros Comparativos -->
+  <div class="comp-tabs">
+    <button type="button" class="comp-tab activo" id="tab-comp-voces">${ico('volumen', 15)}<span>Cuadro Comparativo: Voces y Audio</span></button>
+    <button type="button" class="comp-tab" id="tab-comp-ia">${ico('chispas', 15)}<span>Cuadro Comparativo: Motores de IA y Visión</span></button>
+  </div>
+
+  <!-- Cuadro 1: Voces y Audio -->
+  <div class="comp-box" id="box-comp-voces">
+    <table class="comp-tabla">
+      <thead>
+        <tr>
+          <th>Proveedor</th>
+          <th>Calidad y Naturalidad</th>
+          <th>Costo y Cuota</th>
+          <th>Ideal Para</th>
+          <th>Estado Actual</th>
+          <th>Configuración</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="comp-serv">
+              <span class="ico-wrap">${ico('ondas', 16)}</span>
+              <div><b>ElevenLabs</b><small style="display:block;color:var(--gris)">Voz humana clonada</small></div>
+            </div>
+          </td>
+          <td><b style="color:#073299">Ultra Realista</b> <span class="badge-tag pro">Humana</span></td>
+          <td>Plan Free (George/Sarah) o Starter ($5/mes)</td>
+          <td>Video final institucional de alta gama</td>
+          <td>${pild(estado.voz.elevenlabs)}</td>
+          <td><button type="button" class="boton chico" data-ajuste="elevenlabs">${ico('ajustes', 13)} Ver detalles</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="comp-serv">
+              <span class="ico-wrap">${ico('volumen', 16)}</span>
+              <div><b>Azure Speech</b><small style="display:block;color:var(--gris)">Microsoft Cognitive</small></div>
+            </div>
+          </td>
+          <td><b>Muy Natural</b> <span class="badge-tag rec">Acento Perú</span></td>
+          <td>Gratis 500k car/mes (~240 clases)</td>
+          <td>Producción académica diaria en Perú</td>
+          <td>${pild(estado.voz.azure)}</td>
+          <td><button type="button" class="boton chico" data-ajuste="azure">${ico('ajustes', 13)} Ver detalles</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="comp-serv">
+              <span class="ico-wrap">${ico('mic', 16)}</span>
+              <div><b>Piper (Voz Local)</b><small style="display:block;color:var(--gris)">Motor local offline</small></div>
+            </div>
+          </td>
+          <td>Sintética clara <span class="badge-tag local">Sin internet</span></td>
+          <td>100% Gratis e ilimitada</td>
+          <td>Borradores y trabajo sin conexión</td>
+          <td>${pild(estado.voz.local, 'Instalada', 'Sin instalar')}</td>
+          <td><button type="button" class="boton chico" data-ajuste="piper">${ico('ajustes', 13)} Ver detalles</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="comp-serv">
+              <span class="ico-wrap">${ico('texto', 16)}</span>
+              <div><b>Voz del Sistema</b><small style="display:block;color:var(--gris)">macOS Speech</small></div>
+            </div>
+          </td>
+          <td>Robótica básica</td>
+          <td>100% Gratis</td>
+          <td>Pruebas de emergencia y respaldo</td>
+          <td><span class="pildora ok"><i class="punto on"></i>Disponible</span></td>
+          <td><button type="button" class="boton chico" data-ajuste="sistema">${ico('ajustes', 13)} Ver detalles</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Cuadro 2: Motores de IA y Visión -->
+  <div class="comp-box" id="box-comp-ia" style="display:none">
+    <table class="comp-tabla">
+      <thead>
+        <tr>
+          <th>Modelo / Proveedor</th>
+          <th>Capacidad</th>
+          <th>Costo y Límites</th>
+          <th>Mejor Uso</th>
+          <th>Estado Actual</th>
+          <th>Configuración</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="comp-serv">
+              <span class="ico-wrap" style="background:#eff6ff;color:#073299">${ico('imagen', 16)}</span>
+              <div><b>Google Gemini</b><small style="display:block;color:var(--gris)">Flash 2.0 / AI Studio</small></div>
+            </div>
+          </td>
+          <td><b style="color:#073299">Visión Multimodal HD</b> <span class="badge-tag rec">Opción 1</span></td>
+          <td>Gratis 1.500 clases/día (AI Studio)</td>
+          <td>Lectura de láminas Nano Banana/PDF y efectos de cámara</td>
+          <td>${pild(estado.ia.vision)}</td>
+          <td><button type="button" class="boton chico" data-ajuste="gemini">${ico('ajustes', 13)} Ver detalles</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="comp-serv">
+              <span class="ico-wrap">${ico('chispas', 16)}</span>
+              <div><b>Groq (OpenAI / Qwen)</b><small style="display:block;color:var(--gris)">LPU ultrarrápida</small></div>
+            </div>
+          </td>
+          <td>Redacción de guion instantánea</td>
+          <td>100% Gratis con límites por minuto</td>
+          <td>Clases rápidas en HTML animadas</td>
+          <td>${pild(estado.ia.gratis)}</td>
+          <td><button type="button" class="boton chico" data-ajuste="groq">${ico('ajustes', 13)} Ver detalles</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="comp-serv">
+              <span class="ico-wrap">${ico('rayo', 16)}</span>
+              <div><b>Anthropic Claude</b><small style="display:block;color:var(--gris)">Opus 5.5 / Sonnet</small></div>
+            </div>
+          </td>
+          <td>Máxima pedagogía y análisis profundo</td>
+          <td>Pago por uso (~$0.30 por clase)</td>
+          <td>Syllabus complejos y clases magistrales</td>
+          <td>${pild(estado.ia.claude)}</td>
+          <td><button type="button" class="boton chico" data-ajuste="claude">${ico('ajustes', 13)} Ver detalles</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="comp-serv">
+              <span class="ico-wrap">${ico('candado', 16)}</span>
+              <div><b>Ollama (Local)</b><small style="display:block;color:var(--gris)">Modelos en tu Mac</small></div>
+            </div>
+          </td>
+          <td>100% privado y sin internet</td>
+          <td>100% Gratis (consume CPU/GPU local)</td>
+          <td>Trabajo confidencial desconectado</td>
+          <td><span class="badge-tag local">Local</span></td>
+          <td><button type="button" class="boton chico" data-ajuste="ollama">${ico('ajustes', 13)} Ver detalles</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Servicios Adicionales en Tarjetas Compactas -->
+  <div class="ajustes-seccion-tit">
+    ${ico('ajustes', 18)} Servicios Adicionales del Estudio <small>· Voz por defecto, almacenamiento y seguridad</small>
+  </div>
+  <div class="ajustes-cards-grid">
+    <div class="ajuste-card-mini">
+      <div class="ajuste-card-mini-top">
+        <span class="ico-wrap">${ico('volumen', 20)}</span>
+        <div>
+          <h4>Voz Predeterminada</h4>
+          <p>Motor asignado automáticamente a las nuevas clases del estudio.</p>
+          <div style="margin-top:8px">
+            <span class="pildora ok"><i class="punto on"></i>Activa: <b class="mono" style="margin-left:4px">${esc(a.VOZ || 'auto')}</b></span>
+          </div>
+        </div>
+      </div>
+      <div class="ajuste-card-mini-footer">
+        <span class="muted" style="font-size:12px">Configurable por clase</span>
+        <button type="button" class="boton chico" data-ajuste="voz_defecto">${ico('ajustes', 13)} Ver detalles</button>
+      </div>
+    </div>
+
+    <div class="ajuste-card-mini">
+      <div class="ajuste-card-mini-top">
+        <span class="ico-wrap" style="background:#eff6ff;color:#073299">${ico('subir', 20)}</span>
+        <div>
+          <h4>Google Drive USS</h4>
+          <p>Sincronización y respaldo automático en la nube compartida de la universidad.</p>
+          <div style="margin-top:8px">
+            ${pild(dr.conectado && dr.carpeta, 'Conectado a USS', dr.conectado ? 'Falta carpeta' : 'Sin conectar')}
+          </div>
+        </div>
+      </div>
+      <div class="ajuste-card-mini-footer">
+        <span class="muted" style="font-size:12px">${dr.conectado ? 'Sincronización activa' : 'Requiere vincular'}</span>
+        <button type="button" class="boton chico ${dr.conectado ? '' : 'prim'}" data-ajuste="drive">${ico('subir', 13)} Ver detalles</button>
+      </div>
+    </div>
+
+    <div class="ajuste-card-mini">
+      <div class="ajuste-card-mini-top">
+        <span class="ico-wrap">${ico('candado', 20)}</span>
+        <div>
+          <h4>Seguridad y Clave</h4>
+          <p>Control de acceso a la plataforma web para docentes y diseñadores del equipo.</p>
+          <div style="margin-top:8px">
+            <span class="pildora ok"><i class="punto on"></i>Protegido</span>
+          </div>
+        </div>
+      </div>
+      <div class="ajuste-card-mini-footer">
+        <span class="muted" style="font-size:12px">Mínimo 6 caracteres</span>
+        <button type="button" class="boton chico" data-ajuste="seguridad">${ico('candado', 13)} Ver detalles</button>
+      </div>
+    </div>
+  </div>
+  </div>`;
+
+  // Control de pestañas
+  const btnVoces = $('#tab-comp-voces');
+  const btnIA = $('#tab-comp-ia');
+  const boxVoces = $('#box-comp-voces');
+  const boxIA = $('#box-comp-ia');
+  if (btnVoces && btnIA) {
+    btnVoces.onclick = () => {
+      btnVoces.classList.add('activo');
+      btnIA.classList.remove('activo');
+      boxVoces.style.display = '';
+      boxIA.style.display = 'none';
+    };
+    btnIA.onclick = () => {
+      btnIA.classList.add('activo');
+      btnVoces.classList.remove('activo');
+      boxIA.style.display = '';
+      boxVoces.style.display = 'none';
+    };
+  }
+
+  // Modal para cada ajuste
+  function abrirModalAjuste(id) {
+    const d = document.createElement('dialog');
+    d.className = 'modal modal-ajustes';
+
+    let titulo = '';
+    let descripcion = '';
+    let cuerpoHtml = '';
+    let onRender = () => { };
+
+    if (id === 'elevenlabs') {
+      titulo = `${ico('ondas', 18)} ElevenLabs · Voz Humana Neural`;
+      descripcion = `Voz de máxima naturalidad y realismo. Puedes clonar tu propia voz o usar voces oficiales del catálogo. En el plan gratuito (Free), usa los Voice ID predeterminados: <b>JBFqnCBsd6RMkjVDRZzb</b> (George) o <b>EXAVITQu4vr4xnSDxMaL</b> (Sarah).`;
+      cuerpoHtml = `
+        ${campo('ELEVENLABS_API_KEY', 'API Key de ElevenLabs', 'elevenlabs.io › Developers › API Keys (permiso: Text-to-Speech).', { secreto: true })}
+        ${campo('ELEVENLABS_VOICE_ID', 'Voice ID por defecto', 'Recomendado para cuenta Free: JBFqnCBsd6RMkjVDRZzb (George). En Starter: tu voz clonada.', { mono: true, ph: 'JBFqnCBsd6RMkjVDRZzb' })}
+      `;
+    } else if (id === 'azure') {
+      titulo = `${ico('volumen', 18)} Microsoft Azure Speech`;
+      descripcion = `Voces neurales con acento de Perú (<b>es-PE-CamilaNeural</b> y <b>es-PE-AlexNeural</b>). El plan gratuito F0 incluye <b>500.000 caracteres gratis al mes</b> (~240 clases académicas).`;
+      cuerpoHtml = `
+        ${campo('AZURE_SPEECH_KEY', 'Clave de Azure (Key 1)', 'portal.azure.com › crea recurso «Speech» plan F0 gratis › Keys and Endpoint.', { secreto: true })}
+        ${campo('AZURE_SPEECH_REGION', 'Región de Azure', 'En minúsculas: eastus, brazilsouth, westeurope…', { mono: true, ph: 'eastus' })}
+        ${campo('AZURE_VOZ', 'Voz por defecto', 'Perú: es-PE-CamilaNeural (mujer) o es-PE-AlexNeural (hombre).', { mono: true, ph: 'es-PE-CamilaNeural' })}
+      `;
+    } else if (id === 'piper') {
+      titulo = `${ico('mic', 18)} Piper · Voz Local Gratis (Offline)`;
+      descripcion = `Sintetizador neural que funciona directamente en tu Mac. Sin internet, sin límites de caracteres y sin costo alguno. Ideal para trabajar sin conexión.`;
+      cuerpoHtml = `
+        <div style="background:#f1f5f9;padding:10px 14px;border-radius:8px;font-size:12.5px;color:#334155;margin-bottom:8px">
+          💡 Para instalarla en Mac: ejecuta en la terminal <code>./INSTALAR-VOZ-LOCAL.command</code> en la carpeta del estudio.
+        </div>
+        ${campo('PIPER_VOZ', 'Modelo de voz de Piper', 'Vacío = es_MX-claude-high. Otras: es_MX-ald-medium, es_AR-daniela-high.', { mono: true, ph: 'es_MX-claude-high' })}
+        ${campo('VOZ_LOCAL_URL', 'Servidor alternativo (Docker / OpenAI TTS)', 'Opcional. Ej: http://localhost:8880/v1', { mono: true, ph: 'http://localhost:8880/v1' })}
+        ${campo('VOZ_LOCAL_VOZ', 'Voz del servidor alternativo', 'Ej: ef_dora o em_alex.', { mono: true, ph: 'ef_dora' })}
+      `;
+    } else if (id === 'sistema') {
+      titulo = `${ico('texto', 18)} Voz del Sistema (macOS)`;
+      descripcion = `Utiliza el motor nativo de síntesis de voz de macOS ('say'). Es 100% gratuita, inmediata y funciona sin conexión. Su pronunciación es sintética estándar, recomendada para pruebas de emergencia o respaldo.`;
+      cuerpoHtml = `
+        <div style="background:#f8fafc;border:1px solid var(--linea);padding:14px;border-radius:8px;font-size:13px;line-height:1.5">
+          <p style="margin:0 0 8px"><b>Estado:</b> Disponible de fábrica en tu Mac (no requiere clave ni instalación).</p>
+          <p style="margin:0;color:var(--gris)">Si deseas que sea la voz predeterminada para nuevas clases, selecciónala en la tarjeta <b>«Voz Predeterminada»</b>.</p>
+        </div>
+      `;
+    } else if (id === 'gemini') {
+      titulo = `${ico('imagen', 18)} Google Gemini · Visión de Láminas (Opción 1)`;
+      descripcion = `Motor multimodal de alta resolución para la <b>Opción 1 (Láminas con imágenes)</b>. Analiza las diapositivas generadas con Nano Banana, capturas de PowerPoint o Canva, y redacta la narración docente sincronizada.`;
+      cuerpoHtml = `
+        ${campo('IA_VISION_URL', 'Dirección del endpoint API', 'Gemini: https://generativelanguage.googleapis.com/v1beta/openai · Groq: https://api.groq.com/openai/v1', { mono: true, ph: 'https://generativelanguage.googleapis.com/v1beta/openai' })}
+        ${campo('IA_VISION_KEY', 'API Key de Gemini (Google AI Studio)', 'aistudio.google.com › Get API Key (gratis hasta 1.500 clases diarias con cuenta Google).', { secreto: true })}
+        ${campo('IA_VISION_MODELO', 'Modelo Multimodal', 'Gemini: gemini-2.0-flash o gemini-1.5-flash · Groq: qwen/qwen3.8-27b', { mono: true, ph: estado.ia.modeloVision || 'gemini-2.0-flash' })}
+      `;
+    } else if (id === 'groq') {
+      titulo = `${ico('chispas', 18)} Groq · IA Ultrarrápida (Texto y Guion)`;
+      descripcion = `Acelerador LPU que redacta guiones docentes y genera diapositivas interactivas en HTML en 2 a 3 segundos a costo cero.`;
+      cuerpoHtml = `
+        ${campo('IA_GRATIS_URL', 'Dirección de la API', 'Groq: https://api.groq.com/openai/v1 · Ollama: http://localhost:11434/v1', { mono: true, ph: 'https://api.groq.com/openai/v1' })}
+        ${campo('IA_GRATIS_KEY', 'API Key de Groq', 'console.groq.com › API Keys (gratis).', { secreto: true })}
+        ${campo('IA_GRATIS_MODELO', 'Modelo de Lenguaje', 'Recomendado: openai/gpt-oss-120b o qwen/qwen3.8-27b', { mono: true, ph: 'openai/gpt-oss-120b' })}
+      `;
+    } else if (id === 'claude') {
+      titulo = `${ico('rayo', 18)} Anthropic Claude`;
+      descripcion = `Modelo de lenguaje con máxima calidad y pedagogía universitaria. Ideal para asignaturas complejas, análisis profundo y explicaciones estructuradas.`;
+      cuerpoHtml = `
+        ${campo('ANTHROPIC_API_KEY', 'API Key de Anthropic', 'platform.claude.com › API Keys.', { secreto: true })}
+        ${campo('CLAUDE_MODELO', 'Modelo de Claude', 'Vacío = claude-opus-5-5 (máxima calidad). Otras opciones: claude-3-5-sonnet-20241022.', { mono: true, ph: 'claude-opus-5-5' })}
+      `;
+    } else if (id === 'ollama') {
+      titulo = `${ico('candado', 18)} Ollama (Modelos Locales en Mac)`;
+      descripcion = `Ejecuta modelos LLM abiertos (Llama 3, Mistral, Qwen) 100% de manera local y privada en tu Mac, sin consumir datos en la nube.`;
+      cuerpoHtml = `
+        <div style="background:#f1f5f9;padding:10px 14px;border-radius:8px;font-size:12.5px;color:#334155;margin-bottom:8px">
+          💡 Requiere tener instalada la aplicación <b>Ollama</b> (<a href="https://ollama.com" target="_blank" rel="noopener">ollama.com</a>) en tu Mac.
+        </div>
+        ${campo('IA_GRATIS_URL', 'Dirección del servidor local de Ollama', 'Por defecto: http://localhost:11434/v1', { mono: true, ph: 'http://localhost:11434/v1' })}
+        ${campo('IA_GRATIS_MODELO', 'Nombre del modelo en Ollama', 'Ej: llama3.2, qwen2.5, mistral', { mono: true, ph: 'llama3.2' })}
+      `;
+    } else if (id === 'voz_defecto') {
+      titulo = `${ico('volumen', 18)} Voz Predeterminada de las Clases`;
+      descripcion = `Elige el motor de voz con el que se generarán por defecto los videos de las nuevas clases creadas en el estudio.`;
+      cuerpoHtml = `
+        <label for="modal-VOZ">Voz por defecto para nuevas clases</label>
+        <select id="modal-VOZ" name="VOZ" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--linea);font-size:14px;background:var(--panel);color:var(--tinta)">
+          <option value="auto">Automática (Grabación › ElevenLabs › Azure › Local › Sistema)</option>
+          <option value="elevenlabs">ElevenLabs (Voz humana clonada o George / Sarah)</option>
+          <option value="azure">Azure Speech (Voces peruanas Camila / Alex)</option>
+          <option value="local">Voz local gratis (Piper offline en tu Mac)</option>
+          <option value="sistema">Voz del sistema (macOS)</option>
+        </select>
+      `;
+      onRender = () => {
+        const sel = $('#modal-VOZ', d);
+        if (sel) sel.value = a.VOZ || 'auto';
       };
-      setTimeout(mirar, 3000);
-    } catch (err) { aviso(err.message, true); }
-  };
+    } else if (id === 'drive') {
+      titulo = `${ico('subir', 18)} Google Drive USS · Almacenamiento`;
+      descripcion = `Sube y organiza automáticamente los videos finales (.mp4) y las láminas interactivas (.html) directamente en la carpeta institucional compartida de Google Drive.`;
+      cuerpoHtml = `
+        ${campo('DRIVE_CARPETA_ID', 'Enlace de la carpeta compartida en Drive', 'Pega el enlace de la carpeta compartida de Google Drive (debes ser Editor).', { mono: true, ph: 'https://drive.google.com/drive/folders/…' })}
+        ${campo('DRIVE_CARPETA', 'Subcarpeta interna', 'Vacío = «Videos de clases IA».', { ph: 'Videos de clases IA' })}
+        
+        <details class="plegable" ${dr.cliente ? '' : 'open'} style="margin-top:12px">
+          <summary>${ico('candado')} 1 · Credenciales OAuth (Google Cloud) ${dr.cliente ? '<span class="muted">· guardado</span>' : ''} ${ico('abajo')}</summary>
+          <div style="padding-top:10px">
+            <p class="ayuda" style="margin:0 0 8px">console.cloud.google.com › Activa Google Drive API › Credenciales › ID OAuth tipo «App de escritorio» › Descargar JSON y pega su contenido aquí:</p>
+            <textarea id="modal-drive-json" rows="4" class="mono" spellcheck="false" placeholder='{"installed":{"client_id":"…","client_secret":"…"}}' style="width:100%"></textarea>
+            <div class="acciones" style="margin-top:8px">
+              <button type="button" class="boton chico" id="b-modal-drive-json">${ico('guardar', 14)} Guardar cliente OAuth</button>
+            </div>
+          </div>
+        </details>
+
+        <div class="acciones" style="margin-top:14px;display:flex;align-items:center;gap:10px">
+          <button type="button" class="boton chico ${dr.conectado ? '' : 'prim'}" id="b-modal-drive-conectar" ${dr.cliente && dr.local && dr.modo === 'api' ? '' : 'disabled'}>
+            ${ico('flecha', 14)} ${dr.conectado ? '2 · Volver a conectar' : '2 · Conectar Google Drive'}
+          </button>
+          ${dr.local ? '' : '<span class="ayuda">Se conecta desde la PC del estudio (http://localhost).</span>'}
+        </div>
+      `;
+      onRender = () => {
+        const bJson = $('#b-modal-drive-json', d);
+        if (bJson) {
+          bJson.onclick = async () => {
+            try {
+              await api('/api/drive/cliente', { method: 'POST', body: JSON.stringify({ json: $('#modal-drive-json', d).value }) });
+              aviso('Cliente de Google guardado correctamente. Ahora pulsa «Conectar Google Drive».');
+              await recargar();
+              d.close();
+            } catch (err) { aviso(err.message, true); }
+          };
+        }
+        const bCon = $('#b-modal-drive-conectar', d);
+        if (bCon) {
+          bCon.onclick = async () => {
+            try {
+              await api('/api/drive/conectar', { method: 'POST' });
+              aviso('Se abrió el navegador de esta PC: inicia sesión con la cuenta de Google autorizada.');
+              const fin = Date.now() + 5 * 60 * 1000;
+              const mirar = async () => {
+                const s = await api('/api/estado').catch(() => null);
+                if (!s) return;
+                if (s.drive.conectando && Date.now() < fin) return setTimeout(mirar, 3000);
+                estado = s;
+                aviso(s.drive.conectado ? 'Google Drive conectado correctamente' : 'No se completó la conexión', !s.drive.conectado);
+                await recargar();
+                d.close();
+              };
+              setTimeout(mirar, 3000);
+            } catch (err) { aviso(err.message, true); }
+          };
+        }
+      };
+    } else if (id === 'seguridad') {
+      titulo = `${ico('candado', 18)} Seguridad y Clave del Estudio`;
+      descripcion = `Configura la clave de acceso web para el equipo docente y de diseño multimedia.`;
+      cuerpoHtml = `
+        ${campo('WEB_CLAVE', 'Nueva clave del equipo', 'Déjala vacía para conservar la actual. Mínimo 6 caracteres.', { secreto: true })}
+      `;
+    }
+
+    const esSoloInformativo = id === 'sistema';
+
+    d.innerHTML = `
+      <div class="modal-cab">
+        <h3>${titulo}</h3>
+        <button type="button" class="icono-boton modal-cerrar-x" aria-label="Cerrar">${ico('x', 18)}</button>
+      </div>
+      <form id="f-modal-ajuste">
+        <div class="modal-desc-box">${descripcion}</div>
+        ${cuerpoHtml}
+        <div class="modal-pie">
+          <button type="button" class="boton modal-cancelar">Cerrar</button>
+          ${esSoloInformativo ? '' : `<button type="submit" class="boton prim">${ico('guardar', 14)} Guardar ajustes</button>`}
+        </div>
+      </form>
+    `;
+
+    document.body.append(d);
+    d.addEventListener('close', () => d.remove());
+    $('.modal-cerrar-x', d).onclick = () => d.close();
+    $('.modal-cancelar', d).onclick = () => d.close();
+
+    onRender();
+
+    const fm = $('#f-modal-ajuste', d);
+    if (fm && !esSoloInformativo) {
+      fm.onsubmit = async (e) => {
+        e.preventDefault();
+        try {
+          const datos = Object.fromEntries(new FormData(e.target));
+          await api('/api/ajustes', { method: 'POST', body: JSON.stringify(datos) });
+          aviso('Ajustes guardados correctamente');
+          d.close();
+          await recargar();
+        } catch (err) {
+          aviso(err.message, true);
+        }
+      };
+    }
+
+    d.showModal();
+  }
+
+  // Asignar clicks a todos los botones "Ver detalles"
+  app.querySelectorAll('[data-ajuste]').forEach(btn => {
+    btn.onclick = () => abrirModalAjuste(btn.dataset.ajuste);
+  });
 }
 
 ir();

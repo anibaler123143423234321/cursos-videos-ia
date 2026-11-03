@@ -1,0 +1,644 @@
+{
+  "avatar": "SIPANCITOBOT",
+  "rol_avatar": "Asistente docente IA",
+  "docente": "",
+  "institucion": "Universidad Señor de Sipán",
+  "curso": "Google Workspace",
+  "modulo": "",
+  "banda": "Google Workspace",
+  "tema": "Google Gemini: tu asistente de inteligencia artificial",
+  "nivel": "Básico",
+  "duracion_objetivo": 180,
+  "voz": {
+    "proveedor": "auto",
+    "elevenlabs_voz": ""
+  },
+  "pronunciacion": {
+    "gemini.google.com": "jémini punto google punto com",
+    "Gmail": "yi meil",
+    "Drive": "draiv",
+    "SIPANCITOBOT": "sipancitobot",
+    "Gemini": "yéminai",
+    "Google": "gúgol",
+    "Workspace": "uórkspeis"
+  },
+  "agenda": [
+    {
+      "titulo": "Logro y motivación",
+      "desde": "02"
+    },
+    {
+      "titulo": "Qué es Gemini",
+      "desde": "05"
+    },
+    {
+      "titulo": "Primera instrucción",
+      "desde": "07"
+    },
+    {
+      "titulo": "Uso en Gmail y Docs",
+      "desde": "09"
+    },
+    {
+      "titulo": "Práctica y cierre",
+      "desde": "11"
+    }
+  ],
+  "bloques": [
+    {
+      "id": "01",
+      "texto": "¡Hola! Soy SIPANCITOBOT, tu asistente docente de la Universidad Señor de Sipán. Bienvenido al curso Google Workspace. Hoy aprenderás a usar Gemini, tu asistente de inteligencia artificial."
+    },
+    {
+      "id": "02",
+      "texto": "Tu logro de aprendizaje: al finalizar la sesión, accedes a Gemini, redactas instrucciones claras y usas sus respuestas de forma responsable en Google Workspace."
+    },
+    {
+      "id": "03",
+      "texto": "¿Te has sentido abrumado al tener que resumentes textos largos o redactar correos formales? Aprende a pedir ayuda a una IA para ahorrarte tiempo y esfuerzo en tus tareas."
+    },
+    {
+      "id": "04",
+      "texto": "Hoy verás qué es Gemini, cómo entrar, tu primera instrucción, cómo crear pedidos efectivos, su uso en Gmail y Docs, y reglas de uso responsable."
+    },
+    {
+      "id": "05",
+      "texto": "Gemini es el asistente de inteligencia artificial de Google. Responde preguntas, resume textos y redacta contenido. Recuerda que puede equivocarse, por lo que tú siempre debes verificar sus respuestas antes de usarlas."
+    },
+    {
+      "id": "06",
+      "texto": "Para entrar, ve a gemini.google.com usando tu cuenta de Google. También aparece como una estrella de cuatro puntas arriba a la derecha en Gmail, Docs o Drive, si tu institución lo tiene activado."
+    },
+    {
+      "id": "07",
+      "texto": "Escribe tu pedido en el cuadro de texto inferior y envíalo. Por ejemplo, puedes pedir: “Resume este texto en tres puntos”. Verás la respuesta generada debajo de tu mensaje."
+    },
+    {
+      "id": "08",
+      "texto": "Para obtener mejores resultados, incluye rol, tarea, contexto y formato. Por ejemplo: “Eres mi tutor de estadística. Explícame la mediana con un ejemplo, en tres viñetas”. Esto guía a la IA hacia lo que necesitas."
+    },
+    {
+      "id": "09",
+      "texto": "En Gmail y Docs, la opción “Ayúdame a escribir” crea borradores que luego revisas y editas. En Gmail, también puede resumir correos largos para que leas solo lo esencial de la conversación."
+    },
+    {
+      "id": "10",
+      "texto": "Usa Gemini con responsabilidad. No compartas contraseñas ni datos personales sensibles. Revisa siempre los datos antes de usarlos y no presentes como tuyos textos que no has revisado críticamente."
+    },
+    {
+      "id": "11",
+      "texto": "Ahora te toca practicar: ingresa a Gemini y pide un resumen de un correo. Luego, crea una instrucción con rol y formato. Además, revisa las pautas y actividades que tu docente asignará en el aula virtual."
+    },
+    {
+      "id": "12",
+      "texto": "Repasemos: conociste qué es Gemini. Aprendiste a entrar a la plataforma. Redactaste tu primera instrucción. Descubriste cómo hacer pedidos efectivos. Viste su uso en Gmail y Docs. Aplicaste el uso responsable de la herramienta."
+    },
+    {
+      "id": "13",
+      "texto": "Gracias por acompañarme. ¡Nos vemos en la próxima sesión de Google Workspace!"
+    }
+  ],
+  "diapositivas": [
+    {
+      "bloque": "01",
+      "tipo": "portada",
+      "kicker": "Google Workspace · Básico",
+      "titulo": "Google *Gemini*: tu asistente de IA",
+      "sub": "Aprende a usar el asistente de inteligencia artificial de Google.",
+      "nota": "",
+      "icono": "robot",
+      "items": [
+        {
+          "texto": "Gemini",
+          "cuando": ""
+        },
+        {
+          "texto": "IA generativa",
+          "cuando": ""
+        },
+        {
+          "texto": "Productividad",
+          "cuando": ""
+        }
+      ],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "02",
+      "tipo": "definicion",
+      "kicker": "Logro de aprendizaje",
+      "titulo": "Al finalizar la *sesión*...",
+      "sub": "Acerases a Gemini, redactas instrucciones claras y usas sus respuestas de forma responsable.",
+      "nota": "",
+      "icono": "objetivo",
+      "items": [
+        {
+          "texto": "Acceder a la plataforma",
+          "cuando": "acced"
+        },
+        {
+          "texto": "Redactar instrucciones",
+          "cuando": "instrucciones"
+        },
+        {
+          "texto": "Uso responsable",
+          "cuando": "responsable"
+        }
+      ],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "03",
+      "tipo": "pregunta",
+      "kicker": "El problema",
+      "titulo": "¿Sobrecarga de *textos* y correos?",
+      "sub": "Usa una IA para resumir, redactar y ahorrarte tiempo.",
+      "nota": "",
+      "icono": "",
+      "items": [],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "04",
+      "tipo": "temario",
+      "kicker": "Agenda",
+      "titulo": "Lo que veremos *hoy*",
+      "sub": "",
+      "nota": "",
+      "icono": "",
+      "items": [
+        {
+          "texto": "Qué es Gemini",
+          "cuando": "qué es",
+          "icono": "robot"
+        },
+        {
+          "texto": "Cómo acceder",
+          "cuando": "cómo entrar",
+          "icono": "enlace"
+        },
+        {
+          "texto": "Primera instrucción",
+          "cuando": "primera instrucción",
+          "icono": "chat"
+        },
+        {
+          "texto": "Pedidos efectivos",
+          "cuando": "pedidos efectivos",
+          "icono": "lista"
+        },
+        {
+          "texto": "Uso en Gmail y Docs",
+          "cuando": "Gmail y Docs",
+          "icono": "correo"
+        },
+        {
+          "texto": "Uso responsable",
+          "cuando": "uso responsable",
+          "icono": "escudo"
+        }
+      ],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "05",
+      "tipo": "definicion",
+      "kicker": "Concepto clave",
+      "titulo": "¿Qué es *Gemini*?",
+      "sub": "Asistente de IA que responde, resume y redacta contenido.",
+      "nota": "",
+      "icono": "robot",
+      "items": [
+        {
+          "texto": "Generador de texto",
+          "cuando": "texto"
+        },
+        {
+          "texto": "Resumidor inteligente",
+          "cuando": "inteligen"
+        },
+        {
+          "texto": "Requiere verificación",
+          "cuando": ""
+        }
+      ],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "06",
+      "tipo": "ruta",
+      "kicker": "Acceso directo",
+      "titulo": "Entra a *Gemini* con tu cuenta",
+      "sub": "Disponible en la web o integrado en otras apps.",
+      "nota": "",
+      "icono": "",
+      "items": [
+        {
+          "texto": "gemini.google.com",
+          "cuando": "gemini"
+        },
+        {
+          "texto": "Estrella de cuatro puntas",
+          "cuando": "estrella de cuatro puntas"
+        }
+      ],
+      "codigo": "",
+      "archivo": "",
+      "app": "Navegador / Gmail / Docs",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "07",
+      "tipo": "idea",
+      "kicker": "Tu primer paso",
+      "titulo": "Escribe tu pedido y *envíalo*",
+      "sub": "La respuesta aparece justo debajo de tu mensaje.",
+      "nota": "",
+      "icono": "chat",
+      "items": [],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "08",
+      "tipo": "lista",
+      "kicker": "Clave para pedir mejor",
+      "titulo": "Cuatro pilares de una *instrucción*",
+      "sub": "",
+      "nota": "",
+      "icono": "",
+      "items": [
+        {
+          "texto": "Rol: quién es la IA",
+          "cuando": ""
+        },
+        {
+          "texto": "Tarea: qué debe hacer",
+          "cuando": "tarea"
+        },
+        {
+          "texto": "Contexto: situación del usuario",
+          "cuando": "contexto"
+        },
+        {
+          "texto": "Formato: cómo presentar el rango",
+          "cuando": "formato"
+        }
+      ],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "09",
+      "tipo": "flujo",
+      "kicker": "Integración en Workspace",
+      "titulo": "De borrador a texto *finalizado*",
+      "sub": "Gemini genera, tú decides qué conservar.",
+      "nota": "",
+      "icono": "",
+      "items": [],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [
+        {
+          "titulo": "Genera",
+          "texto": "Crea borrador con Ayúdame a escribir",
+          "cuando": "borradores",
+          "icono": "robot"
+        },
+        {
+          "titulo": "Revisa",
+          "texto": "Lees con atención el contenido",
+          "cuando": "revisas",
+          "icono": "buscar"
+        },
+        {
+          "titulo": "Edita",
+          "texto": "Ajusta tono y detalles finales",
+          "cuando": "editas",
+          "icono": "editar"
+        }
+      ],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "10",
+      "tipo": "lista",
+      "kicker": "Uso responsable",
+      "titulo": "Tres reglas de *seguridad*",
+      "sub": "Protege tus datos y verifica la información antes de usarla.",
+      "nota": "",
+      "icono": "",
+      "items": [
+        {
+          "texto": "Nunca compartas contraseñas",
+          "cuando": "no compartas",
+          "icono": "candado"
+        },
+        {
+          "texto": "Evita datos personales sensibles",
+          "cuando": "datos personales",
+          "icono": "escudo"
+        },
+        {
+          "texto": "Verifica la información siempre",
+          "cuando": "revisa siempre",
+          "icono": "check"
+        }
+      ],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "11",
+      "tipo": "tarjetas",
+      "kicker": "Práctica",
+      "titulo": "Aplica lo que *aprendiste*",
+      "sub": "Revisa las pautas y actividades del aula virtual.",
+      "nota": "",
+      "icono": "",
+      "items": [],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [
+        {
+          "titulo": "Resumen",
+          "texto": "Pide un resumen de un correo",
+          "cuando": "pide un resumen",
+          "icono": "correo"
+        },
+        {
+          "titulo": "Instrucción",
+          "texto": "Crea un pedido con rol y formato",
+          "cuando": "Instrucción",
+          "icono": "editar"
+        },
+        {
+          "titulo": "Revisión",
+          "texto": "Consulta el aula virtual",
+          "cuando": "revisa las pautas",
+          "icono": "calendario"
+        }
+      ],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "12",
+      "tipo": "cierre",
+      "kicker": "Qué aprendí",
+      "titulo": "Tu resumen de *hoy*",
+      "sub": "",
+      "nota": "",
+      "icono": "",
+      "items": [
+        {
+          "texto": "Gemini es un asistente con errores",
+          "cuando": "conociste qué es"
+        },
+        {
+          "texto": "Acceso fácil en Workspace",
+          "cuando": "Aprendiste a entrar"
+        },
+        {
+          "texto": "Instrucciones con rol y contexto",
+          "cuando": "pedidos efectivos"
+        }
+      ],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    },
+    {
+      "bloque": "13",
+      "tipo": "logo",
+      "kicker": "",
+      "titulo": "¡Nos vemos en la *próxima sesión*!",
+      "sub": "SIPANCITOBOT · Asistente docente IA",
+      "nota": "",
+      "icono": "",
+      "items": [],
+      "codigo": "",
+      "archivo": "",
+      "app": "",
+      "izq": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "der": {
+        "etiqueta": "",
+        "titulo": "",
+        "texto": "",
+        "cuando": ""
+      },
+      "tarjetas": [],
+      "dato": "",
+      "reto": "",
+      "despedida": ""
+    }
+  ],
+  "slug": "google-gemini-tu-asistente-de-2"
+}

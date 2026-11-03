@@ -105,6 +105,7 @@ async function principal() {
   }
   FFPROBE = programa('ffprobe'); // opcional: si falta, la duracion se lee con ffmpeg
   fs.mkdirSync(SAL, { recursive: true });
+  ocuparClase();
 
   console.log(`\n== Clase: ${clase.tema || slug}  (${clase.bloques.length} bloques)`);
   const { tiempos, proveedor } = await prepararVoz(clase);
@@ -185,6 +186,29 @@ async function principal() {
     await navegador.close().catch(() => {});
     srv.close();
   }
+}
+
+// Dos corridas de la misma clase a la vez (la web y una ventana, o dos botones) escriben en la misma carpeta
+// salida/voz y se pisan los audios ("No pude medir la duracion de 01.norm.wav"). La segunda espera su turno.
+function ocuparClase() {
+  const f = path.join(SAL, '.en-uso');
+  const viva = pid => { try { process.kill(pid, 0); return true; } catch (e) { return e.code === 'EPERM'; } };
+  for (let espera = 0; ; espera++) {
+    try {
+      fs.writeFileSync(f, String(process.pid), { flag: 'wx' });
+      break;
+    } catch (e) {
+      if (e.code !== 'EEXIST') throw e;
+      const otro = parseInt(fs.readFileSync(f, 'utf8'), 10);
+      if (!otro || otro === process.pid || !viva(otro)) { fs.rmSync(f, { force: true }); continue; } // quedo de una corrida cortada
+      if (espera === 0) console.log(`[i] Esta clase ya se esta creando en otra ventana o desde la web: espero a que termine...`);
+      if (espera > 900) throw new Error('La otra corrida de esta clase no termina (15 min). Cierrala y vuelve a intentar.');
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1000);
+    }
+  }
+  process.on('exit', () => {
+    try { if (fs.readFileSync(f, 'utf8') === String(process.pid)) fs.rmSync(f, { force: true }); } catch { /* ya no esta */ }
+  });
 }
 
 // ---------------------------------------------------------------- validacion
@@ -526,7 +550,7 @@ async function vozElevenLabs(clase, bloques, dirVoz) {
       }
       if (!r.ok) {
         const detalle = (await r.text().catch(() => '')).slice(0, 300);
-        const pista = /library|free.?users?/i.test(detalle) ? ' (en el plan Free solo funcionan las voces "Default" de ElevenLabs, no las de la biblioteca: elige otra voz o pasa a Starter)'
+        const pista = /library|free.?users?/i.test(detalle) ? ` (en el plan Free solo funcionan las voces "Default" de ElevenLabs, no las de la biblioteca: pega una de estas en Ajustes › Voz · ElevenLabs › Voice ID, o pasa a Starter${await vocesDefault(clave)})`
           : r.status === 401 ? ' (API key invalida o sin permiso de Text to Speech)'
           : r.status === 404 ? ' (ELEVENLABS_VOICE_ID no existe en tu cuenta)'
           : r.status === 402 || /quota/i.test(detalle) ? ' (sin creditos en tu plan)' : '';
@@ -535,6 +559,17 @@ async function vozElevenLabs(clase, bloques, dirVoz) {
       return Buffer.from(await r.arrayBuffer());
     },
   });
+}
+
+// Voces "Default" (premade) de la cuenta, las unicas que el plan Free puede usar por la API: ": Sarah = EXAVITQu4..."
+async function vocesDefault(clave) {
+  try {
+    const r = await fetch('https://api.elevenlabs.io/v1/voices', { headers: { 'xi-api-key': clave } });
+    const { voices = [] } = r.ok ? await r.json() : {};
+    const lista = voices.filter(v => v.category === 'premade').slice(0, 6).map(v => `${v.name} = ${v.voice_id}`);
+    if (lista.length) return `. Voces Default de tu cuenta: ${lista.join(' · ')}`;
+  } catch { /* sin internet o la API key no puede listar voces */ }
+  return '. Por ejemplo: Sarah = EXAVITQu4vr4xnSDxMaL · George = JBFqnCBsd6RMkjVDRZzb';
 }
 
 // Voz sintetica con cache: solo se vuelve a generar el bloque cuyo texto (o voz) cambio.
@@ -667,6 +702,7 @@ function vozSistema(clase, bloques, dirVoz) {
     for (const b of bloques) {
       const destino = path.join(dirVoz, `${b.id}.sistema.aiff`);
       correr('say', ['-v', voz, '-o', destino, textoVoz(clase, b.texto)]);
+      if (!fs.existsSync(destino) || fs.statSync(destino).size < 1000) throw new Error(`la voz ${voz} no genero audio para el bloque ${b.id}`);
       salida[b.id] = destino;
     }
   } else if (process.platform === 'win32') {
@@ -977,7 +1013,9 @@ function duracion(f) {
     const m = /Duration:\s*(\d+):(\d+):([\d.]+)/.exec(r.stderr || '');
     if (m) d = (+m[1]) * 3600 + (+m[2]) * 60 + parseFloat(m[3]);
   }
-  if (!isFinite(d)) throw new Error(`No pude medir la duracion de ${path.basename(f)}`);
+  // los .norm.wav los escribe este motor (PCM 16 bits, 48 kHz, mono): la duracion sale del tamano del archivo
+  if (!isFinite(d) && /\.norm\.wav$/.test(f) && fs.existsSync(f) && fs.statSync(f).size > 1000) d = (fs.statSync(f).size - 44) / 96000;
+  if (!isFinite(d) || d <= 0) throw new Error(`No pude medir la duracion de ${path.basename(f)}: el audio salio vacio o danado. Vuelve a intentar.`);
   return d;
 }
 

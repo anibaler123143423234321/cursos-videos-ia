@@ -10,6 +10,8 @@ const slug = EMB ? EMB.slug : q.get('clase');
 const modo = EMB ? 'vista' : q.get('modo') || 'vista';
 const archivoAvatar = EMB ? null : q.get('avatar');
 const base = `/clases/${encodeURIComponent(slug || '')}`;
+// logo opcional: marca/logo.png (el motor avisa con ?logo=1 si existe)
+const LOGO = EMB ? EMB.archivos.logo || '' : q.get('logo') === '1' ? '/marca/logo.png' : '';
 const archivo = rel => (EMB ? EMB.archivos[rel] || '' : `${base}/${String(rel).split('/').map(encodeURIComponent).join('/')}`);
 const $ = s => document.querySelector(s);
 
@@ -62,11 +64,12 @@ try {
   if (Array.isArray(clase.diapositivas) && clase.diapositivas.length) {
     // diapositivas por plantillas (las que se editan desde la web)
     const { construirAuto } = await import('./diapos-auto.js');
-    construirAuto({ tl, gsap, escena, b, fin, p, u, clase, tiempos, archivo });
+    construirAuto({ tl, gsap, escena, b, fin, p, u, clase, tiempos, archivo, logo: LOGO });
     // las laminas (imagenes) deben estar cargadas antes del primer cuadro
     await Promise.all([...escena.querySelectorAll('img.lamina-img')].map(img => img.decode().catch(() => {
       throw new Error(`No pude abrir la lámina ${img.dataset.lamina}. ¿Está en la carpeta laminas de la clase?`);
     })));
+    await Promise.all([...escena.querySelectorAll('img.a-final-logo')].map(img => img.decode().catch(() => {})));
   } else {
     const mod = await import(EMB ? '@clase/diapositivas' : `${base}/diapositivas.js`);
     if (typeof mod.default !== 'function') throw new Error('diapositivas.js debe tener "export default function ({ tl, b, p, u, ... }) { ... }"');
@@ -136,11 +139,9 @@ async function armarMarco(clase, tiempos) {
   $('#pie-der').textContent = tiempos.camara ? 'Diapositivas generadas con IA'
     : clase.docente ? `Clase generada con IA · Revisó: ${clase.docente}` : 'Clase generada con IA';
   document.title = `${clase.tema || 'Clase'} · ${nombre}`;
-  // logo opcional: marca/logo.png (el motor avisa con ?logo=1 si existe)
-  const logo = EMB ? EMB.archivos.logo : q.get('logo') === '1' ? '/marca/logo.png' : '';
-  if (logo) {
+  if (LOGO) {
     const img = $('#logo');
-    img.src = logo;
+    img.src = LOGO;
     await img.decode().catch(() => {});
     img.hidden = false;
     $('.logo-texto').style.display = 'none';

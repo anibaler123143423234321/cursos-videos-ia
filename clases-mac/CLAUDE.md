@@ -163,7 +163,9 @@ export default function ({ b, p, u, tl, gsap, clase }) {
 
 En vez de `diapositivas.js`, la clase puede describir sus diapositivas en `clase.json`, en el campo
 `"diapositivas": [...]`. Así se editan también desde la web del equipo. Hay una por bloque, y el
-bloque que no tiene diapositiva mantiene la anterior. Modelo: `clases/como-funciona-la-web/clase.json`.
+bloque que no tiene diapositiva mantiene la anterior. Modelos: `clases/como-funciona-la-web/clase.json` y
+`clases/google-workspace-s1-gmail/clase.json` (usa casi todos los tipos). La web muestra cada una en «Así se verá»
+con el mismo dibujo del video. Las guías que sigue la IA de la web para escribirlas están en `web/skills/`.
 
 ```json
 { "bloque": "03", "tipo": "comparacion", "kicker": "Los protagonistas", "titulo": "Quién *pide* y quién *responde*",
@@ -171,19 +173,32 @@ bloque que no tiene diapositiva mantiene la anterior. Modelo: `clases/como-funci
   "der": { "etiqueta": "SERVIDOR", "titulo": "Responde", "texto": "...", "cuando": "servidor es" } }
 ```
 
-Tipos de diapositiva y sus campos:
-- `portada`: `items` son los chips.
-- `idea`: `titulo` y `sub`.
-- `lista` y `pasos`: `items: [{texto, cuando}]`.
-- `codigo`: `codigo`.
-- `comparacion`: `izq` y `der`.
-- `tarjetas`: `tarjetas: [{titulo, texto, cuando}]`.
-- `dato`: `dato`, `titulo` y `sub`.
-- `cierre`: `items` y `despedida`.
+Tipos de diapositiva y sus campos (`icono` es opcional: uno de la lista `ICONOS` de `motor/diapos-auto.js`;
+si falta, el motor elige uno según el texto):
+- `portada`: `items` son los chips; `icono` va en el círculo grande.
+- `pregunta`: la pregunta o el problema que motiva, en fondo oscuro (`titulo` y `sub`).
+- `idea`: `titulo`, `sub` e `icono`.
+- `definicion`: tarjeta destacada para un término o el logro de aprendizaje: `titulo`, `sub` (la definición), `icono`, `items` (chips).
+- `temario`: hasta 8 temas numerados en dos columnas: `items: [{texto, cuando, icono}]`.
+- `lista`: `items: [{texto, cuando, icono}]`. `pasos`: los mismos `items`, en una línea de tiempo.
+- `ruta`: los clics dentro de una aplicación, con cursor: `app` (nombre en la barra) e `items` (botones o menús, en orden).
+- `flujo`: etapas unidas por flechas: `tarjetas: [{titulo, texto, cuando, icono}]` (2 a 5).
+- `codigo`: `codigo` y `archivo` (nombre de la ventana). Sirve también para un texto modelo (una firma, operadores de búsqueda).
+- `comparacion`: `izq` y `der` (`etiqueta`, `titulo`, `texto`, `cuando`, `icono`).
+- `tarjetas`: `tarjetas: [{titulo, texto, cuando, icono}]` (2 a 4).
+- `dato`: `dato`, `titulo` y `sub` (un número entero se anima contando).
+- `cierre`: `items` (lo aprendido), `reto` (tarjeta oscura) y `despedida`. Sin `reto`, a la derecha va un trofeo.
+- `logo`: despedida con `marca/logo.png` al centro: `titulo` (la frase) y `sub` (la firma).
 - `imagen`: `imagen` con la ruta de una lámina del docente (`"laminas/01.png"`). Se ve entera, con un acercamiento lento.
   Opcional `efectos: [{ tipo, caja: [x, y, ancho, alto] en % de la imagen, cuando, bloque }]`, que aparecen cuando la voz
   dice `cuando`: `numero` (enumera un punto y lo enmarca), `foco` (enmarca y oscurece lo demás), `resaltar` (plumón)
   y `zoom` (acerca la cámara). Si la lámina ya trae números, usa `foco` en vez de `numero`.
+
+**Diseño.** En `clase.json`, `"semilla"` (un número) elige el estilo visual de toda la clase y una variante de cada
+plantilla, para que las clases no se vean todas iguales. La web la pone al crear la clase y la cambia con «Otro diseño».
+`"estilo"` fija el estilo (`vibrante`, `editorial`, `noche` o `pastel`) y `"variante"` en una diapositiva fija la suya
+(lista completa en `VARIANTES` de `motor/diapos-auto.js`; por ejemplo, la portada puede ser `icono`, `panel`, `centrada`
+o `tipografica`). Una clase sin semilla se ve como siempre: estilo vibrante y la primera variante de cada tipo.
 
 Todos aceptan `kicker`, `titulo` (la palabra clave va entre `*asteriscos*`), `sub` y `nota`. Para el
 campo `cuando`, usa una palabra que aparezca tal cual en el texto de ese bloque. Si la clase tiene

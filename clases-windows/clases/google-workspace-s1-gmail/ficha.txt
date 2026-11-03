@@ -1,0 +1,24 @@
+FICHA DE LA CLASE  (pedido del docente, 3 nov 2026)
+===================================================
+
+--- AVATAR ---
+NOMBRE DEL AVATAR: SIPANCITOBOT
+ROL DEL AVATAR: Asistente docente IA
+
+--- CLASE ---
+UNIVERSIDAD: Universidad Señor de Sipán
+CURSO: Google Workspace
+MODULO: Sesión 1 · Gmail
+TEMA: Sesión 1 · Gestión profesional de la comunicación con Gmail
+NIVEL: Básico
+DURACION: 3:00 (8 temas: se eligió 3:00 en vez de 2:30)
+TEMARIO: Configuración de cuenta, firma, etiquetas, filtros, búsqueda avanzada, contactos, adjuntos y comunicación profesional.
+ESTRUCTURA PEDIDA: portada, logro de aprendizaje, motivación o reto, temario, desarrollo del temario,
+  práctica (texto estándar: "Revisa las pautas y actividades que tu docente asignará en el aula virtual"),
+  conclusiones o qué aprendí, cierre (logo del Centro de Informática al centro).
+NOMBRE CORTO: google-workspace-s1-gmail
+
+--- PRODUCCION ---
+VOZ: automática
+MUSICA: no
+SUBTITULOS: no
