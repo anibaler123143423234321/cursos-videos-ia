@@ -1,0 +1,13 @@
+<template id="lamina-04-template">
+  <div data-composition-id="lamina-04" data-width="1920" data-height="1080">
+    
+    <div class="contenido"><div class="barra"><span class="barra-icono">≡</span><span class="barra-texto">Temario de la sesión</span></div><div class="grupo"><div class="fila"><span class="num">1</span><span class="texto">Configuración de la cuenta</span></div><div class="fila"><span class="num">2</span><span class="texto">Firma</span></div><div class="fila"><span class="num">3</span><span class="texto">Etiquetas</span></div><div class="fila"><span class="num">4</span><span class="texto">Filtros</span></div><div class="fila"><span class="num">5</span><span class="texto">Búsqueda avanzada</span></div><div class="fila"><span class="num">6</span><span class="texto">Contactos</span></div><div class="fila"><span class="num">7</span><span class="texto">Adjuntos</span></div><div class="fila"><span class="num">8</span><span class="texto">Comunicación profesional</span></div></div></div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("[data-composition-id=\"lamina-04\"] .barra", {"opacity":0,"x":-60}, {"opacity":1,"x":0,"y":0,"scale":1,"duration":0.6,"ease":"power3.out","stagger":0}, 0.33);
+      tl.fromTo("[data-composition-id=\"lamina-04\"] .fila", {"opacity":0,"y":40}, {"opacity":1,"x":0,"y":0,"scale":1,"duration":0.6,"ease":"power3.out","stagger":1.17}, 1.67);
+      window.__timelines["lamina-04"] = tl;
+    </script>
+  </div>
+</template>

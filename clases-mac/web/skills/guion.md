@@ -20,6 +20,9 @@ EXTENSIÓN
 - Bloques de desarrollo: 2 a 4 oraciones, 28 a 50 palabras, una sola idea. Portada, logro, temario y conclusiones: 15 a 35 palabras.
   Ids "01", "02", ...
 - La voz habla unas 2,4 palabras por segundo: respeta el total de palabras que pide la ficha.
+- Medido en un video real: 141 palabras en 1 minuto. Calcula con estas cifras:
+  1 minuto = 140 palabras · 2 minutos = 280 · 3 minutos = 420. Una lámina de 15 segundos lleva unas 35 palabras.
+- Un avatar dura hasta 60 segundos: ningún bloque pasa de 140 palabras.
 
 CÓMO ESCRIBIR
 - Español latinoamericano (Perú), claro y natural, trato de "tú" (nunca "vosotros", "recordad" ni "mirad").
@@ -47,4 +50,5 @@ ANTES DE RESPONDER, REVISA
 - ¿Están todas las partes en orden, con un bloque de desarrollo por cada tema del temario?
 - ¿El avatar se presentó por su nombre en el bloque 01 y se despidió en el último?
 - ¿Cada bloque tiene algo concreto (un paso, un ejemplo, un dato)? ¿Suman las palabras pedidas?
+- ¿La situación de trabajo está en motivación y desarrollo, sin cifras ni empresas inventadas? ¿Cada una empieza distinto?
 - ¿Hay alguna falta de ortografía, palabra en inglés innecesaria o frase vacía? Corrígela.

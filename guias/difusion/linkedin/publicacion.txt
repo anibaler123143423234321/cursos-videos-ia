@@ -1,0 +1,21 @@
+¿Una clase en video con IA se hace con una sola herramienta? Nuestra respuesta fue no.
+
+En el Centro de Informática de la Universidad Señor de Sipán probamos varias combinaciones para crear clases en video y documentamos 4 formas:
+
+1. Gemini + Hyperframes + avatar de Google Vids: láminas animadas en HTML, imágenes de Gemini y un avatar que habla.
+2. Lámina + avatar de Google Vids: tu lámina ya hecha como fondo, con un avatar encima.
+3. HTML puro + voz de ElevenLabs: láminas animadas con voz, sin una persona en pantalla.
+4. Solo Google Vids: imagen, avatar y montaje en la misma herramienta.
+
+Lo que aprendimos:
+
+• La IA escribe, pero un programa valida el formato y el diseño.
+• Una sola medida de avatar y logo mantiene todas las láminas iguales.
+• Las pantallas dibujadas por IA pueden inventar textos: siempre hay revisión humana.
+• Cada avatar gasta cupo, así que el guion se revisa antes de generarlo.
+
+No hay una forma ganadora. Depende de la clase, del tiempo y de tu plan.
+
+¿Cuál usarías en tus clases?
+
+#InteligenciaArtificial #EducaciónSuperior #GoogleVids #Hyperframes #USS

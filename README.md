@@ -5,10 +5,11 @@ Cada video final se guarda solo en la carpeta compartida de Google Drive del equ
 
 | Si eres… | Lee esto |
 |---|---|
-| **Docente** (crea clases desde el navegador, sin instalar nada) | [`guias/Guia-docente-crear-un-video.pdf`](guias/Guia-docente-crear-un-video.pdf): 6 pasos con capturas |
-| **Quien administra la PC del estudio** (enciende la web y da la clave) | [`guias/PC-DEL-ESTUDIO.txt`](guias/PC-DEL-ESTUDIO.txt): una página |
-| **Quien instala en otra PC** | [`guias/INSTALAR-EN-OTRA-PC.txt`](guias/INSTALAR-EN-OTRA-PC.txt): un doble clic en `INSTALAR-TODO.bat` y copiar 2 archivos |
+| **Docente** (crea clases desde el navegador, sin instalar nada) | [`guias/por-web/pdf/Guia-docente-crear-un-video.pdf`](guias/por-web/pdf/Guia-docente-crear-un-video.pdf): 6 pasos con capturas |
+| **Quien administra la PC del estudio** (enciende la web y da la clave) | [`guias/instalacion/PC-DEL-ESTUDIO.txt`](guias/instalacion/PC-DEL-ESTUDIO.txt): una página |
+| **Quien instala en otra PC** | [`guias/instalacion/INSTALAR-EN-OTRA-PC.txt`](guias/instalacion/INSTALAR-EN-OTRA-PC.txt): un doble clic en `INSTALAR-TODO.bat` y copiar 2 archivos |
 | **Quien cambia el sistema** | Este README y `clases-windows/LEEME-WINDOWS.txt` |
+| **Quien busca una guía** | Abre [`guias/index.html`](guias/index.html) con doble clic: todas las guías en PDF y Word, con buscador |
 
 ## Crear un video en 5 pasos (PC del estudio, Windows)
 
@@ -68,7 +69,7 @@ En otra PC, primero haz [Instalar en otra PC](#instalar-en-otra-pc-una-sola-vez-
 ## Instalar en otra PC (una sola vez, unos 30 minutos)
 
 Clonar no alcanza: las claves, el permiso de Drive y la voz local no están en GitHub a propósito.
-El paso a paso completo está en [`guias/INSTALAR-EN-OTRA-PC.txt`](guias/INSTALAR-EN-OTRA-PC.txt). En corto:
+El paso a paso completo está en [`guias/instalacion/INSTALAR-EN-OTRA-PC.txt`](guias/instalacion/INSTALAR-EN-OTRA-PC.txt). En corto:
 
 1. **En la PC actual:** sube lo último a GitHub y copia en un USB `clases-windows\.env`,
    `google-drive-cliente.json` y, si quieres, `drive-token.json`.
@@ -96,6 +97,7 @@ En Mac es igual con los archivos `.command` de `clases-mac/` (`INSTALAR-TODO.com
 | `clases-windows/` | Kit de clases con lanzadores `.bat` y la web del equipo | PC con Windows 10/11 |
 | `clases-mac/` | El mismo kit, con lanzadores `.command` | Mac (chip M) |
 | `clases-*/web/` | **Web del equipo** (Estudio de clases): crear y editar clases desde el navegador. Ver `LEEME-WEB.txt` | La PC del estudio sirve la web en la red |
+| `guias/` | Documentación: portal, guías en PDF y Word, presentación e instalación. Mapa en [`guias/LEEME.md`](guias/LEEME.md) | Cualquier PC |
 | `propuesta/` | Propuesta de costos (PDF). La fuente editable está en `propuesta/fuente/`; se regenera con `node propuesta/fuente/generar-pdf.mjs` | — |
 | `demo/` | `clase-demo-html-semantico.mp4`, la clase de ejemplo ya renderizada | — |
 | raíz (`PROMPT-ANUNCIOS-30s.txt`, `CREAR-VIDEO.bat`, `LEEME-GUIA.txt`) | Anuncios de 30 s con Claude Design (kit anterior, sin cambios) | Windows |

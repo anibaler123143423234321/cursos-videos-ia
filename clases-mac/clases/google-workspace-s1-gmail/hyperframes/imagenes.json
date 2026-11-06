@@ -1,0 +1,56 @@
+{
+  "segundos": 60.05,
+  "laminas": 4,
+  "ids": [
+    "01",
+    "02",
+    "03",
+    "04"
+  ],
+  "lista": [
+    {
+      "id": "01",
+      "parte": "portada",
+      "duracion": 10,
+      "guion": "¡Hola! Soy tu profesor virtual de la Universidad Señor de Sipán. Bienvenido a la sesión uno de Google Workspace: hoy gestionarás tu comunicación de forma profesional con Gmail."
+    },
+    {
+      "id": "02",
+      "parte": "logro",
+      "duracion": 20,
+      "guion": "Tu logro de aprendizaje: al finalizar la sesión, configuras y organizas tu Gmail con firma, etiquetas, filtros y búsqueda avanzada, para comunicarte de manera eficiente y profesional. Mira, en tu primer trabajo nadie revisa tu bandeja, pero todos notan si respondes a tiempo y si encuentras lo que te piden."
+    },
+    {
+      "id": "03",
+      "parte": "motivacion",
+      "duracion": 17,
+      "guion": "Piensa en esto: ¿cuántas veces buscaste un correo importante entre cientos de mensajes? Una bandeja ordenada te ahorra tiempo y transmite una imagen profesional. Oye, imagina que tu jefe te pide un correo antiguo en plena reunión: si tu bandeja está desordenada, todos se quedan esperándote."
+    },
+    {
+      "id": "04",
+      "parte": "temario",
+      "duracion": 13.05,
+      "guion": "Veremos ocho temas: configuración de la cuenta, firma, etiquetas, filtros, búsqueda avanzada, contactos, adjuntos y comunicación profesional."
+    }
+  ],
+  "imagenes": [
+    {
+      "id": "l01",
+      "lamina": "01",
+      "titulo": "Foto de la portada",
+      "prompt": "Fotografía real y luminosa de una oficina moderna con ventanales, estantes y plantas, suavemente desenfocada, sin personas, sin texto y sin logotipos. Formato horizontal 16:9."
+    },
+    {
+      "id": "l02",
+      "lamina": "02",
+      "titulo": "la bandeja Recibidos ordenada, con pocos correos de Aula virtual, Biblioteca y Coordinación académica, y en el panel izquierdo las etiquetas Académico, Laboral y Proyectos con sus colores",
+      "prompt": "Imagen horizontal 16:9: una captura de pantalla real de Gmail en computadora, en español, dentro de una ventana de navegador, plana y de frente, sin inclinación ni perspectiva, con la interfaz, los colores, los íconos y la tipografía originales: la bandeja Recibidos ordenada, con pocos correos de Aula virtual, Biblioteca y Coordinación académica, y en el panel izquierdo las etiquetas Académico, Laboral y Proyectos con sus colores. Se ve la ventana completa de la aplicación. Sin personas y sin marcas de agua."
+    },
+    {
+      "id": "l03",
+      "lamina": "03",
+      "titulo": "la bandeja Recibidos llena de correos sin leer de Aula virtual, Biblioteca y Coordinación académica, con el panel izquierdo visible",
+      "prompt": "Imagen horizontal 16:9: una captura de pantalla real de Gmail en computadora, en español, dentro de una ventana de navegador, plana y de frente, sin inclinación ni perspectiva, con la interfaz, los colores, los íconos y la tipografía originales: la bandeja Recibidos llena de correos sin leer de Aula virtual, Biblioteca y Coordinación académica, con el panel izquierdo visible. Se ve la ventana completa de la aplicación. Sin personas y sin marcas de agua."
+    }
+  ]
+}

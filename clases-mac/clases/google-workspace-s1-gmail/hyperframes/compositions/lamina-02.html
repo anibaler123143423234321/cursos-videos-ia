@@ -1,0 +1,14 @@
+<template id="lamina-02-template">
+  <div data-composition-id="lamina-02" data-width="1920" data-height="1080">
+    
+    <div class="contenido"><div class="barra"><span class="barra-icono">✓</span><span class="barra-texto">Logro de aprendizaje</span></div><img class="imagen" src="assets/l02.jpg" alt="la bandeja Recibidos ordenada, con pocos correos de Aula virtual, Biblioteca y Coordinación académica, y en el panel izquierdo las etiquetas Académico, Laboral y Proyectos con sus colores" /><div class="nota">Al finalizar la sesión, configuras y organizas tu Gmail con firma, etiquetas, filtros y búsqueda avanzada, para comunicarte de manera eficiente y profesional.</div></div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("[data-composition-id=\"lamina-02\"] .barra", {"opacity":0,"x":-60}, {"opacity":1,"x":0,"y":0,"scale":1,"duration":0.6,"ease":"power3.out","stagger":0}, 0.18);
+      tl.fromTo("[data-composition-id=\"lamina-02\"] .imagen", {"opacity":0,"scale":0.85}, {"opacity":1,"x":0,"y":0,"scale":1,"duration":0.6,"ease":"power3.out","stagger":0}, 1.37);
+      tl.fromTo("[data-composition-id=\"lamina-02\"] .nota", {"opacity":0,"y":40}, {"opacity":1,"x":0,"y":0,"scale":1,"duration":0.6,"ease":"power3.out","stagger":0}, 7.31);
+      window.__timelines["lamina-02"] = tl;
+    </script>
+  </div>
+</template>

@@ -1,0 +1,78 @@
+{
+  "laminas": [
+    {
+      "lamina": "02",
+      "html": "<div class=\"barra\"><span class=\"barra-icono\">✓</span><span class=\"barra-texto\">Logro de aprendizaje</span></div><div class=\"imagen\"></div><div class=\"nota\">Al finalizar la sesión, configuras y organizas tu Gmail con firma, etiquetas, filtros y búsqueda avanzada, para comunicarte de manera eficiente y profesional.</div>",
+      "imagen": "Pantalla de Gmail con banderas, etiquetas de colores y icono de firma visible en una esquina",
+      "animaciones": [
+        {
+          "selector": ".barra",
+          "momento": 0.2,
+          "efecto": "izquierda",
+          "escalonado": 0
+        },
+        {
+          "selector": ".imagen",
+          "momento": 1.5,
+          "efecto": "escala",
+          "escalonado": 0
+        },
+        {
+          "selector": ".nota",
+          "momento": 8,
+          "efecto": "subir",
+          "escalonado": 0
+        }
+      ]
+    },
+    {
+      "lamina": "03",
+      "html": "<div class=\"barra\"><span class=\"barra-icono\">?</span><span class=\"barra-texto\">Motivación</span></div><div class=\"frase\">¿Cuántas veces buscaste un correo importante entre cientos de mensajes?</div><div class=\"imagen\"></div><div class=\"nota\">Una bandeja ordenada te ahorra tiempo y transmite una imagen profesional.</div>",
+      "imagen": "Fondo con desorden de iconos de correo electrónico solapados en blanco, gris y rojo",
+      "animaciones": [
+        {
+          "selector": ".barra",
+          "momento": 0.2,
+          "efecto": "izquierda",
+          "escalonado": 0
+        },
+        {
+          "selector": ".frase",
+          "momento": 1.5,
+          "efecto": "subir",
+          "escalonado": 0
+        },
+        {
+          "selector": ".imagen",
+          "momento": 4,
+          "efecto": "escala",
+          "escalonado": 0
+        },
+        {
+          "selector": ".nota",
+          "momento": 10,
+          "efecto": "aparecer",
+          "escalonado": 0
+        }
+      ]
+    },
+    {
+      "lamina": "04",
+      "html": "<div class=\"barra\"><span class=\"barra-icono\">1</span><span class=\"barra-texto\">Temario de la sesión</span></div><div class=\"grupo\"><div class=\"fila\"><span class=\"num\">1</span><span class=\"texto\">Configuración de la cuenta</span></div><div class=\"fila\"><span class=\"num\">2</span><span class=\"texto\">Firma</span></div><div class=\"fila\"><span class=\"num\">3</span><span class=\"texto\">Etiquetas</span></div><div class=\"fila\"><span class=\"num\">4</span><span class=\"texto\">Filtros</span></div><div class=\"fila\"><span class=\"num\">5</span><span class=\"texto\">Búsqueda avanzada</span></div><div class=\"fila\"><span class=\"num\">6</span><span class=\"texto\">Contactos</span></div><div class=\"fila\"><span class=\"num\">7</span><span class=\"texto\">Adjuntos</span></div><div class=\"fila\"><span class=\"num\">8</span><span class=\"texto\">Comunicación profesional</span></div></div>",
+      "animaciones": [
+        {
+          "selector": ".barra",
+          "momento": 0.2,
+          "efecto": "izquierda",
+          "escalonado": 0
+        },
+        {
+          "selector": ".fila",
+          "momento": 1,
+          "efecto": "subir",
+          "escalonado": 0.7
+        }
+      ]
+    }
+  ]
+}

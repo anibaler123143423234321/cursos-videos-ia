@@ -111,7 +111,7 @@ Otros comandos útiles:
 
 ## Formato de `clases/<nombre-corto>/diapositivas.js`
 
-Usa como modelo `clases/html-semantico-w3c/diapositivas.js`.
+Usa como modelo `marca/modelos/diapositivas-ejemplo.js`.
 
 ```js
 export default function ({ b, p, u, tl, gsap, clase }) {
@@ -163,7 +163,7 @@ export default function ({ b, p, u, tl, gsap, clase }) {
 
 En vez de `diapositivas.js`, la clase puede describir sus diapositivas en `clase.json`, en el campo
 `"diapositivas": [...]`. Así se editan también desde la web del equipo. Hay una por bloque, y el
-bloque que no tiene diapositiva mantiene la anterior. Modelos: `clases/como-funciona-la-web/clase.json` y
+bloque que no tiene diapositiva mantiene la anterior. Modelo:
 `clases/google-workspace-s1-gmail/clase.json` (usa casi todos los tipos). La web muestra cada una en «Así se verá»
 con el mismo dibujo del video. Las guías que sigue la IA de la web para escribirlas están en `web/skills/`.
 

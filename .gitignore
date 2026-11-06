@@ -27,3 +27,8 @@ clases-mac/node_modules/
 clases-windows/node_modules/
 demo/node_modules/
 
+
+clases-mac/clases/*/hyperframes/renders/
+clases-windows/clases/*/hyperframes/renders/
+clases-*/clases/*/hyperframes/assets/*avatar.*
+clases-*/clases/*/hyperframes/.hyperframes/

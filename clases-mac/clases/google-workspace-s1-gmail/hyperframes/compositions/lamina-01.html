@@ -1,0 +1,18 @@
+<template id="lamina-01-template">
+  <div data-composition-id="lamina-01" data-width="1920" data-height="1080">
+    <img class="foto" src="assets/l01.jpg" alt="Foto de oficina" />
+    <div class="triangulo"></div>
+    <div class="burbuja"><img src="assets/app.svg" alt="Ícono de la aplicación" /></div>
+    <div class="contenido portada"><div class="programa">Programa de Competencias Digitales, Productividad e Inteligencia Artificial</div><div class="modulo">Módulo I: Comunicación, organización y gestión de información digital</div><div class="sesion">Sesión 1</div><div class="tema">Gestión profesional de la comunicación con Gmail</div><div class="marca"><span class="g-a">G</span><span class="g-r">o</span><span class="g-y">o</span><span class="g-a">g</span><span class="g-v">l</span><span class="g-r">e</span> Workspace</div></div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("[data-composition-id=\"lamina-01\"] .programa", {"opacity":0,"y":40}, {"opacity":1,"x":0,"y":0,"scale":1,"duration":0.6,"ease":"power3.out","stagger":0}, 0.16);
+      tl.fromTo("[data-composition-id=\"lamina-01\"] .modulo", {"opacity":0,"x":-60}, {"opacity":1,"x":0,"y":0,"scale":1,"duration":0.6,"ease":"power3.out","stagger":0}, 0.4);
+      tl.fromTo("[data-composition-id=\"lamina-01\"] .sesion", {"opacity":0,"scale":0.85}, {"opacity":1,"x":0,"y":0,"scale":1,"duration":0.6,"ease":"power3.out","stagger":0}, 0.64);
+      tl.fromTo("[data-composition-id=\"lamina-01\"] .tema", {"opacity":0,"y":40}, {"opacity":1,"x":0,"y":0,"scale":1,"duration":0.6,"ease":"power3.out","stagger":0}, 0.88);
+      tl.fromTo("[data-composition-id=\"lamina-01\"] .marca", {"opacity":0}, {"opacity":1,"x":0,"y":0,"scale":1,"duration":0.6,"ease":"power3.out","stagger":0}, 1.28);
+      window.__timelines["lamina-01"] = tl;
+    </script>
+  </div>
+</template>

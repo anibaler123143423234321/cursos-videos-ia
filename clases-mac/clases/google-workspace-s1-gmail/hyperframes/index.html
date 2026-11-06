@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+  body { margin: 0; }
+  #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; font-family: Inter, Arial, sans-serif; color: #0b1f4d; background: linear-gradient(135deg, #fff 45%, #e6f0fd); }
+  .clip { position: absolute; inset: 0; }
+  .logo { position: absolute; z-index: 10; left: 1600px; top: 20px; width: 300px; box-sizing: border-box; padding: 8px 14px; background: rgba(255, 255, 255, .92); border-radius: 14px; }
+  .contenido { position: absolute; left: 40px; top: 40px; width: 1240px; height: 1000px; display: flex; flex-direction: column; gap: 28px; justify-content: center; }
+  .barra { display: flex; align-items: center; background: #0b1f4d; color: #fff; border-radius: 22px; overflow: hidden; }
+  .barra-icono { flex: none; width: 110px; height: 110px; display: grid; place-items: center; background: #1a73e8; font-size: 56px; font-weight: 800; }
+  .barra-texto { padding: 0 36px; font-size: 52px; font-weight: 800; }
+  .frase { font-size: 64px; font-weight: 800; line-height: 1.2; }
+  .grupo { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .tarjeta { background: #eaf2fe; border-radius: 22px; padding: 30px 34px; box-shadow: 0 10px 26px rgba(11, 31, 77, .1); }
+  .tarjeta h3 { margin: 0 0 10px; font-size: 40px; color: #1a56c4; } .tarjeta p { margin: 0; font-size: 34px; line-height: 1.3; }
+  .fila { display: flex; align-items: center; gap: 24px; background: #fff; border-radius: 60px; padding: 16px 34px 16px 18px; box-shadow: 0 8px 22px rgba(11, 31, 77, .12); font-size: 38px; font-weight: 700; }
+  .num { flex: none; width: 76px; height: 76px; display: grid; place-items: center; border-radius: 50%; background: #1a73e8; color: #fff; font-size: 40px; font-weight: 800; }
+  .codigo { font-family: Menlo, Consolas, monospace; font-size: 34px; color: #1a56c4; }
+  .nota { background: #dbe9fc; border-radius: 18px; padding: 22px 32px; font-size: 34px; }
+  .imagen { flex: 1 1 0; min-height: 0; width: 100%; object-fit: cover; object-position: top; border-radius: 20px; box-shadow: 0 10px 26px rgba(11, 31, 77, .14); }
+  .vacia { display: grid; place-content: center; gap: 10px; text-align: center; background: #f4f7fc; border: 4px dashed #1a73e8; box-sizing: border-box; color: #1a56c4; font-size: 30px; padding: 20px; box-shadow: none; }
+  .vacia b { font-size: 38px; }
+  .icono { display: inline-flex; vertical-align: -6px; margin-right: 12px; } .icono svg { width: 44px; height: 44px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .contenido.portada { width: 1010px; gap: 22px; }
+  .foto { position: absolute; left: 830px; top: 0; width: 1090px; height: 1080px; object-fit: cover; clip-path: polygon(22% 0, 100% 0, 100% 100%, 42% 100%); }
+  .foto.vacia { border: 0; background: #e6eefb; }
+  .triangulo { position: absolute; right: 0; bottom: 0; width: 230px; height: 230px; background: #22b35e; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+  .burbuja { position: absolute; left: 1250px; top: 110px; width: 210px; height: 170px; display: grid; place-items: center; background: #fff; border-radius: 36px; box-shadow: 0 14px 34px rgba(11, 31, 77, .22); }
+  .avatar { position: absolute; left: 1320px; top: 371px; width: 600px; height: 337.5px; object-fit: cover; }
+  .burbuja img { width: 130px; } .burbuja::after { content: ''; position: absolute; left: 44px; bottom: -32px; border: 18px solid transparent; border-top-color: #fff; border-left-color: #fff; }
+  .g-a { color: #4285f4; } .g-r { color: #ea4335; } .g-y { color: #fbbc05; } .g-v { color: #34a853; }
+  .programa { font-size: 40px; line-height: 1.25; } .modulo { background: linear-gradient(90deg, #0b1f4d, #1a73e8); color: #fff; border-radius: 18px; padding: 20px 30px; font-size: 38px; font-weight: 800; }
+  .sesion { align-self: flex-start; background: #22b35e; color: #fff; border-radius: 14px; padding: 10px 26px; font-size: 40px; font-weight: 800; }
+  .tema { font-size: 84px; font-weight: 900; line-height: 1.08; } .marca { font-size: 40px; font-weight: 700; color: #5d616c; }
+</style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="60.05" data-width="1920" data-height="1080">
+      <div id="host-01" class="clip" data-composition-id="lamina-01" data-composition-src="compositions/lamina-01.html" data-start="0" data-duration="10" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="host-02" class="clip" data-composition-id="lamina-02" data-composition-src="compositions/lamina-02.html" data-start="10" data-duration="20" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="host-03" class="clip" data-composition-id="lamina-03" data-composition-src="compositions/lamina-03.html" data-start="30" data-duration="17" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="host-04" class="clip" data-composition-id="lamina-04" data-composition-src="compositions/lamina-04.html" data-start="47" data-duration="13.05" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <video id="avatar-01" class="clip avatar" src="assets/l01-avatar.mp4" data-start="0" data-duration="10" data-media-start="0" data-track-index="3" data-has-audio="true" playsinline></video>
+      <video id="avatar-02" class="clip avatar" src="assets/l02-avatar.mp4" data-start="10" data-duration="20" data-media-start="0" data-track-index="3" data-has-audio="true" playsinline></video>
+      <video id="avatar-03" class="clip avatar" src="assets/l03-avatar.mp4" data-start="30" data-duration="17" data-media-start="0" data-track-index="3" data-has-audio="true" playsinline></video>
+      <video id="avatar-04" class="clip avatar" src="assets/l04-avatar.mp4" data-start="47" data-duration="13.05" data-media-start="0" data-track-index="3" data-has-audio="true" playsinline></video>
+      <img id="logo" class="logo" src="assets/logo.png" alt="Logo USS" data-start="0" data-duration="60.05" data-track-index="2" />
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines.main = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

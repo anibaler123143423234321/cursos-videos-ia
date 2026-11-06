@@ -11,6 +11,7 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { generarClase, normalizar, rutaLamina, configVision } from './ia.mjs';
 import * as drive from '../motor/drive.mjs';
+import { estadoHyperframes, generarProyecto } from './hf-proyecto.mjs';
 
 const WEB = path.dirname(fileURLToPath(import.meta.url));
 const RAIZ = path.resolve(WEB, '..');
@@ -188,7 +189,7 @@ const laminasDe = clase => (clase.diapositivas || []).filter(d => d.tipo === 'im
 // ---------------------------------------------------------------- trabajos (videos, uno a la vez)
 const trabajos = [];
 let ocupado = false;
-const MODOS = { video: [], borrador: ['--rapido'], voz: ['--solo-voz'], capturas: ['--capturas'], drive: null };
+const MODOS = { video: [], borrador: ['--rapido'], voz: ['--solo-voz'], capturas: ['--capturas'], drive: null, hyperframes: [] };
 function encolar(slug, modo) {
   const ya = trabajos.find(t => t.slug === slug && t.modo === modo && (t.estado === 'en-cola' || t.estado === 'trabajando'));
   if (ya) return ya;
@@ -204,10 +205,14 @@ function siguiente() {
   if (!t) return;
   ocupado = true;
   t.estado = 'trabajando';
-  t.mensaje = t.modo === 'drive' ? 'Subiendo a Google Drive...' : 'Preparando la voz...';
+  t.mensaje = { drive: 'Subiendo a Google Drive...', hyperframes: 'Revisando las láminas...' }[t.modo] || 'Preparando la voz...';
   const env = { ...process.env, ...leerEnv() };
   const orden = t.modo === 'drive' ? ['drive.mjs', 'subir', t.slug] : ['crear-video.mjs', t.slug, ...MODOS[t.modo]];
-  const hijo = spawn(process.execPath, [path.join(RAIZ, 'motor', orden[0]), ...orden.slice(1)], { cwd: RAIZ, env, windowsHide: true });
+  // Hyperframes valida las láminas con --strict y luego crea el MP4 en la carpeta renders del proyecto.
+  const enWindows = process.platform === 'win32';
+  const hijo = t.modo === 'hyperframes'
+    ? spawn(enWindows ? 'npx.cmd' : 'npx', ['-y', 'hyperframes@0.9.19', 'render', '--strict', '--output', `renders/${t.slug}.mp4`], { cwd: path.join(dirClase(t.slug), 'hyperframes'), env, windowsHide: true, shell: enWindows })
+    : spawn(process.execPath, [path.join(RAIZ, 'motor', orden[0]), ...orden.slice(1)], { cwd: RAIZ, env, windowsHide: true });
   let resto = '';
   const leer = d => {
     resto += d.toString();
@@ -216,6 +221,11 @@ function siguiente() {
     for (const l of partes.map(x => x.trimEnd()).filter(Boolean)) {
       const m = /cuadro (\d+)\/(\d+)/.exec(l);
       if (m) { t.progreso = Math.round(15 + (85 * +m[1]) / +m[2]); t.mensaje = `Dibujando el video: ${m[1]}/${m[2]} cuadros`; continue; }
+      if (t.modo === 'hyperframes') {
+        const hf = /^@hf-progress .*"pct":(\d+)/.exec(l);
+        if (hf) { t.progreso = +hf[1]; t.mensaje = 'Creando el video'; }
+        if (/^@hf-|^\[INFO\]|^\s*[█░]/.test(l)) continue;
+      }
       t.log.push(l);
       t.log.splice(0, Math.max(0, t.log.length - 60));
       if (/^\s*voz (\d+)/.test(l)) { t.mensaje = `Generando la voz (bloque ${/voz (\d+)/.exec(l)[1]})`; t.progreso = Math.max(t.progreso, 5); }
@@ -231,8 +241,8 @@ function siguiente() {
     t.fin = Date.now();
     t.estado = codigo === 0 ? 'listo' : 'error';
     t.progreso = codigo === 0 ? 100 : t.progreso;
-    if (codigo === 0) t.mensaje = { video: 'Video listo', borrador: 'Borrador listo', voz: 'Voz lista: ya puedes ver la vista previa', capturas: 'Capturas listas', drive: 'Subido a Google Drive' }[t.modo];
-    else if (!/\w/.test(t.mensaje) || t.mensaje === 'Preparando la voz...') t.mensaje = 'Falló: revisa el detalle';
+    if (codigo === 0) t.mensaje = { video: 'Video listo', borrador: 'Borrador listo', voz: 'Voz lista: ya puedes ver la vista previa', capturas: 'Capturas listas', drive: 'Subido a Google Drive', hyperframes: 'Video animado listo' }[t.modo];
+    else if (t.modo === 'hyperframes' || !/\w/.test(t.mensaje) || t.mensaje === 'Preparando la voz...') t.mensaje = 'Falló: revisa el detalle';
     ocupado = false;
     siguiente();
   });
@@ -392,7 +402,7 @@ async function rutaApi(req, res, url) {
     if (!leerClase(slug)) return json(res, 404, { error: 'No existe esa clase' });
     const nombre = String(url.searchParams.get('nombre') || '');
     const lamina = /^laminas\/\d{2}\.jpg$/.test(nombre); // reemplazar una lamina (el navegador la manda en JPG)
-    const valido = lamina || /^(voz\/(completa|\d{2})\.(m4a|mp3|wav|ogg|opus|aac|flac|webm|mp4|mov|aiff)|(camara|avatar)\.(mp4|mov|webm|m4v))$/i.test(nombre);
+    const valido = lamina || /^hyperframes\/assets\/l\d{2}\.(jpg|jpeg|png|webp)$/i.test(nombre) || /^hyperframes\/assets\/(avatar|l\d{2}-avatar)\.(mp4|webm)$/.test(nombre) || /^(voz\/(completa|\d{2})\.(m4a|mp3|wav|ogg|opus|aac|flac|webm|mp4|mov|aiff)|(camara|avatar)\.(mp4|mov|webm|m4v))$/i.test(nombre);
     if (!valido) return json(res, 400, { error: 'Nombre de archivo no permitido' });
     const destino = path.join(dirClase(slug), ...nombre.split('/'));
     if (req.method === 'DELETE') {
@@ -419,10 +429,31 @@ async function rutaApi(req, res, url) {
       return json(res, 200, { ok: true, archivos: archivosDe(slug) });
     }
   }
+  if ((r = m(/^\/api\/clases\/([a-z0-9-]+)\/hyperframes$/))) {
+    if (!leerClase(r[1])) return json(res, 404, { error: 'No existe esa clase' });
+    if (req.method === 'GET') return json(res, 200, estadoHyperframes(r[1]));
+    if (req.method === 'POST') {
+      const { reconstruir = false } = await leerJson(req);
+      return json(res, 200, await generarProyecto({ slug: r[1], env: leerEnv(), reconstruir: !!reconstruir }));
+    }
+  }
+  if ((r = m(/^\/api\/clases\/([a-z0-9-]+)\/hyperframes\/imagen\/(l\d{2})$/))) {
+    const imagen = estadoHyperframes(r[1]).imagenes.find(i => i.id === r[2]);
+    if (!imagen || !imagen.archivo) return json(res, 404, { error: 'Esa imagen aún no existe' });
+    return enviarArchivo(req, res, path.join(dirClase(r[1]), 'hyperframes', ...imagen.archivo.split('/')), { descarga: null });
+  }
+  if ((r = m(/^\/api\/clases\/([a-z0-9-]+)\/hyperframes\/video$/))) {
+    return enviarArchivo(req, res, path.join(dirClase(r[1]), 'hyperframes', 'renders', `${r[1]}.mp4`), { descarga: url.searchParams.has('descargar') ? `${r[1]}.mp4` : null });
+  }
   if ((r = m(/^\/api\/clases\/([a-z0-9-]+)\/trabajo$/)) && req.method === 'POST') {
     if (!leerClase(r[1])) return json(res, 404, { error: 'No existe esa clase' });
     const { modo } = await leerJson(req);
     if (!Object.hasOwn(MODOS, modo)) return json(res, 400, { error: 'Modo inválido' });
+    if (modo === 'hyperframes') {
+      const hf = estadoHyperframes(r[1]);
+      if (!hf.existe) return json(res, 400, { error: 'Primero genera las láminas' });
+      if (hf.imagenes.some(i => !i.archivo)) return json(res, 400, { error: 'Faltan imágenes por subir' });
+    }
     return json(res, 200, encolar(r[1], modo));
   }
   if (p === '/api/trabajos') return json(res, 200, trabajos);

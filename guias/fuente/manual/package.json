@@ -1,0 +1,10 @@
+{
+  "name": "manual-de-flujos",
+  "private": true,
+  "type": "module",
+  "description": "Generador de la documentación: guías en PDF y Word, presentación y portal.",
+  "dependencies": {
+    "docx": "^9.5.1",
+    "pptxgenjs": "^4.0.1"
+  }
+}

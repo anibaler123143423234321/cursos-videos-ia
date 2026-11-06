@@ -1162,10 +1162,10 @@ export function pulir(clase) {
 }
 
 // ---------------------------------------------------------------- Google Vids
-// Una lámina por bloque, al nivel de clases/gmail-comunicacion-laminas/laminas/. La IA gratis escribe el contenido
+// Una lámina por bloque, al nivel de marca/modelos/laminas-gmail/. La IA gratis escribe el contenido
 // (web/skills/vids.md) y el programa arma el prompt: así estilo, barra, textos fijos y zona del avatar salen iguales.
 // El avatar va pegado al borde derecho (X + ancho = 1920). El logo va igual en todas las láminas, con 20 px de margen arriba y a la derecha.
-export const AVATAR_VIDS = { ancho: 600, x: 1320, y: 371, portada: { ancho: 800, x: 1120, y: 400 } };
+export const AVATAR_VIDS = { ancho: 600, altura: 337.5, angulo: 0, x: 1320, y: 371 };
 export const LOGO_VIDS = { ancho: 300, x: 1600, y: 20 };
 const PARTE_DE_DIAPO = { portada: 'portada', pregunta: 'motivacion', temario: 'temario', cierre: 'conclusiones', logo: 'cierre' };
 const PLANTILLAS_VIDS = ['tarjetas', 'pasos', 'tabla', 'lista'];
@@ -1262,7 +1262,7 @@ function guionVids(texto, clase, experiencia) {
   return [base, String(experiencia || '').trim()].filter(Boolean).join(' ');
 }
 
-// La portada sigue la lámina modelo clases/gmail-comunicacion-laminas/laminas/01.png: texto a la izquierda y foto a la derecha.
+// La portada sigue la lámina modelo marca/modelos/laminas-gmail/01.png: texto a la izquierda y foto a la derecha.
 function portadaVids(clase, sesion, app) {
   const icono = app ? ` En la parte alta de la fotografía, cerca del borde derecho, el ícono oficial de ${app.nombre} dentro de un globo de chat blanco con esquinas redondeadas y sombra suave.` : '';
   const marca = app ? `; al pie, el logotipo a todo color de ${app.marca || (app.web ? 'Google Workspace' : 'Microsoft 365')}` : '';
@@ -1390,4 +1390,133 @@ export async function promptsVids({ clase, env, bloques = [], contenido = {} }) 
     logo: LOGO_VIDS,
     laminas: laminas.map(l => ({ id: l.id, parte: l.parte, plantilla: plantillaLamina(l, hechas[l.id]), prompt: promptLamina(l, hechas[l.id], clase), guion: guionVids(l.voz, clase, hechas[l.id].experiencia) })),
   };
+}
+
+// ---------------------------------------------------------------- pedidos para cualquier modelo y láminas de Hyperframes
+// Un pedido reúne las reglas, el ejemplo y el formato: se pega en Claude, ChatGPT o cualquier modelo futuro.
+const fichaDeClase = clase => ({ ...clase, duracion: clase.duracion || clase.duracion_objetivo });
+export function contextoGuion(clase) {
+  const ficha = fichaDeClase(clase);
+  return `${INTRO()}\n\n${REGLAS_GUION()}\n\n${guionDeEjemplo(ejemploPara(ficha))}\n\n${FORMATO_GUION}\n\n${fichaTexto(ficha)}\n`;
+}
+
+const FORMATO_HF = `Responde SOLO con un objeto JSON, sin texto antes ni después:
+{"laminas": [{"lamina": "02", "html": "...", "imagen": "...", "animaciones": [{"selector": ".barra", "momento": 0.2, "efecto": "subir", "escalonado": 0}]}]}`;
+const CLASES_HF = ['barra', 'barra-icono', 'barra-texto', 'frase', 'grupo', 'tarjeta', 'fila', 'num', 'texto', 'codigo', 'nota', 'icono', 'imagen'];
+const CON_IMAGEN_HF = ['logro', 'motivacion', 'desarrollo'];
+const ICONOS_HF = { logro: '✓', motivacion: '?', practica: '✓', conclusiones: '✓' };
+const ETIQUETAS_HF = ['div', 'span', 'h2', 'h3', 'p', 'b', 'em', 'code'];
+export const EFECTOS_HF = { aparecer: { opacity: 0 }, subir: { opacity: 0, y: 40 }, izquierda: { opacity: 0, x: -60 }, escala: { opacity: 0, scale: 0.85 } };
+const sinEtiquetas = html => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+const escHtml = t => String(t || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const duracionHf = guion => Math.round((guion.trim().split(/\s+/).length / 2.35 + 0.6) * 10) / 10;
+const sesionDe = clase => (/Sesi[oó]n\s+\d+/i.exec(`${clase.modulo} ${clase.tema}`) || ['Sesión'])[0];
+
+function portadaHf(clase) {
+  const app = appVids(clase);
+  const marca = app ? app.marca || (app.web ? 'Google Workspace' : 'Microsoft 365') : clase.curso;
+  const colores = ['g-a', 'g-r', 'g-y', 'g-a', 'g-v', 'g-r'];
+  const marcaHtml = /^Google /.test(marca) ? `${[...'Google'].map((x, i) => `<span class="${colores[i]}">${x}</span>`).join('')} ${escHtml(marca.slice(7))}` : escHtml(marca);
+  return {
+    html: `<div class="programa">${escHtml(clase.programa || clase.curso)}</div><div class="modulo">${escHtml(clase.modulo_programa || clase.modulo)}</div><div class="sesion">${escHtml(sesionDe(clase))}</div><div class="tema">${escHtml(clase.tema)}</div><div class="marca">${marcaHtml}</div>`,
+    app: app ? app.clave : '',
+    animaciones: [{ selector: '.programa', momento: 0.2, efecto: 'subir' }, { selector: '.modulo', momento: 0.5, efecto: 'izquierda' }, { selector: '.sesion', momento: 0.8, efecto: 'escala' }, { selector: '.tema', momento: 1.1, efecto: 'subir' }, { selector: '.marca', momento: 1.6, efecto: 'aparecer' }],
+  };
+}
+
+// Devuelve qué falló para repetir el pedido: el HTML de un modelo nunca entra sin pasar por aquí.
+function faltaEnHf(l, c, duracion) {
+  const html = String(c.html || '').trim();
+  if (html.length < 30) return 'html';
+  if (/<\s*(script|style|iframe|img|video|audio|link|svg|a)\b|\son\w+\s*=|\s(style|id)\s*=|https?:/i.test(html)) return 'html prohibido: sin script, style, img, enlaces, id ni estilos en línea';
+  const ajena = [...html.matchAll(/<\s*([a-z0-9]+)/gi)].map(m => m[1].toLowerCase()).find(t => !ETIQUETAS_HF.includes(t));
+  if (ajena) return `la etiqueta ${ajena} no está permitida`;
+  const clases = [...html.matchAll(/class\s*=\s*"([^"]*)"/g)].flatMap(m => m[1].split(/\s+/)).filter(Boolean);
+  const mala = clases.find(x => !CLASES_HF.includes(x));
+  if (mala) return `la clase ${mala} no existe`;
+  const texto = sinEtiquetas(html);
+  // Se revisa dentro de cada elemento: un título «Carpeta» seguido de su descripción no es una palabra repetida.
+  if (/(^|[\s,])(\p{L}+),?\s+\2(?=[\s,.;:]|$)/iu.test(html.replace(/<[^>]+>/g, ' | '))) return 'una palabra repetida';
+  if (/\b(entregás|podés|tenés|querés|sabés|hacés)\b/i.test(texto)) return 'voseo: usa el trato de tú';
+  if (texto.split(/\s+/).length > 45) return 'demasiado texto: máximo 30 palabras';
+  const ausente = itemsDeDiapo(l.diapo).map(i => String(i.titulo || '').trim()).find(t => t && !texto.toLowerCase().includes(t.toLowerCase()));
+  if (ausente) return `falta el texto de la diapositiva: ${ausente}`;
+  const icono = (/class="barra-icono"[^>]*>([^<]*)</.exec(html) || [])[1];
+  if (!/class="barra"/.test(html)) return 'la barra';
+  if (ICONOS_HF[l.parte] && (icono || '').trim() !== ICONOS_HF[l.parte]) return `en ${l.parte} barra-icono es ${ICONOS_HF[l.parte]}`;
+  if (clases.length < 5) return 'más contenido: al menos 3 elementos además de la barra';
+  if (l.parte === 'temario' && (/<(h3|p)\b/i.test(html) || !clases.includes('fila'))) return 'en temario usa solo filas con num y texto, sin subtítulos';
+  const iconoMalo = [...html.matchAll(/data-icono="([^"]*)"/g)].map(m => m[1]).find(n => !NOMBRES_ICONOS.includes(n));
+  if (iconoMalo) return `el ícono ${iconoMalo} no existe`;
+  const pideImagen = CON_IMAGEN_HF.includes(l.parte);
+  if (pideImagen && (!/<div class="imagen"><\/div>/.test(html) || String(c.imagen || '').trim().split(/\s+/).length < 6)) return 'agrega <div class="imagen"></div> y describe la imagen en "imagen"';
+  const animaciones = Array.isArray(c.animaciones) ? c.animaciones : [];
+  if (new Set(animaciones.map(a => a.selector)).size < 2) return 'anima también el contenido, no solo la barra';
+  for (const a of animaciones) {
+    if (!/^\.[a-z-]+$/.test(String(a.selector)) || !clases.includes(String(a.selector).slice(1))) return `el selector ${a.selector} no está en tu html`;
+    if (!EFECTOS_HF[a.efecto]) return `el efecto ${a.efecto} no existe`;
+    if (!(Number(a.momento) >= 0 && Number(a.momento) < duracion)) return `el momento ${a.momento} está fuera de los ${duracion} segundos`;
+  }
+  return '';
+}
+
+const pedidoHf = (l, duracion, aviso) => JSON.stringify({ lamina: l.id, parte: l.parte, voz: l.voz, segundos: duracion, diapositiva: l.diapo, corregir: aviso });
+const guiasHf = () => `${skill('hyperframes')}\n\n${FORMATO_HF}`;
+function laminasHf(clase, bloques, experiencias = {}) {
+  return laminasVids(clase, bloques).map(l => {
+    const guion = guionVids(l.voz, clase, experiencias[l.id]);
+    return { ...l, guion, duracion: duracionHf(guion) };
+  });
+}
+export function contextoHyperframes(clase, bloques = []) {
+  const conContenido = laminasHf(clase, bloques).filter(l => l.parte !== 'portada');
+  return `${guiasHf()}\n\nClase: ${tituloVids(clase)}\n\nEscribe estas láminas:\n${conContenido.map(l => pedidoHf(l, l.duracion)).join('\n')}\n`;
+}
+
+// contenido: lo que escribió Claude, ChatGPT u otro modelo (hyperframes-contenido.json). Solo lo que falte se le pide a la IA gratis.
+// alAvanzar recibe lo ya aceptado tras cada pedido: si la IA se corta, el siguiente intento continúa desde ahí.
+export async function contenidoHyperframes({ clase, env, bloques = [], contenido = {}, vids = {}, alAvanzar = () => {} }) {
+  const experiencias = Object.fromEntries(Object.entries(vids).map(([id, c]) => [id, c.experiencia]));
+  const laminas = laminasHf(clase, bloques, experiencias);
+  const hechas = {};
+  for (const l of laminas) {
+    if (l.parte === 'portada') { hechas[l.id] = portadaHf(clase); continue; }
+    if (!contenido[l.id]) continue;
+    const falta = faltaEnHf(l, contenido[l.id], l.duracion);
+    if (falta) throw new Error(`Corrige la lámina ${l.id} de hyperframes-contenido.json: ${falta}.`);
+    hechas[l.id] = contenido[l.id];
+  }
+  const pedir = laminas.every(l => hechas[l.id]) ? null : clienteGratis(env, []);
+  // Cada lámina tiene sus propios intentos: una que se resiste no detiene a las demás.
+  const avisos = {};
+  const fallos = {};
+  const pendientes = () => laminas.filter(l => !hechas[l.id] && (fallos[l.id] || 0) < 4);
+  while (pedir && pendientes().length) {
+    const grupo = pendientes().slice(0, 3);
+    const { datos } = await pedir(guiasHf(), `Clase: ${tituloVids(clase)}\n\nEscribe estas láminas:\n${grupo.map(l => pedidoHf(l, l.duracion, avisos[l.id])).join('\n')}`);
+    for (const c of Array.isArray(datos.laminas) ? datos.laminas : []) {
+      const l = grupo.find(g => g.id === String(c && c.lamina).padStart(2, '0'));
+      if (!l) continue;
+      const falta = faltaEnHf(l, c, l.duracion);
+      if (falta) avisos[l.id] = `Tu respuesta anterior falló: ${falta}.`;
+      else hechas[l.id] = c;
+    }
+    for (const l of grupo) if (!hechas[l.id]) fallos[l.id] = (fallos[l.id] || 0) + 1;
+    alAvanzar(hechas);
+  }
+  const faltan = laminas.filter(l => !hechas[l.id]).map(l => (avisos[l.id] ? `${l.id} (${avisos[l.id].replace(/^Tu respuesta anterior falló: |\.$/g, '')})` : l.id));
+  if (faltan.length) throw new Error(`Faltan las láminas ${faltan.join('; ')}. Lo demás quedó guardado: pulsa el botón otra vez para continuar.`);
+  return laminas.map(l => ({ id: l.id, parte: l.parte, guion: l.guion, duracion: l.duracion, ...hechas[l.id] }));
+}
+
+// Lo que ni el programa ni el modelo de texto pueden dibujar: cada hueco lleva su prompt, para una IA de imágenes o para el docente.
+export function imagenesHf(clase, laminas, vids = {}) {
+  const app = appVids(clase);
+  return laminas.flatMap(l => {
+    if (l.parte === 'portada') return [{ id: `l${l.id}`, lamina: l.id, titulo: 'Foto de la portada', prompt: 'Fotografía real y luminosa de una oficina moderna con ventanales, estantes y plantas, suavemente desenfocada, sin personas, sin texto y sin logotipos. Formato horizontal 16:9.' }];
+    if (!/class="imagen"/.test(l.html)) return [];
+    const c = vids[l.id] || {};
+    const prompt = app && c.pantalla ? `Imagen horizontal 16:9: ${capturaVids(app, c)}. Sin personas y sin marcas de agua.` : `Imagen horizontal 16:9, ilustración corporativa limpia en azul y blanco: ${l.imagen}. Sin texto, sin personas y sin marcas de agua.`;
+    return [{ id: `l${l.id}`, lamina: l.id, titulo: String(app && c.pantalla ? c.pantalla : l.imagen || '').trim(), prompt }];
+  });
 }

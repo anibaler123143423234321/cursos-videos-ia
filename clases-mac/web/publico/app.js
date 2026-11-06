@@ -23,6 +23,7 @@ const TRABAJOS = {
   borrador: { nombre: 'Borrador rápido', icono: 'ojo', desc: 'Video liviano para ver el ritmo', dura: '2–3 min' },
   video: { nombre: 'Video final', icono: 'pelicula', desc: 'MP4 en alta calidad, 1920 × 1080', dura: '5–8 min' },
   drive: { nombre: 'Subir a Google Drive', icono: 'subir', desc: 'Video y código a la carpeta compartida', dura: '≈ 1 min' },
+  hyperframes: { nombre: 'Video animado', icono: 'pelicula', desc: 'Láminas animadas en MP4', dura: '≈ 1 min por minuto' },
 };
 const VOCES = { auto: 'Automática', local: 'Voz local gratis', azure: 'Azure', elevenlabs: 'ElevenLabs', grabacion: 'Tu grabación', sistema: 'Del sistema' };
 const ESTADO_TRABAJO = { 'en-cola': 'En cola', trabajando: 'En curso', listo: 'Listo', error: 'Error' };
@@ -188,6 +189,7 @@ async function ir() {
   pintarLateral(h);
   window.scrollTo(0, 0);
   try {
+    titulo(h === '/nueva' ? 'Nueva clase' : h === '/ajustes' ? 'Ajustes' : h === '/' ? 'Clases' : 'Editor');
     if (h === '/') return await vistaLista();
     if (h === '/nueva') return vistaNueva();
     if (h === '/ajustes') return await vistaAjustes();
@@ -249,6 +251,23 @@ function mostrarLogin() {
   };
 }
 
+// El título de la pestaña del navegador dice en qué página estás.
+function titulo(pagina) { document.title = `${pagina} · Estudio de clases USS`; }
+
+// ---------------------------------------------------------------- paginador común
+// No pinta nada si todo cabe en una página. ir(n) recibe la página elegida.
+function paginador(cont, total, porPagina, actual, ir) {
+  const paginas = Math.ceil(total / porPagina);
+  const boton = (n, texto, activo = false, apagado = false) => `<button type="button" class="boton chico ${activo ? 'prim' : ''}" data-ir="${n}" ${activo ? 'aria-current="page"' : ''} ${apagado ? 'disabled' : ''}>${texto}</button>`;
+  cont.innerHTML = paginas < 2 ? '' : `<nav class="paginas" aria-label="Páginas">
+    ${boton(actual - 1, 'Anterior', false, actual === 1)}
+    ${Array.from({ length: paginas }, (_, i) => boton(i + 1, i + 1, i + 1 === actual)).join('')}
+    ${boton(actual + 1, 'Siguiente', false, actual === paginas)}
+  </nav>`;
+  cont.querySelectorAll('[data-ir]').forEach(b => { b.onclick = () => ir(+b.dataset.ir); });
+}
+const paginaValida = (pagina, total, porPagina) => Math.min(Math.max(1, pagina), Math.max(1, Math.ceil(total / porPagina)));
+
 // ---------------------------------------------------------------- lista de clases
 async function vistaLista() {
   editor = null;
@@ -261,7 +280,8 @@ async function vistaLista() {
       </div>
     </header>
     <div class="cifras" id="cifras"></div>
-    <div class="rejilla" id="lista">${'<div class="esqueleto"></div>'.repeat(3)}</div></div>`;
+    <div class="rejilla" id="lista">${'<div class="esqueleto"></div>'.repeat(3)}</div>
+    <div id="paginas-lista"></div></div>`;
   const clases = (await api('/api/clases')).sort((a, b) => (b.editada || 0) - (a.editada || 0));
   const minutos = clases.reduce((t, c) => t + (c.duracion || c.palabras / 2.4), 0);
   $('#cifras').innerHTML = [
@@ -269,16 +289,19 @@ async function vistaLista() {
     ['pelicula', clases.filter(c => c.video).length, 'con video final'],
     ['reloj', mmss(minutos), 'minutos de contenido'],
   ].map(([i, n, t]) => `<div class="cifra"><span class="ico-caja">${ico(i, 20)}</span><div><b>${n}</b><span>${t}</span></div></div>`).join('');
-  const pintar = filtro => {
+  const POR_PAGINA = 6;
+  const pintar = (filtro, pagina = 1) => {
     const f = filtro.trim().toLowerCase();
     const vis = clases.filter(c => !f || `${c.tema} ${c.curso}`.toLowerCase().includes(f));
+    const actual = paginaValida(pagina, vis.length, POR_PAGINA);
+    paginador($('#paginas-lista'), vis.length, POR_PAGINA, actual, n => { pintar(filtro, n); window.scrollTo(0, 0); });
     if (!clases.length) {
       $('#lista').innerHTML = `<div class="vacio" style="grid-column:1/-1"><span class="icono-grande">${ico('pelicula', 26)}</span>
         <h3>Aún no hay clases</h3><p>Escribe un tema y la IA prepara el guion y las diapositivas. Después lo revisas y creas el video.</p>
         <a class="boton prim" href="#/nueva">${ico('mas')}Crear la primera clase</a></div>`;
       return;
     }
-    $('#lista').innerHTML = vis.map(c => {
+    $('#lista').innerHTML = vis.slice((actual - 1) * POR_PAGINA, actual * POR_PAGINA).map(c => {
       const dur = c.duracion ? mmss(c.duracion) : `≈ ${mmss(c.palabras / 2.4)}`;
       return `<article class="clase-card">
         <a class="cc-enlace" href="#/clase/${c.slug}" aria-label="Abrir ${esc(c.tema)}"></a>
@@ -309,7 +332,8 @@ function vistaNueva() {
     <h1>Nueva clase</h1><p class="muted">Completa lo esencial. Podrás corregir todo antes de crear el video.</p></div></header>
   <form id="f-nueva" class="nueva" novalidate>
     <fieldset id="fs-nueva">
-      <section class="panel">
+      <ol class="pasos-nueva" id="pasos-nueva"></ol>
+      <section class="panel" data-paso="1">
         <div class="panel-cab"><span class="paso">1</span><div><h2>¿Cómo son tus láminas?</h2><p class="muted">Se elige antes de crear la voz.</p></div></div>
         <div class="modos dos">
           ${tipoLamina('imagen', 'imagen', 'Opción 1', 'Mis láminas (imágenes)', 'Subes PNG, JPG o un PDF de PowerPoint o Canva. La IA las lee y escribe lo que dice la voz.')}
@@ -322,11 +346,11 @@ function vistaNueva() {
           <div class="laminas-rejilla" id="laminas-rejilla"></div>
         </div>
       </section>
-      <section class="panel">
+      <section class="panel" data-paso="2">
         <div class="panel-cab"><span class="paso">2</span><div><h2>¿Quién escribe el guion?</h2><p class="muted">Siempre podrás editarlo después.</p></div></div>
         <div class="modos" id="modos"></div>
       </section>
-      <section class="panel">
+      <section class="panel" data-paso="3">
         <div class="panel-cab"><span class="paso">3</span><div><h2>La clase</h2><p class="muted" id="d-clase">Con IA basta con el tema.</p></div></div>
         <label for="n-tema">Tema <span class="req" id="req-tema">obligatorio</span></label>
         <input type="text" id="n-tema" name="tema" class="grande" required placeholder="Ej.: Flexbox: alinear y distribuir elementos" autocomplete="off">
@@ -344,7 +368,7 @@ function vistaNueva() {
               <div><label for="n-ret">Reto o tarea final</label><input type="text" id="n-ret" name="reto"></div></div>
           </div>
         </details>
-        <details class="plegable" open>
+        <details class="plegable">
           <summary>${ico('bot')}Curso, módulo y avatar <span class="muted" id="resumen-avatar"></span>${ico('abajo')}</summary>
           <div>
             <div class="campos2">
@@ -357,17 +381,46 @@ function vistaNueva() {
           </div>
         </details>
       </section>
-      <section class="panel" id="p-guion">
+      <section class="panel" id="p-guion" data-paso="4">
         <div class="panel-cab"><span class="paso">4</span><div><h2 id="t-guion">Guion</h2><p class="muted" id="d-guion"></p></div></div>
-        <textarea name="guion" rows="12" aria-labelledby="t-guion" placeholder="¡Hola! Soy SIPANCITOBOT y hoy vamos a…&#10;&#10;Segundo bloque…&#10;&#10;Tercer bloque…"></textarea>
+        <textarea name="guion" rows="8" aria-labelledby="t-guion" placeholder="¡Hola! Soy SIPANCITOBOT y hoy vamos a…&#10;&#10;Segundo bloque…&#10;&#10;Tercer bloque…"></textarea>
         <div class="medidor"><div class="medidor-barra"><i id="medidor"></i></div><span id="cuenta-guion"></span></div>
       </section>
+      <div class="nav-pasos">
+        <button type="button" class="boton" id="paso-atras">Atrás</button>
+        <button type="button" class="boton prim" id="paso-sigue">Siguiente</button>
+      </div>
     </fieldset>
     <aside class="nueva-lado"><div class="panel" id="lado-nueva"></div></aside>
   </form></div>`;
   const f = $('#f-nueva');
   const conImagenes = () => f.laminas.value === 'imagen';
   const parrafos = t => String(t || '').split(/\n\s*\n/).filter(x => x.trim()).length;
+
+  // Un paso a la vez: el paso 4 solo existe cuando hay guion que escribir.
+  const NOMBRES_PASO = { 1: 'Láminas', 2: 'Guion', 3: 'La clase', 4: 'Texto' };
+  let paso = 1;
+  const visibles = () => [1, 2, 3, ...($('#p-guion').classList.contains('oculto') ? [] : [4])];
+  const irPaso = n => {
+    const lista = visibles();
+    paso = lista.includes(n) ? n : lista[lista.length - 1];
+    f.querySelectorAll('[data-paso]').forEach(x => x.classList.toggle('fuera-de-paso', +x.dataset.paso !== paso));
+    $('#pasos-nueva').innerHTML = lista.map(k => `<li><button type="button" class="${k === paso ? 'activo' : ''}" data-paso-ir="${k}" ${k === paso ? 'aria-current="step"' : ''}><b>${k}</b>${NOMBRES_PASO[k]}</button></li>`).join('');
+    $('#pasos-nueva').querySelectorAll('[data-paso-ir]').forEach(b => { b.onclick = () => { if (+b.dataset.pasoIr < paso || pasoListo()) irPaso(+b.dataset.pasoIr); }; });
+    $('#paso-atras').classList.toggle('oculto', paso === lista[0]);
+    $('#paso-sigue').classList.toggle('oculto', paso === lista[lista.length - 1]);
+  };
+  const pasoListo = () => {
+    const img = conImagenes();
+    if (paso === 1 && img && !laminas.length) { aviso('Sube tus láminas (PNG, JPG o PDF)', true); return false; }
+    if (paso === 3 && (!img || f.modo.value === 'manual') && !f.tema.value.trim()) { aviso('Escribe el tema de la clase', true); $('#n-tema').focus(); return false; }
+    return true;
+  };
+  $('#paso-sigue').onclick = () => { if (pasoListo()) irPaso(paso + 1); };
+  $('#paso-atras').onclick = () => irPaso(paso - 1);
+  f.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); $('#paso-sigue').click(); }
+  });
 
   // quien escribe: cambia segun el tipo de lamina (con imagenes la IA tiene que poder leerlas)
   const pintarModos = () => {
@@ -460,6 +513,7 @@ function vistaNueva() {
     $('#c-duracion').classList.toggle('oculto', img);
     $('#guiar-ia').classList.toggle('oculto', manual || img);
     $('#p-guion').classList.toggle('oculto', img && !manual);
+    if ($('#pasos-nueva').childElementCount !== visibles().length) irPaso(paso);
     $('#req-tema').textContent = img && !manual ? 'opcional: la IA lo lee de la primera lámina' : 'obligatorio';
     $('#d-clase').textContent = img ? 'El tema es el título de la clase.' : 'Con IA basta con el tema.';
     $('#t-guion').textContent = img ? 'Lo que dice la voz' : manual ? 'Guion' : 'Guion · opcional';
@@ -485,16 +539,17 @@ function vistaNueva() {
   pintarModos();
   lado();
   pintarLaminas();
+  irPaso(1);
   f.onsubmit = async e => {
     e.preventDefault();
     const ficha = Object.fromEntries(new FormData(f));
     const { modo, guion } = ficha;
     const img = ficha.laminas === 'imagen';
     delete ficha.modo; delete ficha.guion; delete ficha.laminas;
-    if (img && !laminas.length) { aviso('Sube tus láminas (PNG, JPG o PDF)', true); $('#up-laminas').focus(); return; }
-    if ((!img || modo === 'manual') && !String(ficha.tema || '').trim()) { aviso('Escribe el tema de la clase', true); $('#n-tema').focus(); return; }
-    if (img && modo === 'manual' && parrafos(guion) !== laminas.length) { aviso(`Escribe un párrafo por lámina: tienes ${parrafos(guion)} párrafos y ${laminas.length} láminas`, true); f.guion.focus(); return; }
-    if (!img && modo === 'manual' && !palabras(guion)) { aviso('Pega el guion: un párrafo por bloque', true); f.guion.focus(); return; }
+    if (img && !laminas.length) { aviso('Sube tus láminas (PNG, JPG o PDF)', true); irPaso(1); return; }
+    if ((!img || modo === 'manual') && !String(ficha.tema || '').trim()) { aviso('Escribe el tema de la clase', true); irPaso(3); $('#n-tema').focus(); return; }
+    if (img && modo === 'manual' && parrafos(guion) !== laminas.length) { aviso(`Escribe un párrafo por lámina: tienes ${parrafos(guion)} párrafos y ${laminas.length} láminas`, true); irPaso(4); f.guion.focus(); return; }
+    if (!img && modo === 'manual' && !palabras(guion)) { aviso('Pega el guion: un párrafo por bloque', true); irPaso(4); f.guion.focus(); return; }
     $('#fs-nueva').disabled = true;
     const inicio = Date.now();
     $('#lado-nueva').innerHTML = modo === 'manual' ? '<div class="generando"><div class="orbita"></div><h3>Creando la clase…</h3></div>'
@@ -531,6 +586,7 @@ async function vistaEditor(slug) {
   const d = await api(`/api/clases/${slug}`);
   const pestana = editor && editor.slug === slug ? editor.pestana : 'guion';
   editor = { slug, ...d, sucio: false, pestana, esperoVista: false };
+  titulo(d.clase.tema || 'Editor');
   prepararItems();
   pintarEditor();
   actualizarTrabajos();
@@ -582,11 +638,12 @@ function pintarEditor() {
   </div></header>
   <div class="ed-cuerpo">
     <div style="min-width:0">
-      <nav class="pestanas" role="tablist">
-        <button data-p="guion" role="tab">${ico('capas')}<span>Guion y diapositivas</span><span class="cuenta">${editor.items.length}</span></button>
-        <button data-p="agenda" role="tab">${ico('lista')}<span>Agenda y pronunciación</span></button>
-        <button data-p="voz" role="tab">${ico('mic')}<span>Voz y avatar</span></button>
-        <button data-p="datos" role="tab">${ico('texto')}<span>Datos</span></button>
+      <nav class="pestanas" aria-label="Secciones de la clase">
+        <button data-p="guion">${ico('capas')}<span>Guion y diapositivas</span><span class="cuenta">${editor.items.length}</span></button>
+        <button data-p="agenda">${ico('lista')}<span>Agenda y pronunciación</span></button>
+        <button data-p="voz">${ico('mic')}<span>Voz y avatar</span></button>
+        <button data-p="imagenes">${ico('imagen')}<span>Imágenes y avatar</span></button>
+        <button data-p="datos">${ico('texto')}<span>Datos</span></button>
       </nav>
       <div id="contenido"></div>
     </div>
@@ -642,12 +699,158 @@ function fichaDrive() {
 }
 
 function pintarPestana() {
-  $$('.pestanas button').forEach(b => { const a = b.dataset.p === editor.pestana; b.classList.toggle('activa', a); b.setAttribute('aria-selected', a); });
+  $$('.pestanas button').forEach(b => { const a = b.dataset.p === editor.pestana; b.classList.toggle('activa', a); if (a) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
   const c = $('#contenido');
   if (editor.pestana === 'voz') return pintarVoz(c);
+  if (editor.pestana === 'imagenes') return pintarImagenes(c);
   if (editor.pestana === 'datos') return pintarDatos(c);
   if (editor.pestana === 'agenda') return pintarAgendaPron(c);
   return pintarGuion(c);
+}
+
+// ----- pestaña: imágenes y avatar de las láminas de Hyperframes
+// Íconos y logos los pone el programa. Lo que ninguna IA de texto dibuja se pide aquí: cada hueco trae su prompt.
+// El avatar llega de afuera (Google Vids, HeyGen, cámara): un clip por lámina o un video completo.
+let errorHf = '';
+const IMAGENES_POR_PAGINA = 3;
+const CLIPS_POR_PAGINA = 5;
+async function pintarImagenes(cont) {
+  const url = `/api/clases/${editor.slug}/hyperframes`;
+  cont.innerHTML = '<section class="panel"><p class="muted">Cargando…</p></section>';
+  const estado = await api(url);
+  if (editor.pestana !== 'imagenes') return;
+  const vista = editor.vistaHf || 'imagenes';
+  const faltan = estado.imagenes.filter(i => !i.archivo).length;
+  const subir = async (archivo, nombre) => {
+    aviso('Subiendo…');
+    const r = await fetch(`/api/clases/${editor.slug}/archivo?nombre=${encodeURIComponent(nombre)}`, { method: 'PUT', body: archivo });
+    if (!r.ok) return aviso('No se pudo subir el archivo', true);
+    await api(url, { method: 'POST', body: JSON.stringify({ reconstruir: true }) });
+    aviso('Archivo agregado a las láminas');
+    pintarImagenes(cont);
+  };
+  const quitar = async nombre => {
+    await fetch(`/api/clases/${editor.slug}/archivo?nombre=${encodeURIComponent(nombre)}`, { method: 'DELETE' });
+    await api(url, { method: 'POST', body: JSON.stringify({ reconstruir: true }) });
+    aviso('Avatar quitado');
+    pintarImagenes(cont);
+  };
+
+  const tarjeta = i => `<article class="hueco ${i.archivo ? 'listo' : ''}">
+    <div class="hueco-vista">${i.archivo ? `<img src="${url}/imagen/${i.id}?v=${Date.now()}" alt="${esc(i.titulo)}">` : `${ico('imagen', 28)}<b>Inserta aquí la imagen</b>`}</div>
+    <div class="hueco-datos">
+      <h3>Lámina ${esc(i.lamina)}</h3>
+      <p>${esc(i.titulo)}</p>
+      <details><summary>Ver el prompt</summary><p class="muted">${esc(i.prompt)}</p></details>
+      <div class="hueco-acciones">
+        <button class="boton" data-copiar="${esc(i.id)}">Copiar prompt</button>
+        <label class="boton ${i.archivo ? '' : 'prim'}">${i.archivo ? 'Cambiar imagen' : 'Subir imagen'}<input type="file" accept="image/jpeg,image/png,image/webp" data-subir="${esc(i.id)}" hidden></label>
+      </div>
+    </div>
+  </article>`;
+  const fila = l => {
+    const tiene = estado.avatar.clips.includes(l.id);
+    return `<article class="clip-fila">
+      <div><b>Lámina ${esc(l.id)}</b><span class="muted">${esc(l.parte)} · ${mmss(l.duracion)}</span></div>
+      <div class="hueco-acciones">
+        <button class="boton chico" data-guion="${esc(l.id)}">Copiar guion</button>
+        <label class="boton chico ${tiene ? '' : 'prim'}">${tiene ? 'Cambiar clip' : 'Subir clip'}<input type="file" accept="video/mp4,video/webm" data-clip="${esc(l.id)}" hidden></label>
+        ${tiene ? `<button class="boton chico" data-quitar="hyperframes/assets/l${esc(l.id)}-avatar.${estado.avatar.extension[l.id]}">Quitar</button>` : ''}
+      </div>
+    </article>`;
+  };
+  const conClip = estado.avatar ? estado.avatar.clips.length : 0;
+
+  cont.innerHTML = `<section class="panel">
+    <div class="panel-cab"><div><h2>Video animado</h2>
+      <p class="muted">${estado.existe ? (faltan ? `Faltan ${faltan} de ${estado.imagenes.length} imágenes. Copia el prompt, crea la imagen en Google Vids o Gemini y súbela aquí.` : 'Todas las imágenes están listas.') : 'Primero genera las láminas. Los íconos y los logos salen solos.'}</p></div>
+      <button class="boton ${estado.existe ? '' : 'prim'}" id="hf-generar">${estado.existe ? 'Volver a armar' : 'Generar láminas'}</button></div>
+    ${errorHf ? `<p class="hf-error">${esc(errorHf)}</p>` : ''}
+    ${estado.existe && !faltan ? `<div class="hf-video">
+      <div class="hueco-acciones">
+        <button class="boton prim" id="hf-crear">${estado.video ? 'Crear el video otra vez' : 'Crear video'}</button>
+        ${estado.video ? `<a class="boton" href="${url}/video?descargar=1">Descargar video</a>` : ''}
+        <span class="muted" id="hf-avance"></span>
+      </div>
+      ${estado.video ? `<video class="reproductor" controls preload="metadata" src="${url}/video?v=${estado.video}"></video>` : ''}
+    </div>` : ''}
+    ${estado.existe ? `<div class="segmentado hf-vistas" role="radiogroup" aria-label="Qué quieres revisar">
+      <label><input type="radio" name="hf-vista" value="imagenes" ${vista === 'imagenes' ? 'checked' : ''}><span>Imágenes (${estado.imagenes.length})</span></label>
+      <label><input type="radio" name="hf-vista" value="avatar" ${vista === 'avatar' ? 'checked' : ''}><span>Avatar que habla</span></label>
+    </div>` : ''}
+    <div id="hf-lista"></div><div id="hf-paginas"></div>
+  </section>`;
+
+  const enlazar = () => {
+    cont.querySelectorAll('[data-copiar]').forEach(b => {
+      b.onclick = async () => {
+        await navigator.clipboard.writeText(estado.imagenes.find(i => i.id === b.dataset.copiar).prompt);
+        aviso('Prompt copiado');
+      };
+    });
+    cont.querySelectorAll('[data-guion]').forEach(b => {
+      b.onclick = async () => {
+        await navigator.clipboard.writeText(estado.lista.find(l => l.id === b.dataset.guion).guion);
+        aviso('Guion copiado');
+      };
+    });
+    cont.querySelectorAll('[data-subir]').forEach(entrada => {
+      entrada.onchange = () => {
+        const archivo = entrada.files[0];
+        if (!archivo) return;
+        const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[archivo.type];
+        if (!ext) return aviso('Usa una imagen JPG, PNG o WebP', true);
+        subir(archivo, `hyperframes/assets/${entrada.dataset.subir}.${ext}`);
+      };
+    });
+    cont.querySelectorAll('[data-clip], #hf-completo').forEach(entrada => {
+      entrada.onchange = () => {
+        const archivo = entrada.files[0];
+        if (!archivo) return;
+        const ext = { 'video/mp4': 'mp4', 'video/webm': 'webm' }[archivo.type];
+        if (!ext) return aviso('Usa un video MP4 o WebM', true);
+        subir(archivo, `hyperframes/assets/${entrada.dataset.clip ? `l${entrada.dataset.clip}-avatar` : 'avatar'}.${ext}`);
+      };
+    });
+    cont.querySelectorAll('[data-quitar]').forEach(b => { b.onclick = () => quitar(b.dataset.quitar); });
+  };
+  const pintarLista = (pagina = 1) => {
+    const lista = $('#hf-lista');
+    if (vista === 'avatar' && estado.existe) {
+      const actual = paginaValida(pagina, estado.lista.length, CLIPS_POR_PAGINA);
+      const completo = estado.avatar.completo;
+      lista.innerHTML = `<div class="avatar-completo">
+          <div><b>Un solo video con toda la clase</b><p class="muted">${completo ? 'Listo: las láminas siguen el tiempo de este video y los clips de abajo no se usan.' : 'Por ejemplo, de HeyGen, de tu cámara o de Google Vids con todas sus escenas.'}</p></div>
+          <div class="hueco-acciones">
+            <label class="boton chico ${completo ? '' : 'prim'}">${completo ? 'Cambiar video' : 'Subir video'}<input type="file" accept="video/mp4,video/webm" id="hf-completo" hidden></label>
+            ${completo ? `<button class="boton chico" data-quitar="hyperframes/${esc(completo)}">Quitar</button>` : ''}
+          </div>
+        </div>
+        <h3 class="clips-titulo">O un clip por lámina <span class="muted">· ${conClip} de ${estado.lista.length}</span></h3>
+        <p class="muted">Copia el guion, crea el avatar y sube su video. Cada lámina dura lo que dure su clip.</p>
+        <div class="clips">${estado.lista.length ? "" : "<p class=\"muted\">Pulsa Volver a armar para ver las láminas.</p>"}${estado.lista.slice((actual - 1) * CLIPS_POR_PAGINA, actual * CLIPS_POR_PAGINA).map(fila).join('')}</div>`;
+      paginador($('#hf-paginas'), estado.lista.length, CLIPS_POR_PAGINA, actual, pintarLista);
+    } else {
+      const actual = paginaValida(pagina, estado.imagenes.length, IMAGENES_POR_PAGINA);
+      lista.innerHTML = `<div class="huecos">${estado.imagenes.slice((actual - 1) * IMAGENES_POR_PAGINA, actual * IMAGENES_POR_PAGINA).map(tarjeta).join('')}</div>`;
+      paginador($('#hf-paginas'), estado.imagenes.length, IMAGENES_POR_PAGINA, actual, pintarLista);
+    }
+    enlazar();
+  };
+  pintarLista();
+
+  cont.querySelectorAll('[name="hf-vista"]').forEach(r => { r.onchange = () => { editor.vistaHf = r.value; pintarImagenes(cont); }; });
+  if ($('#hf-crear')) $('#hf-crear').onclick = () => lanzar('hyperframes');
+  $('#hf-generar').onclick = async e => {
+    e.target.disabled = true;
+    e.target.textContent = estado.existe ? 'Trabajando…' : 'Generando: puede tardar varios minutos…';
+    errorHf = '';
+    try {
+      await api(url, { method: 'POST', body: JSON.stringify({ reconstruir: estado.existe }) });
+      aviso('Láminas listas');
+    } catch (err) { errorHf = err.message; aviso('No se terminaron las láminas', true); }
+    pintarImagenes(cont);
+  };
 }
 
 // ----- pestaña: guion y diapositivas
@@ -677,11 +880,13 @@ function pintarGuion(cont) {
       <button class="boton chico" id="otro-diseno">${ico('chispas', 14)}Otro diseño</button>
     </div>`}
     <div id="bloques" class="bloques"></div>
+    <div id="paginas-bloques"></div>
     ${fijo ? '' : `<button class="agregar" id="mas-bloque">${ico('mas')}Agregar bloque</button>`}`;
   pintarBloques();
   if (!fijo) {
     $('#mas-bloque').onclick = () => {
       editor.items.push({ id: `n${Date.now()}`, texto: '', diapo: { tipo: 'idea', kicker: '', titulo: '', sub: '' } });
+      editor.paginaBloques = Math.ceil(editor.items.length / BLOQUES_POR_PAGINA);
       sucio();
       pintarBloques();
       const ultimo = $$('#bloques .bloque').pop();
@@ -709,6 +914,16 @@ function tiempos() {
   return editor.items.map(it => { const ini = t; t += palabras(it.texto) / 2.4 + 0.45; return [ini, t - 0.45]; });
 }
 
+const BLOQUES_POR_PAGINA = 5;
+function paginarBloques(pagina = editor.paginaBloques || 1) {
+  const cont = $('#paginas-bloques');
+  if (!cont) return;
+  const total = editor.items.length;
+  const actual = paginaValida(pagina, total, BLOQUES_POR_PAGINA);
+  editor.paginaBloques = actual;
+  document.querySelectorAll('#bloques .bloque').forEach((b, i) => { b.classList.toggle('oculto', Math.ceil((i + 1) / BLOQUES_POR_PAGINA) !== actual); });
+  paginador(cont, total, BLOQUES_POR_PAGINA, actual, n => { paginarBloques(n); $('#bloques').scrollIntoView({ block: 'start' }); });
+}
 function pintarBloques() {
   const fijo = !editor.plantillas;
   const ts = tiempos();
@@ -732,7 +947,7 @@ function pintarBloques() {
         ${fijo ? '' : edDiapo(it.diapo, i)}
       </div>
     </article>`).join('');
-  requestAnimationFrame(() => $$('#bloques textarea').forEach(crecer));
+  requestAnimationFrame(() => { $$('#bloques textarea').forEach(crecer); paginarBloques(); });
   if (!fijo) pintarVistas();
   $$('#bloques .bloque').forEach(el => {
     const i = +el.dataset.i;
@@ -1223,6 +1438,8 @@ async function actualizarTrabajos() {
   const mios = lista.filter(t => t.slug === editor.slug).slice(0, 4);
   const otros = lista.filter(t => t.slug !== editor.slug && (t.estado === 'trabajando' || t.estado === 'en-cola')).length;
   const enCurso = mios.some(t => t.estado === 'trabajando' || t.estado === 'en-cola');
+  const hf = mios.find(t => t.modo === 'hyperframes' && (t.estado === 'trabajando' || t.estado === 'en-cola'));
+  if ($('#hf-avance')) $('#hf-avance').textContent = hf ? `${hf.mensaje}${hf.progreso ? `: ${hf.progreso}%` : ''}` : '';
   $('#trabajos').innerHTML = (otros && enCurso ? `<p class="nota-cola">${ico('reloj', 14)}Hay ${otros} trabajo(s) de otras clases antes que el tuyo.</p>` : '') + mios.map(t => {
     const info = TRABAJOS[t.modo] || { nombre: t.modo, icono: 'pelicula' };
     const seg = ((t.fin || Date.now()) - t.inicio) / 1000;
@@ -1242,6 +1459,7 @@ async function actualizarTrabajos() {
       if (t.modo === 'capturas') editor.mostrar = 'capturas';
       if (t.modo === 'video' || t.modo === 'borrador') editor.mostrar = t.modo;
       if (t.modo === 'drive') editor.mostrar = 'video';
+      if (t.modo === 'hyperframes' && editor.pestana === 'imagenes') pintarImagenes($('#contenido'));
       aviso(`${(TRABAJOS[t.modo] || {}).nombre || t.modo}: listo`);
       pintarResultado();
     }

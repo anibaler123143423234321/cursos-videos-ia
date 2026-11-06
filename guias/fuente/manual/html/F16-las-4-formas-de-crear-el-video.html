@@ -1,0 +1,111 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>F16 · Las 4 formas de crear el video</title><style>
+  @media screen {
+    html body { max-width: 960px; margin: 24px auto; padding: 0 24px; }
+    .volver { display: inline-block; margin-bottom: 12px; font: 600 14px Arial, sans-serif; color: #4f5f00; }
+  }
+  @media print { .volver { display: none; } }
+  @font-face { font-family: Inter; font-weight: 400; src: url(../../../../clases-mac/node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2); }
+  @font-face { font-family: Inter; font-weight: 600; src: url(../../../../clases-mac/node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2); }
+  @font-face { font-family: Inter; font-weight: 700; src: url(../../../../clases-mac/node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2); }
+  @font-face { font-family: Inter; font-weight: 800; src: url(../../../../clases-mac/node_modules/@fontsource/inter/files/inter-latin-800-normal.woff2); }
+  @font-face { font-family: Inter; font-weight: 900; src: url(../../../../clases-mac/node_modules/@fontsource/inter/files/inter-latin-900-normal.woff2); }
+  @font-face { font-family: Serif; font-style: italic; src: url(../../../../clases-mac/node_modules/@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2); }
+  :root { --verde: #a6c61a; --verde-osc: #5b6e00; --verde-50: #f3f8dc; --tinta: #121214; --gris: #5d616c; --linea: #e3e4e8; --caja: #f4f4f7; --morado: #3e32d4; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 400 9.6pt/1.5 Inter, sans-serif; color: var(--tinta); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .etiqueta { font-size: 7.4pt; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--verde-osc); margin: 0 0 2mm; }
+  h1 { display: flex; align-items: center; gap: 4mm; font-size: 18pt; line-height: 1.05; letter-spacing: -0.035em; font-weight: 900; margin: 0 0 2.5mm; }
+  h1 .cod { flex: none; font: 800 12pt/1 Inter; letter-spacing: .02em; color: #fff; background: var(--tinta); border-radius: 2mm; padding: 2mm 3mm; }
+  .proposito { font-size: 9.8pt; color: #34343f; margin: 0 0 4mm; max-width: 172mm; }
+  h2 { font-size: 11.5pt; font-weight: 800; letter-spacing: -0.01em; margin: 5mm 0 2mm; display: flex; align-items: center; gap: 2.5mm; }
+  h2::before { content: ''; width: 5mm; height: 1.4mm; border-radius: 1mm; background: var(--verde); }
+  .ficha { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--linea); border: 1px solid var(--linea); border-radius: 2.5mm; overflow: hidden; }
+  .ficha div { background: #fff; padding: 1.3mm 3mm; }
+  .ficha div.c2 { grid-column: span 2; }
+  .ficha div.c4 { grid-column: 1 / -1; }
+  .bloque-diagrama { break-inside: avoid; }
+  .ficha b { display: block; font-size: 7pt; letter-spacing: .12em; text-transform: uppercase; color: var(--gris); margin-bottom: .4mm; }
+  .ficha span { font-size: 8.9pt; line-height: 1.4; }
+  .diagrama { width: 100%; height: auto; border: 1px solid var(--linea); border-radius: 2.5mm; }
+  .leyenda { font-size: 7.8pt; color: var(--gris); margin: 1.5mm 0 0; }
+  .salto { break-before: page; }
+  table { width: 100%; border-collapse: collapse; font-size: 8.7pt; }
+  th { text-align: left; font-size: 7pt; letter-spacing: .12em; text-transform: uppercase; color: var(--gris); padding: 1.6mm 2mm; border-bottom: 1.5px solid var(--tinta); }
+  td { padding: 1.5mm 2mm; border-bottom: 1px solid var(--linea); vertical-align: top; line-height: 1.42; }
+  tr { break-inside: avoid; }
+  td.n { width: 9mm; font-weight: 800; color: var(--verde-osc); }
+  td.actor { width: 33mm; font-weight: 700; }
+  td.paso { width: 52mm; font-weight: 600; }
+  .dec td.n { color: #a08300; }
+  ul.reglas { margin: 0; padding-left: 4.5mm; } ul.reglas li { margin-bottom: .8mm; }
+  .chips { display: flex; flex-wrap: wrap; gap: 2mm; } .chips span { font: 600 8.4pt Consolas, monospace; background: var(--caja); border-radius: 1.5mm; padding: .8mm 2.2mm; }
+  .rel span { font-family: Inter; font-weight: 800; background: var(--verde-50); color: var(--verde-osc); }
+  .indice td.cod { width: 14mm; font-weight: 900; }
+  .sin-corte { break-inside: avoid; }
+  .ejemplo { font: 500 8.2pt/1.5 Consolas, monospace; background: var(--caja); border-radius: 2mm; padding: 2.5mm 3mm; margin: 0; }
+  mark { background: #ffe14d; color: var(--tinta); border-radius: .6mm; padding: 0 .5mm; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .aviso { margin: 0 0 2mm; font-size: 8.6pt; color: var(--tinta); }
+  .cambios { margin-top: 2mm; }
+  .cambios td { padding: 1mm 2mm; }
+  .cambios td.que { width: 44mm; font-weight: 800; color: #d0021b; }
+  td.calc { font-size: 8.3pt; line-height: 1.32; }
+  .porcuenta th.cuenta { text-align: center; border-left: 1.5px solid var(--linea); letter-spacing: .06em; }
+  .porcuenta .num { text-align: center; width: 12mm; font-weight: 700; padding-left: 1mm; padding-right: 1mm; }
+  .porcuenta .no { color: #d0021b; }
+  .porcuenta td.num:nth-child(3n+2), .porcuenta tr:nth-child(2) th.num:nth-child(3n+1) { border-left: 1.5px solid var(--linea); }
+  td .detalle { display: block; font-weight: 400; font-size: 8pt; color: var(--gris); }
+  .reutilizar { display: grid; grid-template-columns: 66mm 1fr; gap: 5mm; align-items: center; }
+  .reutilizar .pantalla { width: 66mm; margin: 0; }
+  .reutilizar ol { margin: 0; padding-left: 5mm; font-size: 9pt; } .reutilizar li { margin-bottom: 1.2mm; }
+  .capturas { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3mm; }
+  .captura { grid-column: span 3; display: flex; flex-direction: column; break-inside: avoid; border: 1px solid var(--linea); border-radius: 2.5mm; padding: 2mm; }
+  .captura.texto { grid-column: span 2; }
+  .captura.texto.mitad { grid-column: span 3; }
+  .captura h3 { display: flex; align-items: flex-start; gap: 1.8mm; font-size: 9pt; line-height: 1.25; font-weight: 800; margin: 0 0 1.6mm; min-height: 6mm; }
+  .captura h3 b { flex: none; min-width: 5.4mm; text-align: center; font-size: 8pt; line-height: 1; color: #fff; background: var(--tinta); border-radius: 1.2mm; padding: 1mm 1.1mm; }
+  .captura p { font-size: 8pt; line-height: 1.35; color: #34343f; margin: 1.5mm 0 0; }
+  .pantalla { position: relative; width: 72mm; margin: 0 auto; border: 1px solid var(--linea); border-radius: 1.5mm; overflow: hidden; }
+  .pantalla img { display: block; width: 100%; }
+  .pantalla i { position: absolute; border: 1.6pt solid #e01f3d; border-radius: 1.2mm; }
+  .consola { flex: 1; margin: 0; padding: 2mm 2.4mm; border-radius: 1.5mm; background: #121214; color: #e9eaee; font: 500 6.6pt/1.45 Consolas, Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+</style></head><body>
+    <a class="volver" href="../../../index.html">Volver al portal</a>
+    <p class="etiqueta">Manual de flujos · Estudio de clases USS · Por web</p>
+    <h1><span class="cod">F16</span>Las 4 formas de crear el video</h1>
+    <p class="proposito">Elegir cómo crear una clase en video y aplicar siempre las mismas medidas de avatar y logo: tamaño, rotación y posición.</p>
+    <div class="ficha"><div class=""><b>Código</b><span>F16</span></div><div class=""><b>Responsable</b><span>Docente o equipo del estudio</span></div><div class=""><b>Frecuencia</b><span>Antes de cada sesión</span></div><div class=""><b>Tiempo</b><span>Depende de la forma elegida</span></div><div class="c2"><b>Disparador</b><span>La clase ya tiene su guion aprobado</span></div><div class="c2"><b>Requisitos</b><span>Web del estudio · Chrome · cuenta de Google con Vids</span></div><div class="c2"><b>Entradas</b><span>Guion de la clase</span></div><div class="c2"><b>Salidas</b><span>Video MP4 1920 × 1080</span></div><div class="c4"><b>Sistemas</b><span>Web del estudio · Gemini · Hyperframes · Google Vids · ElevenLabs</span></div></div>
+    <div class="bloque-diagrama"><h2>Diagrama del flujo</h2><svg class="diagrama" viewBox="0 0 680 388" xmlns="http://www.w3.org/2000/svg" font-family="Inter, Arial, sans-serif"><defs><marker id="punta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0 0L10 5L0 10z" fill="#1d1d22"/></marker></defs><rect x="0" y="0" width="170" height="388" fill="#ffffff"/><rect x="3" y="3" width="164" height="28" rx="6" fill="#eef6cf"/><text x="85" y="21" text-anchor="middle" font-size="11" font-weight="800" fill="#1d1d22">Docente</text><rect x="170" y="0" width="170" height="388" fill="#fbfbfd"/><rect x="173" y="3" width="164" height="28" rx="6" fill="#ecebff"/><text x="255" y="21" text-anchor="middle" font-size="11" font-weight="800" fill="#1d1d22">Web del estudio</text><line x1="170" y1="0" x2="170" y2="388" stroke="#d9dbe2" stroke-dasharray="3 4"/><rect x="340" y="0" width="170" height="388" fill="#ffffff"/><rect x="343" y="3" width="164" height="28" rx="6" fill="#fff1e6"/><text x="425" y="21" text-anchor="middle" font-size="11" font-weight="800" fill="#1d1d22">Gemini o Google Vids</text><line x1="340" y1="0" x2="340" y2="388" stroke="#d9dbe2" stroke-dasharray="3 4"/><rect x="510" y="0" width="170" height="388" fill="#fbfbfd"/><rect x="513" y="3" width="164" height="28" rx="6" fill="#e8f1ff"/><text x="595" y="21" text-anchor="middle" font-size="11" font-weight="800" fill="#1d1d22">Programa</text><line x1="510" y1="0" x2="510" y2="388" stroke="#d9dbe2" stroke-dasharray="3 4"/><path d="M85 81 V84.5 H255 V87" fill="none" stroke="#1d1d22" stroke-width="1.3" marker-end="url(#punta)"/><rect x="8" y="46" width="154" height="35" rx="7" fill="#fff" stroke="#7d9a0c"
+      stroke-width="1.4" /><rect x="8" y="46" width="5" height="35" rx="2" fill="#7d9a0c"/><circle cx="26" cy="63.5" r="9" fill="#7d9a0c"/><text x="26" y="67" text-anchor="middle" font-size="9" font-weight="800" fill="#fff">1</text><text x="40" y="66.8" font-size="9.2" font-weight="600" fill="#1d1d22">Elige una forma</text><path d="M255 123 V126.5 H425 V129" fill="none" stroke="#1d1d22" stroke-width="1.3" marker-end="url(#punta)"/><rect x="178" y="88" width="154" height="35" rx="7" fill="#fff" stroke="#3e32d4"
+      stroke-width="1.4" /><rect x="178" y="88" width="5" height="35" rx="2" fill="#3e32d4"/><circle cx="196" cy="105.5" r="9" fill="#3e32d4"/><text x="196" y="109" text-anchor="middle" font-size="9" font-weight="800" fill="#fff">2</text><text x="210" y="108.8" font-size="9.2" font-weight="600" fill="#1d1d22">Prepara las láminas</text><path d="M425 165 V168.5 H85 V171" fill="none" stroke="#1d1d22" stroke-width="1.3" marker-end="url(#punta)"/><rect x="348" y="130" width="154" height="35" rx="7" fill="#fff" stroke="#c2410c"
+      stroke-width="1.4" /><rect x="348" y="130" width="5" height="35" rx="2" fill="#c2410c"/><circle cx="366" cy="147.5" r="9" fill="#c2410c"/><text x="366" y="151" text-anchor="middle" font-size="9" font-weight="800" fill="#fff">3</text><text x="380" y="150.8" font-size="9.2" font-weight="600" fill="#1d1d22">Crea el avatar o la voz</text><path d="M85 207 V210.5 H425 V213" fill="none" stroke="#1d1d22" stroke-width="1.3" marker-end="url(#punta)"/><text x="91" y="217" font-size="8.5" font-weight="700" fill="#5b6e00">Sí</text><rect x="8" y="172" width="154" height="35" rx="18" fill="#fffbe6" stroke="#c9a400"
+      stroke-width="1.4" stroke-dasharray="4 3"/><rect x="8" y="172" width="5" height="35" rx="2" fill="#c9a400"/><circle cx="26" cy="189.5" r="9" fill="#c9a400"/><text x="26" y="193" text-anchor="middle" font-size="9" font-weight="800" fill="#fff">4</text><text x="40" y="187.60000000000002" font-size="9.2" font-weight="600" fill="#1d1d22">¿El video se arma en</text><text x="40" y="198.00000000000003" font-size="9.2" font-weight="600" fill="#1d1d22">Vids?</text><path d="M425 249 V252.5 H85 V255" fill="none" stroke="#1d1d22" stroke-width="1.3" marker-end="url(#punta)"/><rect x="348" y="214" width="154" height="35" rx="7" fill="#fff" stroke="#c2410c"
+      stroke-width="1.4" /><rect x="348" y="214" width="5" height="35" rx="2" fill="#c2410c"/><circle cx="366" cy="231.5" r="9" fill="#c2410c"/><text x="366" y="235" text-anchor="middle" font-size="9" font-weight="800" fill="#fff">5</text><text x="380" y="234.8" font-size="9.2" font-weight="600" fill="#1d1d22">Aplica las medidas</text><path d="M85 291 V294.5 H595 V297" fill="none" stroke="#1d1d22" stroke-width="1.3" marker-end="url(#punta)"/><rect x="8" y="256" width="154" height="35" rx="7" fill="#fff" stroke="#7d9a0c"
+      stroke-width="1.4" /><rect x="8" y="256" width="5" height="35" rx="2" fill="#7d9a0c"/><circle cx="26" cy="273.5" r="9" fill="#7d9a0c"/><text x="26" y="277" text-anchor="middle" font-size="9" font-weight="800" fill="#fff">6</text><text x="40" y="271.6" font-size="9.2" font-weight="600" fill="#1d1d22">Forma 1: saca el clip</text><text x="40" y="282" font-size="9.2" font-weight="600" fill="#1d1d22">del avatar</text><path d="M595 333 V336.5 H85 V339" fill="none" stroke="#1d1d22" stroke-width="1.3" marker-end="url(#punta)"/><rect x="518" y="298" width="154" height="35" rx="7" fill="#fff" stroke="#1f5fd1"
+      stroke-width="1.4" /><rect x="518" y="298" width="5" height="35" rx="2" fill="#1f5fd1"/><circle cx="536" cy="315.5" r="9" fill="#1f5fd1"/><text x="536" y="319" text-anchor="middle" font-size="9" font-weight="800" fill="#fff">7</text><text x="550" y="318.8" font-size="9.2" font-weight="600" fill="#1d1d22">Crea el video</text><rect x="8" y="340" width="154" height="35" rx="7" fill="#fff" stroke="#7d9a0c"
+      stroke-width="1.4" /><rect x="8" y="340" width="5" height="35" rx="2" fill="#7d9a0c"/><circle cx="26" cy="357.5" r="9" fill="#7d9a0c"/><text x="26" y="361" text-anchor="middle" font-size="9" font-weight="800" fill="#fff">8</text><text x="40" y="360.8" font-size="9.2" font-weight="600" fill="#1d1d22">Revisa el video</text></svg>
+    <p class="leyenda">Cada carril es un actor y los pasos van de arriba abajo. Las cajas punteadas son decisiones: «Sí» sigue la flecha; la otra salida está en la tabla de pasos (◆).</p></div>
+    <div class="salto"></div>
+    <h2>Pasos del flujo</h2><table><tr><th>N.°</th><th>Actor</th><th>Paso</th><th>Qué pasa</th></tr><tr class=""><td class="n">1</td>
+    <td class="actor">Docente</td><td class="paso">Elige una forma</td><td>Usa la tabla «Las 4 formas».</td></tr><tr class=""><td class="n">2</td>
+    <td class="actor">Web del estudio</td><td class="paso">Prepara las láminas</td><td>Forma 1: web y Gemini. Forma 2: tu lámina lista. Forma 3: láminas HTML de la web. Forma 4: panel Imagen de Vids.</td></tr><tr class=""><td class="n">3</td>
+    <td class="actor">Gemini o Google Vids</td><td class="paso">Crea el avatar o la voz</td><td>Formas 1, 2 y 4: avatar de Vids. Forma 3: voz de ElevenLabs en la web.</td></tr><tr class="dec"><td class="n">4 ◆</td>
+    <td class="actor">Docente</td><td class="paso">¿El video se arma en Vids?</td><td>Sí en las formas 2 y 4. No en la forma 1, que sigue en el paso 6, ni en la forma 3, que sigue en el paso 7.</td></tr><tr class=""><td class="n">5</td>
+    <td class="actor">Gemini o Google Vids</td><td class="paso">Aplica las medidas</td><td>Avatar y logo en Opciones de formato, con los números de la tabla «Medidas únicas».</td></tr><tr class=""><td class="n">6</td>
+    <td class="actor">Docente</td><td class="paso">Forma 1: saca el clip del avatar</td><td>Por la pestaña Network de Chrome. Súbelo en la web, en Imágenes y avatar.</td></tr><tr class=""><td class="n">7</td>
+    <td class="actor">Programa</td><td class="paso">Crea el video</td><td>Forma 1: Crear video. Forma 3: Crear video final. Formas 2 y 4: Archivo › Descargar › Video MP4.</td></tr><tr class=""><td class="n">8</td>
+    <td class="actor">Docente</td><td class="paso">Revisa el video</td><td>Míralo completo con sonido. Comprueba textos, logo y avatar.</td></tr></table>
+    <div class="salto"></div><h2>Paso a paso con capturas</h2><div class="capturas"><div class="captura"><h3><b>5</b>Aplica las medidas</h3><div class="pantalla"><img src="../capturas/f16-tamano.jpg" alt="Aplica las medidas"><i style="left:8.529411764705882%;top:26.400000000000002%;width:66.17647058823529%;height:8.799999999999999%"></i><i style="left:8.529411764705882%;top:88.6%;width:18.235294117647058%;height:8.799999999999999%"></i></div><p>Tamaño y rotación reales del avatar en Google Vids.</p></div><div class="captura"><h3><b>5</b>Aplica las medidas</h3><div class="pantalla"><img src="../capturas/f16-posicion.jpg" alt="Aplica las medidas"><i style="left:8.529411764705882%;top:25.660377358490567%;width:84.11764705882354%;height:15.849056603773585%"></i><i style="left:8.529411764705882%;top:79.24528301886792%;width:66.17647058823529%;height:16.60377358490566%"></i></div><p>Posición real del avatar, medida desde la parte superior izquierda.</p></div></div><div class="salto"></div>
+    <div class="sin-corte"><h2>Las 4 formas</h2><table><tr><th>Forma</th><th>Imagen</th><th>Voz y avatar</th><th>Dónde se arma</th><th>Qué gasta</th><th>Guía</th></tr>
+    <tr><td class="paso">1. Gemini + Hyperframes + avatar de Vids</td><td class="">Gemini, incrustada en las láminas HTML</td><td class="">Clip del avatar de Vids</td><td class="">Web: Imágenes y avatar</td><td class="">1 avatar por lámina</td><td class="">F15</td></tr><tr><td class="paso">2. Lámina + avatar de Vids</td><td class="">Tu lámina lista, como fondo</td><td class="">Avatar de Vids</td><td class="">Google Vids</td><td class="">1 avatar por lámina</td><td class="">F14</td></tr><tr><td class="paso">3. HTML puro + voz de ElevenLabs</td><td class="">Láminas HTML de la web</td><td class="">Voz de ElevenLabs, sin persona</td><td class="">Web: Crear video final</td><td class="">Créditos de ElevenLabs</td><td class="">F01, F06 y F08</td></tr><tr><td class="paso">4. Solo Google Vids</td><td class="">Panel Imagen de Vids</td><td class="">Avatar de Vids</td><td class="">Google Vids</td><td class="">1 imagen y 1 avatar por lámina</td><td class="">F14</td></tr></table>
+    <p class="leyenda">Con AI Pro tienes 25 avatares y 30 imágenes de Vids al mes. Con cuenta gratis, 6 avatares. En la forma 3 aparece el robot de la web en el recuadro. La forma 1 entrega el video a 1920 × 1080, pero el avatar llega a 1280 × 720.</p></div><div class="sin-corte"><h2>Medidas únicas</h2><table><tr><th>Elemento</th><th>Ancho</th><th>Altura</th><th>Ángulo</th><th>X</th><th>Y</th><th>Desde</th></tr>
+    <tr><td class="paso">Avatar</td><td class="">600 px</td><td class="">337.5 px</td><td class="">0°</td><td class="">1320 px</td><td class="">371 px</td><td class="">Parte superior izquierda</td></tr><tr><td class="paso">Logo</td><td class="">300 px</td><td class="">76.2 px</td><td class="">0°</td><td class="">1600 px</td><td class="">20 px</td><td class="">Parte superior izquierda</td></tr><tr><td class="paso">Lámina de fondo</td><td class="">1920 px</td><td class="">1080 px</td><td class="">0°</td><td class="">0 px</td><td class="">0 px</td><td class="">Establecer imagen como fondo</td></tr></table>
+    <p class="leyenda">Son las mismas medidas en todas las láminas, también en la portada. Deja Bloquear relación de aspecto activado, Escala en 100 % y Escalar objeto desactivado. El lienzo mide 1920 × 1080: X + Ancho del avatar = 1920, por eso queda pegado al borde derecho. El logo tiene el mismo ancho en cada escena.</p></div><div class="sin-corte"><h2>Sacar el clip del avatar por Network</h2><table><tr><th>Paso</th><th>Qué haces</th></tr>
+    <tr><td class="paso">1. Abre DevTools</td><td class="">En Google Vids, en Chrome: clic derecho › Inspeccionar › pestaña Network.</td></tr><tr><td class="paso">2. Filtra</td><td class="">Escribe videoplayback en el filtro.</td></tr><tr><td class="paso">3. Carga el clip</td><td class="">Selecciona la escena y reproduce el avatar. Aparece una línea por clip.</td></tr><tr><td class="paso">4. Abre el enlace</td><td class="">Clic derecho en la línea › Open in new tab.</td></tr><tr><td class="paso">5. Guárdalo</td><td class="">En el reproductor: los tres puntos › Descargar. Ponle el número de su lámina.</td></tr><tr><td class="paso">6. Súbelo</td><td class="">En la web: Imágenes y avatar › Avatar que habla › Subir clip.</td></tr></table>
+    <p class="leyenda">Datos de una prueba en esta clase: MP4 de 1280 × 720 con voz; duraciones de 10.3, 20 y 17.4 segundos. El enlace caduca en unas horas y no es una función oficial de Google: si deja de funcionar, recarga la página y repite los pasos.</p></div>
+    <h2>Reglas del negocio</h2><ul class="reglas"><li>Usa una sola medida de avatar y logo en todas las láminas.</li><li>El logo es obligatorio en todas las formas.</li><li>Cada avatar de Vids gasta cupo: revisa el guion antes de generarlo.</li><li>Los videos y los clips del avatar no se suben a GitHub.</li></ul>
+    <div class="sin-corte"><h2>Errores frecuentes</h2><table><tr><th>Lo que ves</th><th>Por qué pasa</th><th>Qué hacer</th></tr>
+      <tr><td class="paso">La línea videoplayback no aparece</td><td>El clip aún no carga.</td><td>Reproduce la escena y recarga la página con Network abierta.</td></tr><tr><td class="paso">El enlace ya no abre</td><td>Caducó.</td><td>Recarga Google Vids y copia el enlace nuevo.</td></tr><tr><td class="paso">El avatar sale cortado o movido</td><td>Las medidas cambiaron.</td><td>Vuelve a escribir los números de la tabla Medidas únicas.</td></tr></table></div>
+    <h2>Archivos y datos</h2><div class="chips"><span>guias/por-web/pdf/F15-video-con-hyperframes.pdf</span><span>guias/por-terminal/pdf/F14-video-con-google-vids.pdf</span><span>marca/logo-transparente.png</span><span>clases/&lt;nombre&gt;/hyperframes/assets/</span></div>
+    <h2>Flujos relacionados</h2><div class="chips rel"><span>F14 · Crear un video con Google Vids</span><span>F15 · Crear un video animado con Hyperframes</span><span>F06 · Voz de la clase</span><span>F08 · Crear el video final</span></div>
+  </body></html>

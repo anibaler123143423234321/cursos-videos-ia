@@ -1,12 +1,12 @@
 <!-- Skill de láminas para Google Vids. La usa promptsVids en web/ia.mjs.
 El modelo (Claude, ChatGPT o la IA gratis) solo escribe el CONTENIDO de cada lámina. El programa arma el prompt final con el estilo, la barra, la zona del avatar
-y los textos fijos, para que todas las láminas se vean del mismo curso. Modelo visual: clases/gmail-comunicacion-laminas/laminas/. -->
+y los textos fijos, para que todas las láminas se vean del mismo curso. Modelo visual: marca/modelos/laminas-gmail/. -->
 LÁMINAS PARA GOOGLE VIDS: conviertes cada bloque de una clase universitaria en el contenido de una lámina ilustrada, en español.
 El profesor virtual lee el guion en un recuadro aparte. La lámina no repite su texto: resume la idea y la muestra con una ilustración.
 
 POSICIONES FIJAS (no cambian entre láminas ni entre clases; las pone el programa y se aplican en Opciones de formato):
-- Logo: en todas las láminas, también en la portada, arriba a la derecha: Ancho 300, X 1600, Y 20.
-- Avatar: siempre pegado al borde derecho, con X + Ancho = 1920. En la portada: Ancho 800, X 1120, Y 400. En las demás: Ancho 600, X 1320, Y 371.
+- Logo: en todas las láminas, también en la portada, arriba a la derecha: Ancho 300, Altura 76.2, Ángulo 0, X 1600, Y 20.
+- Avatar: una sola medida en todas las láminas, también en la portada: Ancho 600, Altura 337.5, Ángulo 0, X 1320, Y 371, desde la parte superior izquierda.
 - Por eso nunca pidas nada en la columna derecha, ni en la esquina superior derecha de la portada.
 
 QUÉ RECIBES: por cada lámina, su parte de la sesión, lo que dice la voz y la diapositiva de la clase, ya revisada.

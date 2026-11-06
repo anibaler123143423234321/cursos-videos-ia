@@ -13,7 +13,13 @@ si el equipo mejora una guía, la siguiente clase ya la usa, sin reiniciar la we
 | `revision.md` | Segundo pedido: corrige el guion ya escrito (erratas, trato de «tú», menús o direcciones inventados). |
 | `ortografia.md` | Último pedido: la IA solo lista lo mal escrito y el programa lo cambia en la voz y en las diapositivas. |
 | `vids.md` | Contenido de las láminas para Google Vids. El programa arma el prompt: `node web/vids-prompts.mjs <clase> [bloques]`. |
+| `hyperframes.md` | Contenido de las láminas HTML para Hyperframes. El programa arma el proyecto: `node web/hyperframes.mjs <clase> [bloques]`. |
+| Imágenes en Hyperframes | Íconos: `motor/diapos-auto.js`. Logos: `marca/apps/<clave>.svg` (hoy solo Gmail). Fotos y pantallas: huecos con prompt en `hyperframes/imagenes.json`, que se llenan en la pestaña Imágenes de la web. |
 | `pantallas/*.md` | Una guía por software: Gmail, Drive, Documentos, Hojas, Presentaciones, Meet, Calendario, Gemini, Word, Excel y PowerPoint. Otra aplicación necesita su archivo y su fila en `APPS_VIDS` (`web/ia.mjs`). |
+
+Las mismas guías sirven para cualquier modelo. `node web/pedido.mjs <clase> guion|vids|hyperframes [bloques]` deja en
+`clases/<clase>/pedido-<tipo>.txt` las reglas, el ejemplo y el formato, listos para pegar en Claude, ChatGPT o uno futuro.
+La IA gratis los recibe sola. En Vids y Hyperframes el programa valida la respuesta y arma el resultado: el modelo solo escribe el contenido.
 
 La clase sigue la estructura de sesión USS (`guion.md`): portada, logro, motivación, temario, un bloque de desarrollo por
 tema, práctica con el texto estándar, conclusiones y cierre. El programa fija el diseño de cada parte, arma la agenda y la
