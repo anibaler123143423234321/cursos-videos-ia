@@ -12,6 +12,8 @@ si el equipo mejora una guía, la siguiente clase ya la usa, sin reiniciar la we
 | `laminas.md` | Cómo explicar las láminas propias del docente y qué efectos marcar en ellas. |
 | `revision.md` | Segundo pedido: corrige el guion ya escrito (erratas, trato de «tú», menús o direcciones inventados). |
 | `ortografia.md` | Último pedido: la IA solo lista lo mal escrito y el programa lo cambia en la voz y en las diapositivas. |
+| `vids.md` | Contenido de las láminas para Google Vids. El programa arma el prompt: `node web/vids-prompts.mjs <clase> [bloques]`. |
+| `pantallas/*.md` | Una guía por software: Gmail, Drive, Documentos, Hojas, Presentaciones, Meet, Calendario, Gemini, Word, Excel y PowerPoint. Otra aplicación necesita su archivo y su fila en `APPS_VIDS` (`web/ia.mjs`). |
 
 La clase sigue la estructura de sesión USS (`guion.md`): portada, logro, motivación, temario, un bloque de desarrollo por
 tema, práctica con el texto estándar, conclusiones y cierre. El programa fija el diseño de cada parte, arma la agenda y la

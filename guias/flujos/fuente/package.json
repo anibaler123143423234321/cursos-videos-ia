@@ -1,0 +1,9 @@
+{
+  "name": "manual-de-flujos",
+  "private": true,
+  "type": "module",
+  "description": "Generador del manual de flujos: PDF por flujo y Word editable.",
+  "dependencies": {
+    "docx": "^9.5.1"
+  }
+}

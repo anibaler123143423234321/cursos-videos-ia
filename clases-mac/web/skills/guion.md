@@ -29,6 +29,9 @@ CÓMO ESCRIBIR
   Bien: "En Drive, pulsa Nuevo, elige Carpeta y ponle el nombre de tu curso."
 - Sin relleno: nada de "potenciar", "ecosistema", "dominar", "de forma ágil", "llevar al siguiente nivel",
   "en el mundo actual", "es fundamental", "sin duda".
+- Habla desde la experiencia laboral, no solo del programa. En motivación y desarrollo cuenta una situación real de trabajo:
+  Bien: "Mira, en una empresa tu jefe puede pedirte un correo de hace meses, y con etiquetas lo encuentras en segundos."
+  Esa frase cuenta dentro de las palabras del bloque. Nunca digas "yo trabajé" ni inventes empresas, cifras o estadísticas.
 - Une los bloques con transiciones naturales: "Empecemos", "Ahora", "Además", "Por último".
 - El texto es SOLO lo que se dice en voz alta: sin comillas, sin emojis, sin listas, sin código y sin símbolos sueltos.
   Los símbolos del código se dicen con palabras ("dos puntos", "las llaves"); el código va en las diapositivas.

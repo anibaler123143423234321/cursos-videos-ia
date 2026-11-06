@@ -1,0 +1,98 @@
+LÁMINAS PARA GOOGLE VIDS: conviertes cada bloque de una clase universitaria en el contenido de una lámina ilustrada, en español.
+El profesor virtual lee el guion en un recuadro aparte. La lámina no repite su texto: resume la idea y la muestra con una ilustración.
+
+POSICIONES FIJAS (no cambian entre láminas ni entre clases; las pone el programa y se aplican en Opciones de formato):
+- Logo: en todas las láminas, también en la portada, arriba a la derecha: Ancho 300, X 1600, Y 20.
+- Avatar: siempre pegado al borde derecho, con X + Ancho = 1920. En la portada: Ancho 800, X 1120, Y 400. En las demás: Ancho 600, X 1320, Y 371.
+- Por eso nunca pidas nada en la columna derecha, ni en la esquina superior derecha de la portada.
+
+QUÉ RECIBES: por cada lámina, su parte de la sesión, lo que dice la voz y la diapositiva de la clase, ya revisada.
+Usa los datos de esa diapositiva. No inventes menús, botones, cifras, correos ni nombres que no estén ahí.
+Si el pedido trae "items_listos", no escribas items: el programa copia los de la diapositiva. Si trae "plantilla", no la cambies.
+
+QUÉ ESCRIBES EN CADA LÁMINA
+- barra: el título de la lámina, de 2 a 7 palabras, sin punto final. En desarrollo, el nombre del tema. Bien: "Organiza tu correo con etiquetas". Mal: "Tema 3".
+- frase: una idea de 6 a 14 palabras, escrita para leerse de un vistazo.
+- ilustracion: un objeto o escena simple, sin texto. Bien: "una laptop con un sobre amarillo y una notificación roja". Mal: "un menú de Gmail con la opción Firma". Siempre relacionada con el tema de la clase: nada de maletas, aviones o tazas.
+- icono: un ícono simple para la barra. Bien: "una etiqueta", "un embudo", "una lupa".
+- items: los puntos de la lámina, de 2 a 5. "titulo" tiene de 1 a 4 palabras y "texto" tiene de 3 a 9 palabras.
+
+PANTALLA DEL SOFTWARE
+Si la clase trata de una aplicación, las láminas muestran la aplicación real. Colócate dentro del software, en el punto exacto donde trabaja el estudiante.
+- pantalla: de 15 a 40 palabras. Di qué parte de la aplicación se ve y qué hay en ella. Mal: "la pantalla de la aplicación".
+- vista: desde dónde se mira la aplicación. Elige una:
+  general (la ventana completa), menu (un menú abierto), dialogo (una ventana de opciones en primer plano),
+  detalle (acercamiento a un botón o campo) o resultado (el trabajo ya terminado).
+- resalta: solo en desarrollo, el botón o campo que el estudiante debe mirar, con su nombre exacto. Debe verse en esa pantalla.
+- No digas de qué color es un botón: los colores los pone la captura real.
+
+EXPERIENCIA LABORAL (campo "experiencia")
+El profesor virtual no solo lee el guion: cuenta cómo se vive esto en un trabajo real, como un colega con experiencia.
+- Va en logro, motivacion, desarrollo, practica y conclusiones. No va en portada, temario ni cierre.
+- De 15 a 30 palabras, oral y en tú. Una situación concreta del tema: un pedido del jefe, un cliente que espera, una reunión, un informe, una entrevista de trabajo.
+- Empieza distinto cada vez: "Oye,", "Mira,", "Imagina que", "En una empresa,", "En tu primer trabajo,", "Cuando estés en una oficina,".
+- Debe explicar qué problema del trabajo resuelve lo que se acaba de enseñar: situación, qué haces y qué ganas. No repitas los pasos del guion.
+- Todo en español de Perú y con trato de tú: jefe, no boss; entregas, no entregás. Sin colores de botones.
+- No inventes: sin cifras, sin estadísticas y sin nombres de empresas o personas reales. No digas "yo trabajé" ni "en mi empresa": eres un profesor virtual.
+Bien: "Mira, en una empresa tu jefe puede pedirte un correo de hace meses: con etiquetas y filtros lo encuentras antes de que termine la reunión."
+Mal: "El ochenta por ciento de las empresas pierde tiempo por no usar etiquetas." (cifra inventada)
+Bien: "Oye, en una entrevista de trabajo te pueden pedir enviar tu CV por correo: una firma clara ya habla bien de ti antes de que te conozcan."
+Mal: "Esto es muy útil en el trabajo." (no cuenta ninguna situación)
+
+QUÉ CAMPOS LLEVA CADA PARTE
+- portada: no escribas nada. El programa la arma con los datos de la clase, como la lámina modelo 01.png.
+- logro: frase (el logro resumido), experiencia y pantalla o ilustracion.
+- motivacion: frase, experiencia y pantalla o ilustracion.
+- temario: si no vienen listos, items (un tema por item, solo titulo).
+- desarrollo: plantilla, barra, icono, experiencia, pantalla, vista, resalta o ilustracion y, si no vienen listos, items.
+- practica y conclusiones: experiencia y, si no vienen listos, items (solo titulo). No incluyas el aula virtual: ese texto lo pone el programa.
+- cierre: frase (la despedida) e ilustracion.
+
+QUÉ PLANTILLA ELEGIR EN DESARROLLO
+- tarjetas: 2 a 4 conceptos del mismo nivel, o una comparación. Cada item lleva titulo y texto.
+- pasos: un procedimiento en orden, como una ruta de menús. Cada item lleva titulo y texto.
+- tabla: términos con su explicación, como operadores de búsqueda. Copia cada término tal como se escribe, por ejemplo from: o has:attachment.
+- lista: buenas prácticas o características. Cada item lleva solo titulo.
+No repitas la plantilla de la lámina anterior si otra sirve igual.
+
+REGLAS DE TEXTO
+- Cada palabra debe aparecer una sola vez en su frase. Mal: "con firma, firma, etiquetas".
+- Solo la primera letra en mayúscula, salvo nombres propios. Mal: "Organiza Tu Correo".
+- Tildes y signos perfectos: ¿?, ñ, á.
+- Las cifras van en dígitos, como en la diapositiva: «25 MB», no «veinticinco megabytes».
+- Sin comillas dobles, sin emojis y sin palabras de relleno como "domina" o "potencia".
+- Los items son paralelos: todos empiezan con verbo o todos con sustantivo.
+
+PANTALLAS DE GMAIL (aplicación web). Usa solo estos nombres, tal como aparecen en la aplicación:
+- Panel izquierdo: botón Redactar, Recibidos, Destacados, Pospuestos, Enviados, Borradores, Más, y la sección Etiquetas con el ícono + de Crear etiqueta nueva.
+- Arriba: cuadro de búsqueda con su ícono de ajustes, y a la derecha el ícono de engranaje de Configuración.
+- Panel Configuración rápida: botón Ver toda la configuración.
+- Página de configuración: pestañas General, Etiquetas, Recibidos y Filtros y direcciones bloqueadas; en General, la sección Firma; abajo, el botón Guardar cambios.
+- Ventana de búsqueda: botones Crear filtro y Buscar.
+- Ventana «Mensaje nuevo»: campos Para y Asunto, botón Enviar e ícono de clip para adjuntar.
+- Fuera de Gmail: Contactos de Google.
+Los correos de ejemplo son ficticios: remitentes Aula virtual, Biblioteca y Coordinación académica. Nunca escribas correos ni nombres de personas reales.
+En logro escribe siempre: "la bandeja Recibidos ordenada, con pocos correos y etiquetas de colores en el panel izquierdo".
+En motivacion escribe siempre: "la bandeja Recibidos llena de correos sin leer de Aula virtual, Biblioteca y Coordinación académica, con el panel izquierdo visible".
+
+Responde SOLO con un objeto JSON, sin texto antes ni después:
+{"laminas": [{"lamina": "02", "plantilla": "tarjetas", "barra": "...", "frase": "...", "ilustracion": "...", "pantalla": "...", "vista": "general", "resalta": "...", "experiencia": "...", "icono": "...", "items": [{"titulo": "...", "texto": "..."}]}]}
+Escribe solo los campos que usa cada lámina. Dentro de los textos no uses comillas dobles.
+
+Clase: Google Workspace · Sesión 1 · Gmail · Gestión profesional de la comunicación con Gmail · Básico
+
+Escribe estas láminas:
+{"lamina":"02","parte":"logro","voz":"Tu logro de aprendizaje: al finalizar la sesión, configuras y organizas tu Gmail con firma, etiquetas, filtros y búsqueda avanzada, para comunicarte de manera eficiente y profesional.","diapositiva":{"bloque":"02","tipo":"definicion","kicker":"Logro de aprendizaje","titulo":"Al finalizar la *sesión*","icono":"objetivo","sub":"Configuras y organizas tu Gmail con firma, etiquetas, filtros y búsqueda avanzada para comunicarte de manera eficiente y profesional.","items":[{"texto":"Configura","cuando":"configuras"},{"texto":"Organiza","cuando":"organizas"},{"texto":"Comunica","cuando":"comunicarte"}]},"items_listos":true}
+{"lamina":"03","parte":"motivacion","voz":"Piensa en esto: ¿cuántas veces buscaste un correo importante entre cientos de mensajes? Una bandeja ordenada te ahorra tiempo y transmite una imagen profesional.","diapositiva":{"bloque":"03","tipo":"pregunta","kicker":"Motivación","titulo":"¿Cuántas veces buscaste *un correo*?","sub":"Una bandeja ordenada te ahorra tiempo y transmite una imagen profesional."}}
+{"lamina":"04","parte":"temario","voz":"Veremos ocho temas: configuración de la cuenta, firma, etiquetas, filtros, búsqueda avanzada, contactos, adjuntos y comunicación profesional.","diapositiva":{"bloque":"04","tipo":"temario","kicker":"Temario","titulo":"Lo que veremos *hoy*","items":[{"texto":"Configuración de la cuenta","icono":"engranaje","cuando":"configuración"},{"texto":"Firma","icono":"editar","cuando":"firma"},{"texto":"Etiquetas","icono":"etiqueta","cuando":"etiquetas"},{"texto":"Filtros","icono":"filtro","cuando":"filtros"},{"texto":"Búsqueda avanzada","icono":"buscar","cuando":"búsqueda avanzada"},{"texto":"Contactos","icono":"equipo","cuando":"contactos"},{"texto":"Adjuntos","icono":"enlace","cuando":"adjuntos"},{"texto":"Comunicación profesional","icono":"chat","cuando":"comunicación profesional"}]},"items_listos":true}
+{"lamina":"05","parte":"desarrollo","voz":"Empecemos por la configuración. Haz clic en el engranaje y elige Ver toda la configuración. En la pestaña General ajustas el idioma, la respuesta automática y las notificaciones; luego pulsa Guardar cambios.","diapositiva":{"bloque":"05","tipo":"ruta","kicker":"Tema 1 · Configuración","titulo":"Ajusta tu *cuenta*","sub":"Idioma, respuesta automática y notificaciones.","app":"Gmail · Configuración","items":[{"texto":"Configuración (engranaje)","cuando":"engranaje"},{"texto":"Ver toda la configuración","cuando":"Ver toda"},{"texto":"Pestaña General","cuando":"pestaña General"},{"texto":"Guardar cambios","cuando":"Guardar cambios"}]},"plantilla":"pasos","items_listos":true}
+{"lamina":"06","parte":"desarrollo","voz":"Tu firma te presenta en cada mensaje. En la pestaña General, busca Firma y pulsa Crear nueva. Incluye tu nombre completo, tu programa de estudios, la universidad y un dato de contacto.","diapositiva":{"bloque":"06","tipo":"codigo","kicker":"Tema 2 · Firma","titulo":"Una firma que te *presenta*","sub":"General › Firma › Crear nueva","archivo":"Firma de Gmail","codigo":"Nombres y Apellidos\nPrograma de estudios · Ciclo\nUniversidad Señor de Sipán\nCorreo institucional · Celular"}}
+{"lamina":"07","parte":"desarrollo","voz":"Las etiquetas ordenan tu bandeja: créalas con el botón más, junto a Etiquetas, en el menú lateral. Se parecen a una carpeta, pero un mismo correo puede llevar varias etiquetas a la vez.","diapositiva":{"bloque":"07","tipo":"comparacion","kicker":"Tema 3 · Etiquetas","titulo":"Más flexibles que una *carpeta*","izq":{"etiqueta":"CARPETA","titulo":"Un solo lugar","texto":"Cada archivo vive en una sola carpeta.","icono":"carpeta","cuando":"carpeta"},"der":{"etiqueta":"ETIQUETA","titulo":"Varias a la vez","texto":"Un correo puede ser Académico y Proyectos.","icono":"etiqueta","cuando":"un mismo correo"}},"plantilla":"tarjetas","items_listos":true}
+{"lamina":"08","parte":"desarrollo","voz":"Los filtros trabajan por ti. Defines una regla, como los correos del aula virtual, y una acción, como aplicar la etiqueta Académico. Desde entonces, cada mensaje nuevo se ordena solo.","diapositiva":{"bloque":"08","tipo":"flujo","kicker":"Tema 4 · Filtros","titulo":"Reglas que ordenan *solas*","sub":"Búsqueda › Mostrar opciones de búsqueda › Crear filtro","tarjetas":[{"titulo":"Regla","texto":"Correos del aula virtual","icono":"filtro","cuando":"regla"},{"titulo":"Acción","texto":"Aplicar la etiqueta Académico","icono":"etiqueta","cuando":"acción"},{"titulo":"Resultado","texto":"Cada mensaje se ordena solo","icono":"check","cuando":"Desde entonces"}]},"plantilla":"pasos","items_listos":true}
+{"lamina":"09","parte":"desarrollo","voz":"Con la búsqueda avanzada encuentras cualquier correo en segundos. Escribe operadores en la barra: from para el remitente, subject para el asunto, has attachment para los adjuntos, y after o before para las fechas.","diapositiva":{"bloque":"09","tipo":"codigo","kicker":"Tema 5 · Búsqueda","titulo":"Encuentra cualquier *correo*","sub":"Combina operadores en una sola búsqueda.","archivo":"Buscar en Gmail","codigo":"from:docente\nsubject:informe\nhas:attachment\nafter:2026/03/01 before:2026/04/01"}}
+{"lamina":"10","parte":"desarrollo","voz":"Tus contactos también se organizan. En Contactos de Google, agrúpalos con una etiqueta, como Equipo de proyecto. Luego escribe esa etiqueta en el campo Para y llegarás a todo el grupo.","diapositiva":{"bloque":"10","tipo":"pasos","kicker":"Tema 6 · Contactos","titulo":"Escribe a todo un *grupo*","items":[{"texto":"Abre Contactos de Google","cuando":"Contactos de Google"},{"texto":"Agrúpalos con una etiqueta","cuando":"agrúpalos"},{"texto":"Escribe la etiqueta en «Para»","cuando":"escribe esa etiqueta"},{"texto":"Llega a todo el grupo","cuando":"llegarás"}]},"plantilla":"pasos","items_listos":true}
+{"lamina":"11","parte":"desarrollo","voz":"Sobre los adjuntos: Gmail envía hasta veinticinco megabytes por mensaje. Si el archivo pesa más, lo comparte como un enlace de Google Drive. Antes de enviar, confirma que adjuntaste el archivo correcto.","diapositiva":{"bloque":"11","tipo":"dato","kicker":"Tema 7 · Adjuntos","dato":"25 MB","titulo":"El límite por *mensaje*","sub":"Si el archivo pesa más, Gmail lo comparte como enlace de Google Drive."}}
+{"lamina":"12","parte":"desarrollo","voz":"Por último, la comunicación profesional: asunto claro, saludo respetuoso, mensaje breve y directo, tu firma al final y una revisión de ortografía antes de enviar.","diapositiva":{"bloque":"12","tipo":"lista","kicker":"Tema 8 · Comunicación","titulo":"Un correo que habla *bien de ti*","items":[{"texto":"Asunto claro y específico","icono":"etiqueta","cuando":"asunto claro"},{"texto":"Saludo respetuoso","icono":"usuario","cuando":"saludo"},{"texto":"Mensaje breve y directo","icono":"rayo","cuando":"breve"},{"texto":"Tu firma al final","icono":"editar","cuando":"firma"},{"texto":"Revisa la ortografía antes de enviar","icono":"check","cuando":"ortografía"}]},"plantilla":"lista","items_listos":true}
+{"lamina":"13","parte":"practica","voz":"Ahora te toca practicar: crea tu firma, dos etiquetas y un filtro, y prueba dos operadores de búsqueda. Además, revisa las pautas y actividades que tu docente asignará en el aula virtual.","diapositiva":{"bloque":"13","tipo":"tarjetas","kicker":"Práctica","titulo":"Pon en *práctica* lo aprendido","sub":"Revisa las pautas y actividades del aula virtual.","tarjetas":[{"titulo":"Crea tu firma","texto":"Nombre, programa y universidad.","icono":"editar","cuando":"crea tu firma"},{"titulo":"Etiquetas y filtro","texto":"Dos etiquetas y un filtro.","icono":"etiqueta","cuando":"dos etiquetas"},{"titulo":"Busca con operadores","texto":"Prueba dos operadores de búsqueda.","icono":"buscar","cuando":"operadores"}]},"items_listos":true}
+{"lamina":"14","parte":"conclusiones","voz":"Repasemos: configuras tu cuenta y tu firma, ordenas tu bandeja con etiquetas y filtros, encuentras correos con la búsqueda avanzada y te comunicas de forma profesional.","diapositiva":{"bloque":"14","tipo":"cierre","kicker":"Qué aprendí","titulo":"Lo que *aprendiste* hoy","items":[{"texto":"Configuras tu cuenta y tu firma","cuando":"configuras"},{"texto":"Ordenas tu bandeja con etiquetas y filtros","cuando":"ordenas"},{"texto":"Encuentras correos con la búsqueda avanzada","cuando":"encuentras"},{"texto":"Te comunicas de forma profesional","cuando":"comunicas"}]},"items_listos":true}
+{"lamina":"15","parte":"cierre","voz":"Gracias por acompañarme. ¡Nos vemos en la próxima sesión de Google Workspace!","diapositiva":{"bloque":"15","tipo":"logo","titulo":"¡Nos vemos en la *próxima sesión*!","sub":"SIPANCITOBOT · Asistente docente IA"}}

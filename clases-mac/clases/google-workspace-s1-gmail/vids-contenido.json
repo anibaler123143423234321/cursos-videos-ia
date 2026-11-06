@@ -1,0 +1,141 @@
+{
+ "laminas": [
+  {
+   "lamina": "01",
+   "ilustracion": "una laptop abierta con una bandeja de correo en pantalla y un sobre amarillo"
+  },
+  {
+   "lamina": "02",
+   "frase": "Configuras y organizas tu Gmail para comunicarte de manera profesional.",
+   "pantalla": "la bandeja Recibidos ordenada, con pocos correos de Aula virtual, Biblioteca y Coordinación académica, y en el panel izquierdo las etiquetas Académico, Laboral y Proyectos con sus colores",
+   "vista": "general",
+   "experiencia": "Mira, en tu primer trabajo nadie revisa tu bandeja, pero todos notan si respondes a tiempo y si encuentras lo que te piden."
+  },
+  {
+   "lamina": "03",
+   "frase": "Una bandeja ordenada te ahorra tiempo y transmite una imagen profesional.",
+   "pantalla": "la bandeja Recibidos llena de correos sin leer de Aula virtual, Biblioteca y Coordinación académica, con el panel izquierdo visible",
+   "vista": "general",
+   "experiencia": "Oye, imagina que tu jefe te pide un correo antiguo en plena reunión: si tu bandeja está desordenada, todos se quedan esperándote."
+  },
+  {
+   "lamina": "04"
+  },
+  {
+   "lamina": "05",
+   "barra": "Ajusta la configuración de tu cuenta",
+   "pantalla": "el panel Configuración rápida abierto a la derecha, con el botón Ver toda la configuración en la parte superior y la bandeja Recibidos detrás",
+   "vista": "menu",
+   "resalta": "el botón Ver toda la configuración",
+   "experiencia": "En una empresa, la respuesta automática avisa a tus clientes que estás de vacaciones y a quién escribir, y te evita quedar mal por no contestar."
+  },
+  {
+   "lamina": "06",
+   "barra": "Crea una firma profesional",
+   "pantalla": "la pestaña General de la configuración en la sección Firma, con el botón Crear nueva y un cuadro con la firma de ejemplo Nombres y Apellidos, Programa de estudios y Universidad Señor de Sipán",
+   "vista": "detalle",
+   "resalta": "el botón Crear nueva",
+   "items": [
+    {
+     "titulo": "Nombre completo"
+    },
+    {
+     "titulo": "Programa y ciclo"
+    },
+    {
+     "titulo": "Universidad"
+    },
+    {
+     "titulo": "Dato de contacto"
+    }
+   ],
+   "experiencia": "Oye, tu firma trabaja por ti: cuando escribes a un reclutador o a un cliente, ahí ven quién eres y cómo contactarte sin preguntar."
+  },
+  {
+   "lamina": "07",
+   "barra": "Ordena tu bandeja con etiquetas",
+   "pantalla": "el panel izquierdo con la sección Etiquetas, el ícono + y las etiquetas Académico, Laboral, Proyectos y Personal con sus colores",
+   "vista": "detalle",
+   "resalta": "el ícono + de Crear etiqueta nueva",
+   "experiencia": "Imagina que llevas varios clientes a la vez: una etiqueta por cliente te muestra todo su historial de un clic antes de entrar a la reunión."
+  },
+  {
+   "lamina": "08",
+   "barra": "Automatiza tu correo con filtros",
+   "pantalla": "la ventana de opciones de búsqueda abierta debajo del cuadro de búsqueda, con los campos De, Para y Asunto y abajo los botones Crear filtro y Buscar",
+   "vista": "dialogo",
+   "resalta": "el botón Crear filtro",
+   "experiencia": "En una oficina pueden llegarte decenas de avisos al día: un filtro los separa solo y tú ves primero lo que de verdad importa."
+  },
+  {
+   "lamina": "09",
+   "barra": "Encuentra correos con operadores",
+   "pantalla": "el cuadro de búsqueda con el texto from:docente has:attachment y debajo la lista de correos encontrados",
+   "vista": "detalle",
+   "resalta": "el cuadro de búsqueda",
+   "items": [
+    {
+     "titulo": "from: remitente"
+    },
+    {
+     "titulo": "subject: asunto"
+    },
+    {
+     "titulo": "has:attachment adjuntos"
+    },
+    {
+     "titulo": "after: y before: fechas"
+    }
+   ],
+   "experiencia": "Mira, cuando tu jefe te pida un archivo antiguo, escribes el remitente y la fecha, y lo tienes antes de que termine de explicarte."
+  },
+  {
+   "lamina": "10",
+   "barra": "Escribe a todo un grupo",
+   "pantalla": "la ventana Mensaje nuevo con el campo Para mostrando la etiqueta Equipo de proyecto",
+   "vista": "detalle",
+   "resalta": "el campo Para",
+   "experiencia": "En una empresa, un solo olvido en la lista de destinatarios deja a alguien fuera de la reunión: el grupo te evita ese error."
+  },
+  {
+   "lamina": "11",
+   "barra": "Envía archivos sin problemas",
+   "pantalla": "la ventana Mensaje nuevo con un archivo PDF adjunto debajo del texto y el ícono de clip en la barra inferior",
+   "vista": "detalle",
+   "resalta": "el ícono de clip para adjuntar",
+   "items": [
+    {
+     "titulo": "Hasta 25 MB por mensaje"
+    },
+    {
+     "titulo": "Más peso: enlace de Drive"
+    },
+    {
+     "titulo": "Revisa antes de enviar"
+    }
+   ],
+   "experiencia": "Oye, nada se ve peor que escribir te adjunto el informe y olvidar el archivo: revísalo siempre, sobre todo cuando le escribes a un cliente."
+  },
+  {
+   "lamina": "12",
+   "barra": "Redacta correos profesionales",
+   "pantalla": "la ventana Mensaje nuevo con un correo de ejemplo completo: asunto claro, saludo, mensaje breve y firma al final",
+   "vista": "general",
+   "resalta": "el botón Enviar",
+   "experiencia": "En una entrevista de trabajo, tu primer correo ya es tu carta de presentación: un asunto claro y sin errores habla bien de ti."
+  },
+  {
+   "lamina": "13",
+   "experiencia": "Hazlo con tu correo real: cuando postules a un trabajo, esa firma y ese orden ya estarán listos."
+  },
+  {
+   "lamina": "14",
+   "experiencia": "En cualquier trabajo estos hábitos se notan: respondes mejor, encuentras rápido y nadie tiene que perseguirte por un correo."
+  },
+  {
+   "lamina": "15",
+   "frase": "¡Nos vemos en la próxima sesión!",
+   "ilustracion": "un sobre amarillo con un check verde"
+  }
+ ]
+}

@@ -9,6 +9,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(AQUI, '..', '..', '..');
 const VERSION = 'Versión 1 · noviembre de 2026';
+const LOGO = `data:image/png;base64,${fs.readFileSync(path.join(REPO, 'clases-mac', 'marca', 'logo-transparente.png')).toString('base64')}`;
 
 // ---------------------------------------------------------------- los flujos
 // pasos: [carril (indice), texto corto para el diagrama, detalle para la tabla, decision?]
@@ -459,6 +460,178 @@ const FLUJOS = [
     datos: ['clases/<nombre>/laminas/*.jpg', 'clases/<nombre>/clase.json', 'guias/FLUJO-LAMINAS-NANO-BANANA-GEMINI.pdf'],
     relacionados: ['F02', 'F04', 'F08', 'F10'],
   },
+  {
+    codigo: 'F14', archivo: 'F14-video-con-google-vids', nombre: 'Crear un video con Google Vids', word: true,
+    proposito: 'Convertir una sesión en un video hecho dentro de Google Vids: cada bloque de la clase pasa a ser una lámina ilustrada, con pantallas de la aplicación, y un avatar que la explica en español.',
+    ficha: {
+      Responsable: 'Docente o equipo del estudio', Frecuencia: 'Cada sesión', Tiempo: 'Unos 5 minutos por lámina',
+      Disparador: 'La clase ya tiene su guion aprobado en el estudio', Requisitos: 'Cuenta de Google con Vids y cupo disponible · Claude o ChatGPT para escribir el contenido',
+      Entradas: 'Clase con bloques y diapositivas (clase.json)', Salidas: 'Video MP4 1920×1080 descargado de Vids',
+      Sistemas: 'Google Vids (Imagen y Avatar) · Claude o ChatGPT · web/vids-prompts.mjs',
+    },
+    carriles: ['Docente', 'Claude o ChatGPT', 'Google Vids'],
+    pasos: [
+      [0, 'Prepara el pedido de la clase', 'En la carpeta del kit ejecuta: node web/vids-prompts.mjs <clase> --contexto. Queda vids-pedido.txt con las reglas, la guía de la aplicación y cada bloque de la clase.'],
+      [1, 'Escribe el contenido de cada lámina', 'Pega el pedido en Claude o ChatGPT. Devuelve títulos, pantalla del software y experiencia laboral. Guarda la respuesta como vids-contenido.json en la carpeta de la clase.'],
+      [0, 'Genera los prompts finales', 'Ejecuta: node web/vids-prompts.mjs <clase>. Queda vids.json con un prompt y un guion por lámina. El programa agrega el estilo, los textos revisados y el espacio del avatar.'],
+      [0, 'Crea un video nuevo', 'Entra a docs.google.com/videos y pulsa +. Ponle nombre con el curso, la sesión y el tema.'],
+      [2, 'Genera la lámina en el panel Imagen', 'Pega el prompt de la lámina, comprueba que diga 16:9 y pulsa la flecha. Tarda unos 25 segundos.'],
+      [0, '¿El texto y la pantalla están bien?', 'Abre la vista previa. Si hay una errata, un menú falso o algo en la columna derecha, genera otra: cada intento gasta una imagen.', true],
+      [0, 'Inserta y fija la lámina como fondo', 'Pulsa Insertar. Luego, clic derecho sobre la imagen › Establecer imagen como fondo.'],
+      [0, 'Escribe el guion y elige al presentador', 'Panel Avatar: pega el guion de la lámina. En Cambiar elige a William, tono medio grave y firme.'],
+      [2, 'Genera el avatar', 'Pulsa Obtener vista previa y después Generar. Tarda unos 3 minutos. Gasta un avatar.'],
+      [0, 'Coloca el avatar en su recuadro', 'Siempre pegado al borde derecho (X + Ancho = 1920). Selecciona el video › Opciones de formato: Ancho 600, X 1320, Y 371. En la portada: Ancho 800, X 1120, Y 400.'],
+      [0, 'Pon el logo en cada lámina (obligatorio)', 'Siempre, en todas las escenas y en el mismo lugar: Insertar › Subir y elige marca/logo-transparente.png. Selecciónalo y en Opciones de formato pon Ancho 300, X 1600, Y 20. El panel Cargas abre Drive y Fotos: no lo necesitas.'],
+      [0, 'Repite en una escena nueva', 'El botón + crea la escena de la lámina siguiente. Repite desde el paso 5.'],
+      [0, 'Reproduce y descarga el MP4', 'Revisa todas las escenas con sonido y comprueba que cada una tenga su logo. Después: Archivo › Descargar › Video MP4. Mantén la pestaña abierta hasta que termine.'],
+    ],
+    capturas: [
+      { paso: 1, consola: `$ node web/vids-prompts.mjs google-workspace-s1-gmail --contexto\nPedido listo: clases/google-workspace-s1-gmail/vids-pedido.txt`, pie: 'Salida real del comando. Abre el archivo y copia todo su texto.' },
+      { paso: 2, consola: `{\n  "lamina": "03",\n  "frase": "Una bandeja ordenada te ahorra tiempo y transmite una imagen profesional.",\n  "pantalla": "la bandeja Recibidos llena de correos sin leer…",\n  "vista": "general",\n  "experiencia": "Oye, imagina que tu jefe te pide un correo antiguo en plena reunión: si tu bandeja está desordenada, todos se quedan esperándote."\n}`, pie: 'Parte de una lámina en vids-contenido.json.' },
+      { paso: 3, consola: `$ node web/vids-prompts.mjs google-workspace-s1-gmail\n...\n15 láminas guardadas en clases/google-workspace-s1-gmail/vids.json`, pie: 'Salida real del comando. Cada lámina trae su prompt y su guion.' },
+      { paso: 4, imagen: 'f14-03-nuevo.jpg', marcas: [[89, 110, 137, 78]], pie: 'Pulsa + en Iniciar un nuevo video.' },
+      { paso: 5, imagen: 'f14-04-prompt.jpg', alto: 573, marcas: [[744, 240, 46, 38], [514, 465, 208, 24], [690, 518, 26, 26]], pie: 'Imagen › pega el prompt › Horizontal (16:9) › flecha.' },
+      { paso: 6, imagen: 'f14-05-vista-previa.jpg', marcas: [[277, 370, 76, 35]], pie: 'Revisa la vista previa antes de pulsar Insertar.' },
+      { paso: 7, imagen: 'f14-06-fondo.jpg', marcas: [[145, 623, 205, 26]], pie: 'Clic derecho › Establecer imagen como fondo.' },
+      { paso: 8, imagen: 'f14-07-avatar.jpg', marcas: [[628, 486, 58, 22], [460, 225, 240, 170]], pie: 'Guion con la experiencia laboral y William como presentador.' },
+      { paso: 9, imagen: 'f14-08-generar.jpg', marcas: [[467, 546, 226, 36]], pie: 'La vista previa no gasta avatar. Generar sí.' },
+      { paso: 10, imagen: 'f14-09-formato.jpg', alto: 573, marcas: [[512, 283, 150, 33]], pie: 'Pegado a la derecha: Ancho 600, X 1320, Y 371.' },
+      { paso: 11, imagen: 'f14-10-logo.jpg', alto: 573, marcas: [[512, 283, 150, 33]], pie: 'Obligatorio en cada escena: Ancho 300, X 1600, Y 20.' },
+      { paso: 12, imagen: 'f14-11-escena.jpg', alto: 573, marcas: [[429, 478, 33, 33]], pie: 'El botón + agrega la escena de la lámina siguiente.' },
+      { paso: 13, imagen: 'f14-12-descargar.jpg', alto: 573, marcas: [[285, 186, 190, 24]], pie: 'Archivo › Descargar › Video MP4 (.mp4).' },
+    ],
+    tablas: [
+      {
+        titulo: 'Límite mensual por cuenta',
+        columnas: ['Cuenta', 'Créditos al mes', 'Clips de IA', 'Avatares', 'Imágenes', 'Voz en off'],
+        filas: [
+          ['Personal gratis', '50', '60 s', '6', 'Gasta créditos', 'Gasta créditos'],
+          ['Google AI Plus', '50', '60 s', '6', 'Gasta créditos', 'Gasta créditos'],
+          ['Google AI Pro', 'No usa', '500 s', '25', '30', 'Ilimitada'],
+          ['Google AI Ultra 5x', 'No usa', '2 500 s', '125', '300', 'Ilimitada'],
+          ['Google AI Ultra 20x', 'No usa', '10 000 s', '500', '1 000', 'Ilimitada'],
+          ['Workspace Business Starter', 'No usa', '200 s', '10', '5', 'Ilimitada'],
+          ['Workspace Business Standard y Plus', 'No usa', '500 s', '25', '30', 'Ilimitada'],
+          ['Workspace for Education y Teaching and Learning', 'No usa', '200 s', '10', '5', 'Ilimitada'],
+          ['Google AI Pro for Education', 'No usa', '2 000 s', '100', '300', 'Ilimitada'],
+        ],
+        nota: 'Las cuentas personales y Google AI Plus solo usan avatares prediseñados. El cupo se renueva el día 1 de cada mes a las 12:00 a. m., hora del Pacífico (3:00 a. m. en Perú, o 2:00 a. m. durante el horario de verano de EE. UU.), y no se acumula ni se comparte. En varios planes, el límite de imágenes se comparte con otros productos de Workspace, como Slides y Docs. Datos de la ayuda de Google, consultada el 5 de noviembre de 2026; Google puede cambiarlos.',
+      },
+      {
+        titulo: 'Qué es un crédito',
+        columnas: ['Qué haces', 'Créditos que gasta'],
+        filas: [
+          ['Generar o editar una imagen', '1'],
+          ['Generar una voz en off', '1'],
+          ['Usar Ayúdame a crear', '5'],
+          ['Convertir Presentaciones en video con voz en off', '5'],
+        ],
+        nota: 'El crédito es el saldo mensual de IA de las cuentas Personal gratis, Google AI Plus y Workspace Individual. Cada acción descuenta créditos de ese saldo de 50. Ejemplo: 30 imágenes y 20 voces en off gastan los 50 créditos. Los avatares y los clips tienen su propio límite en la tabla de arriba. Las cuentas con «No usa» no tienen créditos: cuentan cada imagen, avatar o segundo.',
+      },
+      {
+        titulo: 'Cuánto rinde una cuenta Google AI Pro',
+        columnas: ['Forma de trabajar', 'Imágenes', 'Avatares', 'Sesiones al mes'],
+        filas: [
+          ['15 láminas con avatar en todas', '15', '15', '1'],
+          ['15 láminas con avatar en portada y cierre, y voz en off en el resto', '15', '2', '2'],
+        ],
+        nota: 'El límite que manda en esta cuenta son las 30 imágenes. Cuenta también los intentos: si una lámina se repite, gasta otra imagen.',
+      },
+    ],
+    casuistica: {
+      titulo: 'Cuántas láminas necesitas para 1, 2 o 3 minutos',
+      cuentas: [
+        { nombre: 'Personal gratis', creditos: 50, avatares: 6 },
+        { nombre: 'Google AI Pro', imagenes: 30, avatares: 25 },
+        { nombre: 'AI Pro for Education', imagenes: 300, avatares: 100 },
+      ],
+      casos: [
+        { nombre: 'Todo sale a la primera', detalle: '15 s por lámina y 1 imagen por lámina', lamina: 15, escena: 15, intentos: 1 },
+        { nombre: 'Falla una vez cada lámina', detalle: '15 s por lámina y 2 imágenes por lámina', lamina: 15, escena: 15, intentos: 2 },
+        { nombre: 'Láminas cortas y falla una vez', detalle: '10 s por lámina y 2 imágenes por lámina', lamina: 10, escena: 10, intentos: 2 },
+        { nombre: 'Misma lámina en 2 escenas', detalle: '30 s por lámina, 2 avatares de 15 s y 2 imágenes por lámina', lamina: 30, escena: 15, intentos: 2 },
+        { nombre: 'Misma lámina en 3 escenas', detalle: '45 s por lámina, 3 avatares de 15 s y 2 imágenes por lámina', lamina: 45, escena: 15, intentos: 2 },
+        { nombre: 'Misma lámina con guion largo', detalle: '45 s por lámina, 1 avatar de 45 s y 2 imágenes por lámina', lamina: 45, escena: 45, intentos: 2 },
+        { nombre: 'Avatar solo en 2 láminas', detalle: '15 s por lámina, voz en off en las demás y 2 imágenes por lámina', lamina: 15, escena: 15, intentos: 2, soloAvatares: 2 },
+      ],
+      nota: 'Nuestro video midió 10, 20, 17 y 12 segundos: 4 láminas, 1 minuto y unos 15 segundos por lámina. Cada avatar puede durar hasta 60 segundos. Una imagen fallida gasta cupo aunque no se use; la vista previa del avatar no gasta.',
+      tituloCuentas: 'Cuántas clases salen al mes en cada cuenta',
+      notaCuentas: 'Cuenta vacía a inicio de mes; manda el límite que se acabe primero. La cuenta gratis tiene 50 créditos y 6 avatares: cada imagen y cada voz en off gasta 1 crédito. Google AI Pro tiene 30 imágenes y 25 avatares. Google AI Pro for Education tiene 300 imágenes y 100 avatares; lo asigna el administrador de la institución.',
+    },
+    casosEjemplo: {
+      titulo: 'Con las 4 láminas que ya hicimos',
+      columnas: ['Video', 'Láminas', 'Cómo se logra', 'Imágenes nuevas', 'Avatares nuevos'],
+      filas: [
+        ['1 minuto', '4', 'Ya está hecho', '0', '0'],
+        ['2 minutos', '4', 'Cada lámina en 2 escenas, con la segunda parte del guion', '0', '4'],
+        ['3 minutos', '4', 'Cada lámina en 3 escenas, con más guion', '0', '8'],
+        ['2 minutos', '8', '4 láminas nuevas, fallando una vez cada una', '8', '4'],
+        ['3 minutos', '12', '8 láminas nuevas, fallando una vez cada una', '16', '8'],
+      ],
+      nota: 'Un minuto de avatar lleva unas 140 palabras de guion: nuestro video tiene 141. Una lámina repetida no gasta imagen, pero cada guion nuevo gasta 1 avatar. En una cuenta gratis caben 6 avatares al mes: desde la escena 7 usa voz en off o un guion más largo.',
+    },
+    reutilizar: {
+      titulo: 'Cómo usar la misma lámina otra vez',
+      imagen: 'f14-13-duplicar.jpg', alto: 573, marcas: [[266, 134, 380, 22]],
+      pasos: [
+        'Abre la escena que quieres repetir.',
+        'Entra a Escena › Escena duplicada. La copia trae la lámina, el logo y el avatar, y no gasta imagen.',
+        'En el panel Avatar escribe la parte siguiente del guion.',
+        'Pulsa Obtener vista previa y después Generar. Gasta 1 avatar.',
+      ],
+    },
+    ejemplos: [
+      {
+        titulo: 'Ejemplo de prompt: portada',
+        texto: 'Portada horizontal 16:9 de un curso universitario, con acabado de publicidad corporativa, muy luminosa y pulida. La lámina tiene dos mitades. La mitad izquierda es blanca con un degradado azul muy pálido. La mitad derecha es una fotografía real y luminosa de una oficina moderna con ventanales, estantes y plantas, suavemente desenfocada y sin personas, que se funde con la mitad blanca por un borde diagonal suave. En la esquina inferior derecha, un triángulo verde brillante. En la parte alta de la fotografía, cerca del borde derecho, el ícono oficial de [[Gmail]] dentro de un globo de chat blanco con esquinas redondeadas y sombra suave. En la mitad izquierda, alineado a la izquierda y ocupando toda la altura, de arriba abajo: el texto azul marino de peso normal "[[Programa de Competencias Digitales, Productividad e Inteligencia Artificial]]"; una barra con degradado de azul marino a azul brillante, esquinas redondeadas y texto blanco en negrita "[[Módulo I: Comunicación, organización y gestión de información digital]]"; una etiqueta verde brillante con esquinas redondeadas y texto blanco en negrita "[[Sesión 1]]"; el título muy grande en negrita gruesa azul marino, directamente sobre el fondo blanco, sin tarjeta ni recuadro detrás, "[[Gestión profesional de la comunicación con Gmail]]"; al pie, el logotipo a todo color de [[Google Workspace]]. Usa exactamente los textos entre comillas, con todas sus tildes, sin agregar ni repetir palabras y sin escribir las comillas en la lámina. Sin tarjetas, sobres ni ilustraciones dibujadas. Sin personas ni personajes. Sin marcas de agua. No escribas el nombre de la universidad ni otros logotipos.',
+        cambios: [
+          ['Programa', 'Programa de Competencias Digitales, Productividad e Inteligencia Artificial'],
+          ['Módulo', 'Módulo I: Comunicación, organización y gestión de información digital'],
+          ['Sesión', 'Sesión 1'],
+          ['Título o tema', 'Gestión profesional de la comunicación con Gmail'],
+          ['Aplicación del ícono', 'Gmail'],
+          ['Categoría del pie', 'Google Workspace'],
+        ],
+      },
+      {
+        titulo: 'Ejemplo de prompt: lámina con pantalla',
+        texto: 'Lámina horizontal 16:9 de un curso universitario, estilo infografía corporativa moderna y muy pulida. Fondo blanco con degradado azul muy pálido y formas suaves. Paleta: azul marino, azul brillante, verde y amarillo suave como acento. Tipografía sans serif clara, títulos en negrita. Tarjetas blancas o azul pálido con esquinas redondeadas y sombra suave. Íconos de línea azul. Todo el texto es grande y se lee a distancia, y el contenido llena todo el alto de la lámina. Divide la lámina en tres columnas iguales. La columna derecha queda completamente vacía de arriba abajo, solo con el fondo: nada de texto, íconos, tarjetas, ilustraciones ni personas. Todo el contenido cabe dentro de las dos columnas izquierdas y ningún elemento cruza a la columna derecha. Arriba, dentro de las dos columnas izquierdas, una barra azul marino con esquinas redondeadas; en su extremo izquierdo un cuadrado azul brillante con [[un signo de pregunta]] en blanco; dentro de la barra, en blanco y negrita: "[[¿Cuántas veces buscaste un correo?]]". Debajo, una captura de pantalla real de [[Gmail]] en computadora, en español, dentro de una ventana de navegador, plana y de frente, sin inclinación ni perspectiva, con la interfaz, los colores, los íconos y la tipografía originales: [[la bandeja Recibidos llena de correos sin leer de Aula virtual, Biblioteca y Coordinación académica, con el panel izquierdo visible]]. Se ve la ventana completa de la aplicación. La captura es la protagonista: ocupa todo el ancho de las dos columnas izquierdas. Debajo de la captura, una franja azul pálida con el texto "[[Una bandeja ordenada te ahorra tiempo y transmite una imagen profesional.]]". Usa exactamente los textos entre comillas, con todas sus tildes, sin agregar ni repetir palabras y sin escribir las comillas en la lámina. No dibujes personas, personajes, muñecos, mascotas ni ilustraciones decorativas: la única imagen es la captura. Sin marcas de agua. Los únicos logotipos son los propios de la aplicación dentro de la captura.',
+        cambios: [
+          ['Ícono de la barra', 'un signo de pregunta'],
+          ['Título de la barra', '¿Cuántas veces buscaste un correo?'],
+          ['Aplicación', 'Gmail'],
+          ['Qué se ve en la pantalla', 'la bandeja Recibidos llena de correos sin leer…'],
+          ['Frase de abajo', 'Una bandeja ordenada te ahorra tiempo y transmite una imagen profesional.'],
+        ],
+      },
+    ],
+    reglas: [
+      'Cada sesión sigue la estructura USS: portada, logro, motivación, temario, desarrollo, práctica, conclusiones y cierre.',
+      'El contenido de cada lámina lo escribe Claude o ChatGPT con el pedido de contexto. Lo que falte en vids-contenido.json lo completa la IA gratis configurada en .env.',
+      'La columna derecha de la lámina queda libre para el avatar, que va pegado al borde derecho. Cada avatar puede durar hasta 60 segundos.',
+      'El logo es obligatorio: ningún video se descarga con una escena sin logo. La IA de imágenes no lo dibuja, así que siempre se inserta el archivo real, con fondo transparente. Va siempre en el mismo lugar, arriba a la derecha, también en la portada.',
+      'La portada sigue la lámina modelo clases/gmail-comunicacion-laminas/laminas/01.png: texto a la izquierda, foto de oficina a la derecha, ícono de la aplicación y triángulo verde.',
+      'El avatar no solo lee el guion: agrega una situación de trabajo sin cifras inventadas. Revísala antes de generar, porque cada avatar gasta cupo.',
+      'Hay guía de pantallas para Gmail, Drive, Documentos, Hojas, Presentaciones, Meet, Calendario, Gemini, Word, Excel y PowerPoint.',
+      'Las pantallas las dibuja la IA: se parecen a la aplicación, pero pueden inventar menús. Revísalas siempre o usa una captura real.',
+      'Una escena con avatar no lleva voz en off: se oirían dos voces.',
+      'El cupo se gasta al generar. Mover, editar o descargar no aparece entre los límites de Google. Google no aclara si borrar lo generado devuelve el cupo: asume que no.',
+      'No uses Deshacer mientras se genera un avatar: al llegar, Deshacer puede quitarlo y habría que generarlo de nuevo.',
+      'Cada cuenta debe ser real. Las condiciones de Google prohíben crear cuentas falsas y saltarse sus medidas de protección, y Google puede suspender una cuenta. Para más cupo, cada docente usa su propia cuenta o se pide un plan institucional.',
+    ],
+    errores: [
+      ['La lámina repite una palabra o trae una errata', 'La IA de imágenes copió mal el texto.', 'No la insertes. Genera otra y revisa la vista previa.'],
+      ['Se oyen dos voces', 'La escena tiene voz en off y avatar a la vez.', 'Selecciona la pista azul de voz en off y bórrala.'],
+      ['El avatar tapa la lámina', 'Vids lo inserta a pantalla completa.', 'Usa Opciones de formato con las medidas del paso 10.'],
+      ['El avatar desapareció', 'Se usó Deshacer justo después de que llegó.', 'Genéralo de nuevo; gasta otro avatar. Espera a que termine antes de deshacer.'],
+      ['Una escena quedó sin logo', 'Cada escena necesita su propio logo: Vids no lo copia a las demás.', 'Antes de descargar, insértalo en esa escena y dale sus medidas.'],
+      ['Dice «El avatar está desactualizado»', 'Cambiaste el guion después de generar el avatar.', 'Pulsa Obtener vista previa y Generar. Gasta otro avatar.'],
+      ['La imagen no sale en 16:9', 'El panel olvidó el formato.', 'Antes de la flecha, comprueba que diga 16:9.'],
+      ['Ya no deja generar', 'Se terminó el cupo del mes.', 'Espera al día 1 o continúa con la cuenta real de otro docente.'],
+    ],
+    datos: ['web/vids-prompts.mjs', 'web/skills/vids.md', 'web/skills/pantallas/', 'clases/<nombre>/vids-pedido.txt', 'clases/<nombre>/vids-contenido.json', 'clases/<nombre>/vids.json', 'marca/logo-transparente.png'],
+    relacionados: ['F01', 'F10', 'F11'],
+  },
 ];
 
 // ---------------------------------------------------------------- diagrama por carriles (SVG)
@@ -481,8 +654,8 @@ function diagrama(f) {
   const n = f.carriles.length;
   const ancho = W / n;
   const CAB = 34;
-  const FILA = 42;
-  const ALTO = 35;
+  const FILA = f.pasos.length > 12 ? 38 : 42;
+  const ALTO = FILA - 7;
   const H = CAB + 12 + f.pasos.length * FILA + 6;
   const max = Math.floor((ancho - 40) / 5.3);
   const partes = [];
@@ -563,8 +736,98 @@ const CSS = `
   .chips { display: flex; flex-wrap: wrap; gap: 2mm; } .chips span { font: 600 8.4pt Consolas, monospace; background: var(--caja); border-radius: 1.5mm; padding: .8mm 2.2mm; }
   .rel span { font-family: Inter; font-weight: 800; background: var(--verde-50); color: var(--verde-osc); }
   .indice td.cod { width: 14mm; font-weight: 900; }
+  .sin-corte { break-inside: avoid; }
+  .ejemplo { font: 500 8.2pt/1.5 Consolas, monospace; background: var(--caja); border-radius: 2mm; padding: 2.5mm 3mm; margin: 0; }
+  mark { background: #ffe14d; color: var(--tinta); border-radius: .6mm; padding: 0 .5mm; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .aviso { margin: 0 0 2mm; font-size: 8.6pt; color: var(--tinta); }
+  .cambios { margin-top: 2mm; }
+  .cambios td { padding: 1mm 2mm; }
+  .cambios td.que { width: 44mm; font-weight: 800; color: #d0021b; }
+  td.calc { font-size: 8.3pt; line-height: 1.32; }
+  .porcuenta th.cuenta { text-align: center; border-left: 1.5px solid var(--linea); letter-spacing: .06em; }
+  .porcuenta .num { text-align: center; width: 12mm; font-weight: 700; padding-left: 1mm; padding-right: 1mm; }
+  .porcuenta .no { color: #d0021b; }
+  .porcuenta td.num:nth-child(3n+2), .porcuenta tr:nth-child(2) th.num:nth-child(3n+1) { border-left: 1.5px solid var(--linea); }
+  td .detalle { display: block; font-weight: 400; font-size: 8pt; color: var(--gris); }
+  .reutilizar { display: grid; grid-template-columns: 66mm 1fr; gap: 5mm; align-items: center; }
+  .reutilizar .pantalla { width: 66mm; margin: 0; }
+  .reutilizar ol { margin: 0; padding-left: 5mm; font-size: 9pt; } .reutilizar li { margin-bottom: 1.2mm; }
+  .capturas { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3mm; }
+  .captura { grid-column: span 3; display: flex; flex-direction: column; break-inside: avoid; border: 1px solid var(--linea); border-radius: 2.5mm; padding: 2mm; }
+  .captura.texto { grid-column: span 2; }
+  .captura h3 { display: flex; align-items: flex-start; gap: 1.8mm; font-size: 9pt; line-height: 1.25; font-weight: 800; margin: 0 0 1.6mm; min-height: 6mm; }
+  .captura h3 b { flex: none; min-width: 5.4mm; text-align: center; font-size: 8pt; line-height: 1; color: #fff; background: var(--tinta); border-radius: 1.2mm; padding: 1mm 1.1mm; }
+  .captura p { font-size: 8pt; line-height: 1.35; color: #34343f; margin: 1.5mm 0 0; }
+  .pantalla { position: relative; width: 72mm; margin: 0 auto; border: 1px solid var(--linea); border-radius: 1.5mm; overflow: hidden; }
+  .pantalla img { display: block; width: 100%; }
+  .pantalla i { position: absolute; border: 1.6pt solid #e01f3d; border-radius: 1.2mm; }
+  .consola { flex: 1; margin: 0; padding: 2mm 2.4mm; border-radius: 1.5mm; background: #121214; color: #e9eaee; font: 500 6.6pt/1.45 Consolas, Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
 `;
 const nombreDe = c => (FLUJOS.find(f => f.codigo === c) || {}).nombre || c;
+// Secciones opcionales de un flujo: tablas de datos y un ejemplo para copiar
+const tablaHtml = t => `<div class="sin-corte"><h2>${esc(t.titulo)}</h2><table><tr>${t.columnas.map(c => `<th>${esc(c)}</th>`).join('')}</tr>
+    ${t.filas.map(fila => `<tr>${fila.map((c, i) => `<td class="${i ? '' : 'paso'}">${esc(c)}</td>`).join('')}</tr>`).join('')}</table>
+    <p class="leyenda">${esc(t.nota)}</p></div>`;
+// Casuística de duración: se calcula para que las cifras no se desalineen si cambia un caso o un cupo.
+function necesita(k, minutos) {
+  const segundos = minutos * 60;
+  const laminas = Math.ceil(segundos / k.lamina);
+  const escenas = Math.ceil(segundos / k.escena);
+  const avatares = k.soloAvatares || escenas;
+  return { laminas, imagenes: laminas * k.intentos, avatares, voces: escenas - avatares };
+}
+function clasesAlMes(cuenta, n) {
+  const porImagen = cuenta.creditos ? cuenta.creditos / (n.imagenes + n.voces) : cuenta.imagenes / n.imagenes;
+  return Math.min(Math.floor(porImagen), Math.floor(cuenta.avatares / n.avatares));
+}
+function celdaCaso(k, minutos) {
+  const n = necesita(k, minutos);
+  const voces = n.voces ? `<br>${n.voces} ${n.voces === 1 ? 'voz' : 'voces'} en off` : '';
+  return `<td class="calc"><b>${n.laminas} láminas</b><br>${n.imagenes} imágenes<br>${n.avatares} avatares${voces}</td>`;
+}
+const celdaCuenta = (cuenta, k, minutos) => {
+  const clases = clasesAlMes(cuenta, necesita(k, minutos));
+  return clases ? `<td class="num">${clases}</td>` : '<td class="num no">No</td>';
+};
+function casuisticaDe(f) {
+  const c = f.casuistica;
+  if (!c) return '';
+  const minutos = [1, 2, 3];
+  const nombre = k => `<td class="paso">${esc(k.nombre)}<span class="detalle">${esc(k.detalle)}</span></td>`;
+  const filas = c.casos.map(k => `<tr>${nombre(k)}${minutos.map(m => celdaCaso(k, m)).join('')}</tr>`).join('');
+  const porCuenta = c.casos.map(k => `<tr><td class="paso">${esc(k.nombre)}</td>${c.cuentas.map(q => minutos.map(m => celdaCuenta(q, k, m)).join('')).join('')}</tr>`).join('');
+  const r = f.reutilizar;
+  return `<div class="salto"></div><div class="sin-corte"><h2>${esc(c.titulo)}</h2><table><tr><th>Caso</th>${minutos.map(m => `<th>${m} ${m === 1 ? 'minuto' : 'minutos'}</th>`).join('')}</tr>${filas}</table>
+    <p class="leyenda">${esc(c.nota)}</p></div>
+    <div class="sin-corte"><h2>${esc(c.tituloCuentas)}</h2><table class="porcuenta"><tr><th rowspan="2">Caso</th>${c.cuentas.map(q => `<th colspan="3" class="cuenta">${esc(q.nombre)}</th>`).join('')}</tr>
+      <tr>${c.cuentas.map(() => minutos.map(m => `<th class="num">${m} min</th>`).join('')).join('')}</tr>${porCuenta}</table>
+    <p class="leyenda">${esc(c.notaCuentas)}</p></div>
+    ${tablaHtml(f.casosEjemplo)}
+    <div class="sin-corte"><h2>${esc(r.titulo)}</h2><div class="reutilizar">${pantallaHtml(r, r.titulo)}<ol>${r.pasos.map(p => `<li>${esc(p)}</li>`).join('')}</ol></div></div>`;
+}
+function tablasExtra(f) {
+  const tablas = (f.tablas || []).map(tablaHtml).join('');
+  const ejemplos = (f.ejemplos || []).map(e => `<div class="sin-corte"><h2>${esc(e.titulo)}</h2><p class="leyenda aviso">Copia el prompt y cambia solo lo que está en <mark>amarillo</mark>. Si va entre comillas, deja las comillas: la IA copia ese texto en la lámina. Lo demás guarda el estilo del curso.</p>
+    <p class="ejemplo">${esc(e.texto).replace(/\[\[(.+?)\]\]/g, '<mark>$1</mark>')}</p>
+    <table class="cambios"><tr><th>Aquí cambias</th><th>En este ejemplo dice</th></tr>${e.cambios.map(([q, v]) => `<tr><td class="que">${esc(q)}</td><td><mark>${esc(v)}</mark></td></tr>`).join('')}</table></div>`).join('');
+  return tablas + casuisticaDe(f) + ejemplos;
+}
+// Sección opcional: una captura o salida de comando por paso; las marcas van en píxeles de la captura original
+const CAPTURA = { ancho: 800, alto: 677 };
+function pantallaHtml(c, titulo) {
+  const { ancho, alto } = { ...CAPTURA, ...c };
+  const marcas = (c.marcas || []).map(([x, y, a, h]) => `<i style="left:${x / ancho * 100}%;top:${y / alto * 100}%;width:${a / ancho * 100}%;height:${h / alto * 100}%"></i>`).join('');
+  return `<div class="pantalla"><img src="../capturas/${c.imagen}" alt="${esc(titulo)}">${marcas}</div>`;
+}
+function pasoConCaptura(f, c) {
+  const titulo = f.pasos[c.paso - 1][1];
+  const vista = c.consola ? `<pre class="consola">${esc(c.consola)}</pre>` : pantallaHtml(c, titulo);
+  return `<div class="captura${c.consola ? ' texto' : ''}"><h3><b>${c.paso}</b>${esc(titulo)}</h3>${vista}<p>${esc(c.pie)}</p></div>`;
+}
+function capturasDe(f) {
+  if (!f.capturas) return '';
+  return `<div class="salto"></div><h2>Paso a paso con capturas</h2><div class="capturas">${f.capturas.map(c => pasoConCaptura(f, c)).join('')}</div><div class="salto"></div>`;
+}
 function html(f) {
   const ficha = Object.entries({ Código: f.codigo, ...f.ficha });
   // datos cortos en una celda; los largos en media fila; el ultimo largo sin pareja, en la fila completa
@@ -583,9 +846,11 @@ function html(f) {
     <tr><td class="paso">Ajustes privados</td><td>Claves de los servicios. Nunca se comparten ni se suben a GitHub.</td><td>.env</td></tr></table>` : '';
   const resto = f.indice ? indice : `
     <h2>Pasos del flujo</h2><table><tr><th>N.°</th><th>Actor</th><th>Paso</th><th>Qué pasa</th></tr>${filas}</table>
+    ${capturasDe(f)}
+    ${tablasExtra(f)}
     <h2>Reglas del negocio</h2><ul class="reglas">${f.reglas.map(r => `<li>${esc(r)}</li>`).join('')}</ul>
-    <h2>Errores frecuentes</h2><table><tr><th>Lo que ves</th><th>Por qué pasa</th><th>Qué hacer</th></tr>
-      ${f.errores.map(([a, b, c]) => `<tr><td class="paso">${esc(a)}</td><td>${esc(b)}</td><td>${esc(c)}</td></tr>`).join('')}</table>
+    <div class="sin-corte"><h2>Errores frecuentes</h2><table><tr><th>Lo que ves</th><th>Por qué pasa</th><th>Qué hacer</th></tr>
+      ${f.errores.map(([a, b, c]) => `<tr><td class="paso">${esc(a)}</td><td>${esc(b)}</td><td>${esc(c)}</td></tr>`).join('')}</table></div>
     <h2>Archivos y datos</h2><div class="chips">${f.datos.map(d => `<span>${esc(d)}</span>`).join('')}</div>
     <h2>Flujos relacionados</h2><div class="chips rel">${f.relacionados.map(r => `<span>${r} · ${esc(nombreDe(r))}</span>`).join('')}</div>`;
   return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${f.codigo} · ${esc(f.nombre)}</title><style>${CSS}</style></head><body>
@@ -602,7 +867,7 @@ function html(f) {
 // ---------------------------------------------------------------- PDF con encabezado y pie de la USS
 const encabezado = f => `<div style="width:100%;margin:0 16mm;padding-bottom:2mm;border-bottom:1px solid #e3e4e8;display:flex;justify-content:space-between;
   align-items:center;font-family:Arial,sans-serif;font-size:7pt;color:#5d616c;-webkit-print-color-adjust:exact">
-  <span><b style="font-size:11pt;color:#121214;letter-spacing:-.03em">USS</b>&nbsp; Centro de Informática</span><span>Estudio de clases · ${f.codigo}</span></div>`;
+  <img src="${LOGO}" alt="USS Centro de Informática" style="height:7mm"><span>Estudio de clases · ${f.codigo}</span></div>`;
 const pie = f => `<div style="width:100%;margin:0 16mm;padding-top:2mm;border-top:1px solid #e3e4e8;display:flex;justify-content:space-between;
   font-family:Arial,sans-serif;font-size:6.8pt;color:#5d616c"><span>${esc(f.codigo)} · ${esc(f.nombre)}</span>
   <span>${VERSION} · <span class="pageNumber"></span> / <span class="totalPages"></span></span></div>`;
@@ -629,6 +894,15 @@ try {
     const salida = path.join(AQUI, '..', `${f.archivo}.pdf`);
     await pagina.pdf({ path: salida, format: 'A4', printBackground: true, displayHeaderFooter: true,
       headerTemplate: encabezado(f), footerTemplate: pie(f), margin: { top: '20mm', bottom: '16mm', left: '16mm', right: '16mm' } });
+    console.log(`[OK] ${path.relative(process.cwd(), salida)}`);
+  }
+  // Word editable de los flujos marcados con `word: true`: usa las capturas ya dibujadas con sus marcas.
+  const nitida = await navegador.newPage({ deviceScaleFactor: 3 });
+  for (const f of FLUJOS.filter(x => x.word)) {
+    const { crearWord } = await import('./word.mjs').catch(() => ({}));
+    if (!crearWord) { console.log('[!] Falta la librería docx: ejecuta npm install en guias/flujos/fuente'); break; }
+    const salida = path.join(AQUI, '..', `${f.archivo}.docx`);
+    await crearWord({ f, nombreDe, necesita, clasesAlMes, pagina: nitida, archivoHtml: path.join(DIR_HTML, `${f.archivo}.html`), salida, version: VERSION, rutaLogo: path.join(REPO, 'clases-mac', 'marca', 'logo-transparente.png') });
     console.log(`[OK] ${path.relative(process.cwd(), salida)}`);
   }
 } finally {

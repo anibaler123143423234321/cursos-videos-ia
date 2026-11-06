@@ -1160,3 +1160,234 @@ export function pulir(clase) {
     if (d.tipo === 'cierre' && !d.despedida && d === clase.diapositivas[clase.diapositivas.length - 1]) d.despedida = `¡Nos vemos en la próxima clase! · ${clase.avatar || 'SIPANCITOBOT'}`;
   }
 }
+
+// ---------------------------------------------------------------- Google Vids
+// Una lámina por bloque, al nivel de clases/gmail-comunicacion-laminas/laminas/. La IA gratis escribe el contenido
+// (web/skills/vids.md) y el programa arma el prompt: así estilo, barra, textos fijos y zona del avatar salen iguales.
+// El avatar va pegado al borde derecho (X + ancho = 1920). El logo va igual en todas las láminas, con 20 px de margen arriba y a la derecha.
+export const AVATAR_VIDS = { ancho: 600, x: 1320, y: 371, portada: { ancho: 800, x: 1120, y: 400 } };
+export const LOGO_VIDS = { ancho: 300, x: 1600, y: 20 };
+const PARTE_DE_DIAPO = { portada: 'portada', pregunta: 'motivacion', temario: 'temario', cierre: 'conclusiones', logo: 'cierre' };
+const PLANTILLAS_VIDS = ['tarjetas', 'pasos', 'tabla', 'lista'];
+const PLANTILLA_DE_DIAPO = { ruta: 'pasos', pasos: 'pasos', flujo: 'pasos', comparacion: 'tarjetas', tarjetas: 'tarjetas', lista: 'lista' };
+const BARRAS_VIDS = {
+  logro: ['Logro de aprendizaje', 'una diana con flecha'],
+  motivacion: ['Motivación', 'un signo de pregunta'],
+  temario: ['Temario de la sesión', 'una lista en un portapapeles'],
+  practica: ['Tarea de la sesión', 'un portapapeles con checks'],
+};
+const TEXTO_PRACTICA = 'Revisa las pautas y actividades que tu docente asignará en el aula virtual.';
+const ESTILO_VIDS = 'Lámina horizontal 16:9 de un curso universitario, estilo infografía corporativa moderna y muy pulida. '
+  + 'Fondo blanco con degradado azul muy pálido y formas suaves. Paleta: azul marino, azul brillante, verde y amarillo suave como acento. '
+  + 'Tipografía sans serif clara, títulos en negrita. Tarjetas blancas o azul pálido con esquinas redondeadas y sombra suave. '
+  + 'Íconos de línea azul. Todo el texto es grande y se lee a distancia, y el contenido llena todo el alto de la lámina.';
+const ZONA_AVATAR_VIDS = 'Divide la lámina en tres columnas iguales. La columna derecha queda completamente vacía de arriba abajo, solo con el fondo: nada de texto, íconos, tarjetas, ilustraciones ni personas. Todo el contenido cabe dentro de las dos columnas izquierdas y ningún elemento cruza a la columna derecha.';
+const CIERRE_VIDS = 'Usa exactamente los textos entre comillas, con todas sus tildes, sin agregar ni repetir palabras y sin escribir las comillas en la lámina. Sin personas ni personajes dibujados, sin logotipos y sin marcas de agua.';
+const CIERRE_PANTALLA_VIDS = 'Usa exactamente los textos entre comillas, con todas sus tildes, sin agregar ni repetir palabras y sin escribir las comillas en la lámina. No dibujes personas, personajes, muñecos, mascotas ni ilustraciones decorativas: la única imagen es la captura. Sin marcas de agua. Los únicos logotipos son los propios de la aplicación dentro de la captura.';
+// Software con guía propia en web/skills/pantallas/<clave>.md: sus láminas muestran la interfaz real.
+const APPS_VIDS = [
+  { clave: 'gmail', nombre: 'Gmail', patron: /\bgmail\b/i, web: true },
+  { clave: 'drive', nombre: 'Google Drive', patron: /\b(google )?drive\b/i, web: true },
+  { clave: 'documentos', nombre: 'Documentos de Google', patron: /google docs|documentos de google/i, web: true },
+  { clave: 'hojas', nombre: 'Hojas de cálculo de Google', patron: /google sheets|hojas de c[aá]lculo de google/i, web: true },
+  { clave: 'presentaciones', nombre: 'Presentaciones de Google', patron: /google slides|presentaciones de google/i, web: true },
+  { clave: 'meet', nombre: 'Google Meet', patron: /google meet/i, web: true },
+  { clave: 'calendario', nombre: 'Calendario de Google', patron: /google calendar|calendario de google/i, web: true },
+  { clave: 'gemini', nombre: 'Gemini', patron: /\bgemini\b/i, web: true, marca: 'Google Gemini' },
+  { clave: 'word', nombre: 'Microsoft Word', patron: /\bword\b/i },
+  { clave: 'excel', nombre: 'Microsoft Excel', patron: /\bexcel\b/i },
+  { clave: 'powerpoint', nombre: 'Microsoft PowerPoint', patron: /\bpowerpoint\b/i },
+];
+const VISTAS_VIDS = {
+  general: 'Se ve la ventana completa de la aplicación',
+  menu: 'El menú está abierto y la captura se acerca a esa zona',
+  dialogo: 'Un cuadro de diálogo está abierto en primer plano y la ventana queda atenuada detrás',
+  detalle: 'Es un acercamiento nítido a esa parte de la aplicación, con letras grandes y legibles',
+  resultado: 'Se ve el trabajo ya terminado dentro de la aplicación',
+};
+const appVids = clase => APPS_VIDS.find(a => a.patron.test(`${clase.tema} ${clase.modulo} ${clase.curso}`));
+const capturaVids = (app, c) => {
+  const ventana = app.web ? 'dentro de una ventana de navegador' : 'en su ventana de programa de escritorio';
+  const resaltado = c.resalta ? `. Un rectángulo rojo redondeado resalta ${String(c.resalta).replace(/[.\s]+$/, '')} y un cursor de flecha lo señala` : '';
+  return `una captura de pantalla real de ${app.nombre} en computadora, en español, ${ventana}, plana y de frente, sin inclinación ni perspectiva, con la interfaz, los colores, los íconos y la tipografía originales: ${String(c.pantalla).replace(/[.\s]+$/, '')}. ${VISTAS_VIDS[c.vista] || VISTAS_VIDS.general}${resaltado}`;
+};
+const FORMATO_VIDS = `Responde SOLO con un objeto JSON, sin texto antes ni después:
+{"laminas": [{"lamina": "02", "plantilla": "tarjetas", "barra": "...", "frase": "...", "ilustracion": "...", "pantalla": "...", "vista": "general", "resalta": "...", "experiencia": "...", "icono": "...", "items": [{"titulo": "...", "texto": "..."}]}]}
+Escribe solo los campos que usa cada lámina. Dentro de los textos no uses comillas dobles.`;
+
+const comillas = t => `"${String(t || '').replace(/"/g, '').trim()}"`;
+const barraVids = (icono, texto, color = 'azul marino') => `Arriba, dentro de las dos columnas izquierdas, una barra ${color} con esquinas redondeadas; en su extremo izquierdo un cuadrado azul brillante con ${icono} en blanco; dentro de la barra, en blanco y negrita: ${comillas(texto)}.`;
+const lista = items => items.map(i => (i.texto ? `${comillas(i.titulo)} con ${comillas(i.texto)}` : comillas(i.titulo))).join('; ');
+
+// Las clases antiguas no guardan "parte" en sus bloques: se deduce de su diapositiva.
+function parteParaVids(bloque, diapo) {
+  const propia = parteDe(bloque.parte);
+  if (propia) return propia;
+  const kicker = String((diapo && diapo.kicker) || '').toLowerCase();
+  if (/logro/.test(kicker)) return 'logro';
+  if (/pr[aá]ctica/.test(kicker)) return 'practica';
+  return PARTE_DE_DIAPO[diapo && diapo.tipo] || 'desarrollo';
+}
+
+export function laminasVids(clase, bloques = []) {
+  const diapos = Object.fromEntries((clase.diapositivas || []).map(d => [String(d.bloque), d]));
+  let tema = 0;
+  return (clase.bloques || []).map(b => {
+    const parte = parteParaVids(b, diapos[String(b.id)]);
+    if (parte === 'desarrollo') tema++;
+    return { id: String(b.id), parte, tema: parte === 'desarrollo' ? tema : 0, voz: b.texto, diapo: diapos[String(b.id)] || {} };
+  }).filter(l => !bloques.length || bloques.includes(l.id));
+}
+
+// Los puntos de la diapositiva ya están revisados: se copian tal cual y la IA solo escribe los que faltan.
+function itemsDeDiapo(d) {
+  if (d.izq && d.der) return [d.izq, d.der].map(x => ({ titulo: String(x.etiqueta || x.titulo || '').toLowerCase().replace(/^./, m => m.toUpperCase()), texto: x.texto }));
+  if (Array.isArray(d.tarjetas)) return d.tarjetas.map(x => ({ titulo: x.titulo, texto: x.texto }));
+  return (Array.isArray(d.items) ? d.items : []).map(x => ({ titulo: typeof x === 'string' ? x : x.texto }));
+}
+const plantillaLamina = (l, c) => {
+  if (l.parte !== 'desarrollo') return l.parte;
+  if (c.pantalla) return 'pantalla';
+  return PLANTILLA_DE_DIAPO[l.diapo.tipo] || (PLANTILLAS_VIDS.includes(c.plantilla) ? c.plantilla : 'tarjetas');
+};
+const itemsLamina = (l, c) => {
+  const revisados = itemsDeDiapo(l.diapo).filter(i => i.titulo);
+  return revisados.length >= 2 ? revisados : (Array.isArray(c.items) ? c.items : []).filter(i => i && i.titulo);
+};
+
+// El guion del avatar: el saludo usa «profesor virtual» en vez del nombre del asistente de la ficha.
+function guionVids(texto, clase, experiencia) {
+  const nombre = String(clase.avatar || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const base = nombre ? texto.replace(new RegExp(`Soy ${nombre}, tu [^.]*? de la`), 'Soy tu profesor virtual de la') : texto;
+  return [base, String(experiencia || '').trim()].filter(Boolean).join(' ');
+}
+
+// La portada sigue la lámina modelo clases/gmail-comunicacion-laminas/laminas/01.png: texto a la izquierda y foto a la derecha.
+function portadaVids(clase, sesion, app) {
+  const icono = app ? ` En la parte alta de la fotografía, cerca del borde derecho, el ícono oficial de ${app.nombre} dentro de un globo de chat blanco con esquinas redondeadas y sombra suave.` : '';
+  const marca = app ? `; al pie, el logotipo a todo color de ${app.marca || (app.web ? 'Google Workspace' : 'Microsoft 365')}` : '';
+  return [
+    'Portada horizontal 16:9 de un curso universitario, con acabado de publicidad corporativa, muy luminosa y pulida.',
+    `La lámina tiene dos mitades. La mitad izquierda es blanca con un degradado azul muy pálido. La mitad derecha es una fotografía real y luminosa de una oficina moderna con ventanales, estantes y plantas, suavemente desenfocada y sin personas, que se funde con la mitad blanca por un borde diagonal suave. En la esquina inferior derecha, un triángulo verde brillante.${icono}`,
+    `En la mitad izquierda, alineado a la izquierda y ocupando toda la altura, de arriba abajo: el texto azul marino de peso normal ${comillas(clase.programa || clase.curso)}; una barra con degradado de azul marino a azul brillante, esquinas redondeadas y texto blanco en negrita ${comillas(clase.modulo_programa || clase.modulo)}; una etiqueta verde brillante con esquinas redondeadas y texto blanco en negrita ${comillas(sesion)}; el título muy grande en negrita gruesa azul marino, directamente sobre el fondo blanco, sin tarjeta ni recuadro detrás, ${comillas(clase.tema)}${marca}.`,
+    'Usa exactamente los textos entre comillas, con todas sus tildes, sin agregar ni repetir palabras y sin escribir las comillas en la lámina. Sin tarjetas, sobres ni ilustraciones dibujadas. Sin personas ni personajes. Sin marcas de agua. No escribas el nombre de la universidad ni otros logotipos.',
+  ].join(' ');
+}
+
+// Hasta 5 temas van en una columna, como la lámina modelo 03.png. Con más, dos columnas de píldoras grandes.
+function temarioVids(barra, items) {
+  const solo = 'Nada más debajo de la barra: sin íconos, sin tarjetas y sin píldoras adicionales.';
+  if (items.length <= 5) return `${barra} Debajo, ${items.length} píldoras blancas grandes con sombra, una por fila, cada una con un círculo azul a su izquierda con su número blanco, en este orden: ${lista(items)}. ${solo}`;
+  const mitad = Math.ceil(items.length / 2);
+  return `${barra} Debajo, ${items.length} píldoras blancas grandes con sombra, repartidas en dos columnas de ${mitad} filas, cada una con un círculo azul a su izquierda con su número blanco. Columna izquierda, números del 1 al ${mitad}, de arriba abajo: ${lista(items.slice(0, mitad))}. Columna derecha, números del ${mitad + 1} al ${items.length}, de arriba abajo: ${lista(items.slice(mitad))}. ${solo}`;
+}
+
+function promptLamina(l, c, clase) {
+  const items = itemsLamina(l, c);
+  const fija = BARRAS_VIDS[l.parte];
+  const barra = fija ? barraVids(fija[1], fija[0]) : barraVids(l.tema ? `el número ${l.tema}` : c.icono, c.barra);
+  const sesion = (/Sesi[oó]n\s+\d+/i.exec(`${clase.modulo} ${clase.tema}`) || ['Sesión'])[0];
+  // La pregunta y el ejemplo del buscador ya están revisados en la diapositiva: se copian tal cual.
+  const pregunta = /¿/.test(l.diapo.titulo || '') ? String(l.diapo.titulo).replace(/\*/g, '') : c.barra;
+  const busqueda = String(l.diapo.codigo || '').split('\n')[0] || c.frase;
+  const app = appVids(clase);
+  if (l.parte === 'portada') return portadaVids(clase, sesion, app);
+  const visual = app && c.pantalla ? capturaVids(app, l.parte === 'desarrollo' ? c : { pantalla: c.pantalla, vista: c.vista }) : `una ilustración grande de ${c.ilustracion}`;
+  const titulos = items.map(i => ({ titulo: i.titulo })); // junto a una captura grande solo caben los títulos
+  const cuerpo = {
+    logro: app && c.pantalla
+      ? `${barra} Debajo, ${visual}. La captura es la protagonista: ocupa todo el ancho de las dos columnas izquierdas. Debajo de la captura, una franja azul pálida con un círculo verde con check y el texto ${comillas(c.frase)}.`
+      : `${barra} Debajo, a la izquierda, ${visual}. A su derecha, una tarjeta azul pálida con un círculo verde con check y el texto ${comillas(c.frase)}.`,
+    motivacion: app && c.pantalla
+      ? `${barraVids(BARRAS_VIDS.motivacion[1], pregunta)} Debajo, ${visual}. La captura es la protagonista: ocupa todo el ancho de las dos columnas izquierdas. Debajo de la captura, una franja azul pálida con el texto ${comillas(c.frase)}.`
+      : `${barra} Debajo, a la izquierda, ${visual}. A su derecha, una tarjeta blanca con la pregunta en negrita azul marino ${comillas(pregunta)} y debajo la frase ${comillas(c.frase)}.`,
+    temario: temarioVids(barra, items),
+    practica: `${barra} Debajo, a la izquierda, una laptop con una lista de tareas con checks verdes. A su derecha, estas tareas con check verde: ${lista(items)}. Abajo, una tarjeta azul pálida con un círculo azul con la letra i y el texto ${comillas(TEXTO_PRACTICA)}.`,
+    conclusiones: `${barraVids('una planta que crece', '¿Qué aprendí?', 'verde')} Debajo, filas con un círculo verde con check y el texto: ${lista(items)}.`,
+    cierre: `Sin barra de título. Una ilustración de ${c.ilustracion} y, muy grande en negrita azul marino, el texto ${comillas(c.frase)}.`,
+    pantalla: `${barra} Debajo, ${visual}. La captura es la protagonista: ocupa todo el ancho de las dos columnas izquierdas. Debajo de la captura, ${titulos.length} etiquetas azul pálido en negrita: ${lista(titulos)}.`,
+    tarjetas: `${barra} Debajo, ${items.length} tarjetas azul pálido, cada una con un ícono de línea azul, título azul en negrita y texto: ${lista(items)}.`,
+    pasos: `${barra} Debajo, una ruta de ${items.length} pasos numerados en círculos azules unidos por una línea, con título en negrita y texto: ${lista(items)}.`,
+    tabla: `${barra} Debajo, una barra de búsqueda blanca con una lupa azul y el texto ${comillas(busqueda)}. Más abajo, una tabla de dos columnas con filas blancas redondeadas: ${lista(items)}.`,
+    lista: `${barra} Debajo, a la izquierda, una ilustración de ${c.ilustracion}. A su derecha, filas con un círculo verde con check: ${lista(items)}.`,
+  };
+  return [ESTILO_VIDS, ZONA_AVATAR_VIDS, cuerpo[plantillaLamina(l, c)], app && c.pantalla ? CIERRE_PANTALLA_VIDS : CIERRE_VIDS].join(' ');
+}
+
+// Devuelve qué le falta a la lámina para repetir el pedido: un error de la IA aquí se volvería un error en pantalla.
+function faltaEnLamina(l, c, clase) {
+  const plantilla = plantillaLamina(l, c);
+  const items = itemsLamina(l, c);
+  const textos = [c.barra, c.frase, ...items.flatMap(i => [i.titulo, i.texto])].filter(Boolean);
+  if (textos.some(x => /(^|[\s,])(\p{L}+),?\s+\2(?=[\s,.;:]|$)/iu.test(x))) return 'una palabra repetida';
+  if (/ventena|mensaje nueva/i.test(c.pantalla || '')) return 'una errata: se escribe «ventana» y «Mensaje nuevo»';
+  const hablado = `${c.pantalla || ''} ${c.experiencia || ''}`;
+  if (/\b(boss|appears|the|and)\b/i.test(hablado)) return 'una palabra en inglés: escribe todo en español';
+  if (/\b(entregás|podés|tenés|querés|sabés|hacés)\b/i.test(hablado)) return 'voseo: usa el trato de tú';
+  if (items.some(i => String(i.texto || '').split(/\s+/).length > 12)) return 'un texto de más de 12 palabras';
+  if (['temario', 'practica', 'conclusiones', 'tarjetas', 'pasos', 'tabla', 'lista'].includes(plantilla) && items.length < 2) return 'items';
+  if (l.parte === 'desarrollo' && !c.barra) return 'barra';
+  if (['logro', 'motivacion', 'cierre'].includes(plantilla) && !c.frase) return 'frase';
+  if (appVids(clase) && (['logro', 'motivacion'].includes(plantilla) || l.parte === 'desarrollo') && !c.pantalla) return 'pantalla';
+  const pideExperiencia = ['logro', 'motivacion', 'desarrollo', 'practica', 'conclusiones'].includes(l.parte);
+  const experiencia = String(c.experiencia || '').trim();
+  if (pideExperiencia && !experiencia) return 'experiencia';
+  if (pideExperiencia && (experiencia.split(/\s+/).length > 34 || /\d|%|por ciento|yo trabaj|mi empresa|mi jefe/i.test(experiencia))) {
+    return 'una experiencia de hasta 30 palabras, sin cifras y sin hablar de tu propio trabajo';
+  }
+  if (!c.pantalla && ['logro', 'motivacion', 'cierre', 'lista'].includes(plantilla) && !c.ilustracion) return 'ilustracion';
+  return '';
+}
+
+function pedidoLamina(l, aviso) {
+  return JSON.stringify({
+    lamina: l.id, parte: l.parte, voz: l.voz, diapositiva: l.diapo, corregir: aviso,
+    plantilla: l.parte === 'desarrollo' ? PLANTILLA_DE_DIAPO[l.diapo.tipo] : undefined,
+    items_listos: itemsDeDiapo(l.diapo).length >= 2 || undefined,
+  });
+}
+function guiasVids(clase) {
+  const app = appVids(clase);
+  return `${skill('vids')}${app ? `\n\n${skill(`pantallas/${app.clave}`)}` : ''}\n\n${FORMATO_VIDS}`;
+}
+const tituloVids = clase => [clase.curso, clase.modulo, clase.tema, clase.nivel].filter(Boolean).join(' · ');
+
+// El pedido completo, con todo el contexto de la clase, para pegarlo en Claude o ChatGPT.
+export function contextoVids(clase, bloques = []) {
+  const conContenido = laminasVids(clase, bloques).filter(l => l.parte !== 'portada');
+  return `${guiasVids(clase)}\n\nClase: ${tituloVids(clase)}\n\nEscribe estas láminas:\n${conContenido.map(l => pedidoLamina(l)).join('\n')}\n`;
+}
+
+// contenido: lo que escribió un modelo con más contexto (vids-contenido.json). Solo lo que falte se le pide a la IA gratis.
+export async function promptsVids({ clase, env, bloques = [], contenido = {} }) {
+  const laminas = laminasVids(clase, bloques);
+  const hechas = {};
+  for (const l of laminas) {
+    if (l.parte === 'portada') hechas[l.id] = {}; // la portada sale de los datos de la clase
+    if (!contenido[l.id] || hechas[l.id]) continue;
+    const falta = faltaEnLamina(l, contenido[l.id], clase);
+    if (falta) throw new Error(`Corrige la lámina ${l.id} de vids-contenido.json: ${falta}.`);
+    hechas[l.id] = contenido[l.id];
+  }
+  const pedir = laminas.every(l => hechas[l.id]) ? null : clienteGratis(env, []);
+  for (let intento = 0, avisos = {}; pedir && intento < 10 && Object.keys(hechas).length < laminas.length; intento++) {
+    const grupo = laminas.filter(l => !hechas[l.id]).slice(0, 4); // el plan gratis acepta pocos tokens por minuto
+    const inicios = [...new Set(Object.values(hechas).map(c => String(c.experiencia || '').split(/\s+/).slice(0, 2).join(' ')).filter(Boolean))];
+    const variar = inicios.length ? `\n\nEn "experiencia" no empieces con: ${inicios.join(' · ')}.` : '';
+    const { datos } = await pedir(guiasVids(clase), `Clase: ${tituloVids(clase)}\n\nEscribe estas láminas:\n${grupo.map(l => pedidoLamina(l, avisos[l.id])).join('\n')}${variar}`);
+    for (const c of Array.isArray(datos.laminas) ? datos.laminas : []) {
+      const l = grupo.find(g => g.id === String(c && c.lamina).padStart(2, '0'));
+      if (!l) continue;
+      const falta = faltaEnLamina(l, c, clase);
+      if (falta) avisos[l.id] = `Tu respuesta anterior falló: ${falta}.`;
+      else hechas[l.id] = c;
+    }
+  }
+  const faltan = laminas.filter(l => !hechas[l.id]).map(l => l.id);
+  if (faltan.length) throw new Error(`Falta el contenido de las láminas ${faltan.join(', ')}. Intenta de nuevo.`);
+  return {
+    avatar: AVATAR_VIDS,
+    logo: LOGO_VIDS,
+    laminas: laminas.map(l => ({ id: l.id, parte: l.parte, plantilla: plantillaLamina(l, hechas[l.id]), prompt: promptLamina(l, hechas[l.id], clase), guion: guionVids(l.voz, clase, hechas[l.id].experiencia) })),
+  };
+}

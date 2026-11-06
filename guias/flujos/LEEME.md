@@ -20,6 +20,7 @@ frecuentes con su solución, los archivos que intervienen y los flujos relaciona
 | F11 | Mejorar la IA: skills y ejemplos |
 | F12 | Crear una clase con Claude Code (terminal) |
 | F13 | Flujo de láminas con Gemini y Nano Banana |
+| F14 | Crear un video con Google Vids (con una captura por paso y el límite mensual por cuenta) |
 
 Para cambiar un flujo, edita sus datos en `fuente/flujos.mjs` (lista `FLUJOS`) y vuelve a generar todo, desde la
 carpeta del repositorio:
@@ -30,3 +31,7 @@ node guias/flujos/fuente/flujos.mjs
 
 Necesita el kit instalado (usa el Playwright de `clases-mac` o de `clases-windows`). Deja los PDF aquí y el HTML de cada
 flujo en `fuente/html/`. Si un texto del diagrama no entra en su caja, el generador lo avisa con `[!]`.
+
+F14 también se entrega en Word editable (`F14-video-con-google-vids.docx`), con el mismo contenido del PDF. Para generarlo,
+ejecuta `npm install` una vez dentro de `fuente/`. Si editas el Word a mano, copia esos cambios a `fuente/flujos.mjs`:
+al regenerar, el archivo se reemplaza.

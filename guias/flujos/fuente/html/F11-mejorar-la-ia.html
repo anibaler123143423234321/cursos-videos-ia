@@ -36,6 +36,32 @@
   .chips { display: flex; flex-wrap: wrap; gap: 2mm; } .chips span { font: 600 8.4pt Consolas, monospace; background: var(--caja); border-radius: 1.5mm; padding: .8mm 2.2mm; }
   .rel span { font-family: Inter; font-weight: 800; background: var(--verde-50); color: var(--verde-osc); }
   .indice td.cod { width: 14mm; font-weight: 900; }
+  .sin-corte { break-inside: avoid; }
+  .ejemplo { font: 500 8.2pt/1.5 Consolas, monospace; background: var(--caja); border-radius: 2mm; padding: 2.5mm 3mm; margin: 0; }
+  mark { background: #ffe14d; color: var(--tinta); border-radius: .6mm; padding: 0 .5mm; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .aviso { margin: 0 0 2mm; font-size: 8.6pt; color: var(--tinta); }
+  .cambios { margin-top: 2mm; }
+  .cambios td { padding: 1mm 2mm; }
+  .cambios td.que { width: 44mm; font-weight: 800; color: #d0021b; }
+  td.calc { font-size: 8.3pt; line-height: 1.32; }
+  .porcuenta th.cuenta { text-align: center; border-left: 1.5px solid var(--linea); letter-spacing: .06em; }
+  .porcuenta .num { text-align: center; width: 12mm; font-weight: 700; padding-left: 1mm; padding-right: 1mm; }
+  .porcuenta .no { color: #d0021b; }
+  .porcuenta td.num:nth-child(3n+2), .porcuenta tr:nth-child(2) th.num:nth-child(3n+1) { border-left: 1.5px solid var(--linea); }
+  td .detalle { display: block; font-weight: 400; font-size: 8pt; color: var(--gris); }
+  .reutilizar { display: grid; grid-template-columns: 66mm 1fr; gap: 5mm; align-items: center; }
+  .reutilizar .pantalla { width: 66mm; margin: 0; }
+  .reutilizar ol { margin: 0; padding-left: 5mm; font-size: 9pt; } .reutilizar li { margin-bottom: 1.2mm; }
+  .capturas { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3mm; }
+  .captura { grid-column: span 3; display: flex; flex-direction: column; break-inside: avoid; border: 1px solid var(--linea); border-radius: 2.5mm; padding: 2mm; }
+  .captura.texto { grid-column: span 2; }
+  .captura h3 { display: flex; align-items: flex-start; gap: 1.8mm; font-size: 9pt; line-height: 1.25; font-weight: 800; margin: 0 0 1.6mm; min-height: 6mm; }
+  .captura h3 b { flex: none; min-width: 5.4mm; text-align: center; font-size: 8pt; line-height: 1; color: #fff; background: var(--tinta); border-radius: 1.2mm; padding: 1mm 1.1mm; }
+  .captura p { font-size: 8pt; line-height: 1.35; color: #34343f; margin: 1.5mm 0 0; }
+  .pantalla { position: relative; width: 72mm; margin: 0 auto; border: 1px solid var(--linea); border-radius: 1.5mm; overflow: hidden; }
+  .pantalla img { display: block; width: 100%; }
+  .pantalla i { position: absolute; border: 1.6pt solid #e01f3d; border-radius: 1.2mm; }
+  .consola { flex: 1; margin: 0; padding: 2mm 2.4mm; border-radius: 1.5mm; background: #121214; color: #e9eaee; font: 500 6.6pt/1.45 Consolas, Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
 </style></head><body>
     <p class="etiqueta">Manual de flujos · Estudio de clases USS</p>
     <h1><span class="cod">F11</span>Mejorar la IA: skills y ejemplos</h1>
@@ -60,9 +86,11 @@
     <td class="actor">IA gratis</td><td class="paso">Lee las skills en cada pedido</td><td>Sin reiniciar la web.</td></tr><tr class=""><td class="n">6</td>
     <td class="actor">Equipo del estudio</td><td class="paso">Prueba con «Nueva clase» y revisa capturas</td><td>F01 y F07.</td></tr><tr class="dec"><td class="n">7 ◆</td>
     <td class="actor">Equipo del estudio</td><td class="paso">¿Mejoró?</td><td>No: ajusta y repite. Sí: copia los mismos archivos a la versión de Windows.</td></tr></table>
+    
+    
     <h2>Reglas del negocio</h2><ul class="reglas"><li>Un ejemplo con errores enseña errores: solo se agregan clases revisadas.</li><li>Cuida el largo: los planes gratis aceptan pocos tokens por minuto (como máximo unas 1 500 palabras por guía).</li><li>Un tipo de diapositiva nuevo debe existir primero en motor/diapos-auto.js.</li><li>Hoy hay 5 ejemplos: Gmail y Gemini (Google Workspace), Excel, inglés (presente simple) y Business Model Canvas.</li></ul>
-    <h2>Errores frecuentes</h2><table><tr><th>Lo que ves</th><th>Por qué pasa</th><th>Qué hacer</th></tr>
-      <tr><td class="paso">La IA copia el contenido del ejemplo</td><td>El ejemplo es casi del mismo tema.</td><td>Está bien si el ejemplo es correcto; si no, agrega un ejemplo más cercano.</td></tr></table>
+    <div class="sin-corte"><h2>Errores frecuentes</h2><table><tr><th>Lo que ves</th><th>Por qué pasa</th><th>Qué hacer</th></tr>
+      <tr><td class="paso">La IA copia el contenido del ejemplo</td><td>El ejemplo es casi del mismo tema.</td><td>Está bien si el ejemplo es correcto; si no, agrega un ejemplo más cercano.</td></tr></table></div>
     <h2>Archivos y datos</h2><div class="chips"><span>web/skills/README.md</span><span>web/skills/*.md</span><span>web/skills/ejemplos/*.json</span></div>
     <h2>Flujos relacionados</h2><div class="chips rel"><span>F01 · Crear una clase con IA (láminas HTML animadas)</span><span>F05 · Diseño visual de la clase</span></div>
   </body></html>
