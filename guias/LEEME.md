@@ -16,7 +16,7 @@ guias/
 │   └── word/
 ├── presentaciones/       PowerPoint para capacitar al equipo
 ├── instalacion/          Instalar en otra PC y hoja de la PC del estudio
-├── difusion/linkedin/    Publicación, carrusel, imagen y prompt para ChatGPT
+├── difusion/linkedin/    Publicación, carrusel, imágenes y prompt maestro para ChatGPT
 └── fuente/               Lo que se edita para regenerar todo
     ├── difusion/         Piezas de LinkedIn: textos y cuadros reales
     ├── manual/

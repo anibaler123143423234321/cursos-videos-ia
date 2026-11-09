@@ -1,0 +1,56 @@
+Actúa como diseñador gráfico senior de infografías para LinkedIn.
+
+Crea una sola imagen vertical, formato 4:5 (1080 × 1350 px), profesional y muy legible en celular.
+
+OBJETIVO
+Mostrar las 4 formas de crear videos con IA y comparar la versión gratuita, el plan AI Pro estudiante que usamos y los planes superiores.
+
+ESTILO
+- Fondo blanco con cabecera negra (#121214).
+- Acentos verde lima (#A6C61A).
+- Tipografía sans serif moderna, títulos en negrita.
+- Íconos planos y simples.
+- Sin personas, sin fotos y sin logos de marcas.
+
+ESTRUCTURA, DE ARRIBA ABAJO
+1. Cabecera negra con el título grande en blanco y el subtítulo en gris claro. Deja vacía la esquina superior derecha: ahí pondré el logo real.
+2. Cuatro tarjetas en dos filas de dos. Cada una lleva su número dentro de un círculo verde lima, su nombre en negrita y una línea de descripción.
+3. Título de la tabla y, debajo, una tabla de cuatro columnas y seis filas, con encabezado verde lima, líneas finas y texto alineado a la izquierda. Resalta toda la columna «AI Pro estudiante» con fondo verde muy claro (#F3F8DC).
+4. Franja negra final con la frase de cierre en blanco y, debajo, la nota en letra pequeña.
+
+TEXTOS EXACTOS
+Escribe estos textos tal cual, en español y con sus tildes. No agregues, resumas, traduzcas ni cambies ningún texto o número.
+
+Título: 4 formas de crear videos con IA
+Subtítulo: Hechas con versiones gratuitas y planes limitados
+
+Tarjeta 1: Gemini + Hyperframes + avatar de Vids
+Descripción: Escenas animadas con avatar
+
+Tarjeta 2: Imagen + avatar de Vids
+Descripción: Tu imagen como fondo
+
+Tarjeta 3: HTML puro + voz de ElevenLabs
+Descripción: Escenas y voz, sin persona
+
+Tarjeta 4: Solo Google Vids
+Descripción: Todo en una herramienta
+
+Título de la tabla: Versiones limitadas frente a planes superiores
+
+Encabezado: Recurso | Gratis | AI Pro estudiante | Plan superior
+Fila 1: Avatares en Google Vids | 6 al mes | 25 al mes | AI Ultra: hasta 500 al mes
+Fila 2: Imágenes en Google Vids | 50 puntos al mes | 30 al mes | AI Ultra: hasta 1000 al mes
+Fila 3: Voz en off de Google Vids | 1 punto por uso | Ilimitada | Ilimitada
+Fila 4: Uso de Gemini | Límite estándar | 4 veces más | AI Ultra: 5 o 20 veces más que AI Pro
+Fila 5: Voz en ElevenLabs | Cerca de 10 min al mes | No incluida | Business: cerca de 6000 min al mes
+Fila 6: Hyperframes | Gratis y de código abierto | No aplica | No aplica
+
+Frase de cierre: La tecnología da posibilidades. El criterio humano marca la diferencia.
+Nota: Límites publicados en noviembre de 2026. Pueden cambiar.
+
+REGLAS DE CALIDAD
+- Muestra la tabla completa, con sus seis filas y sus cuatro columnas.
+- Todas las letras y los números deben verse nítidos, sin deformarse.
+- Si falta espacio, reduce márgenes e íconos, nunca los textos.
+- Antes de terminar, compara cada palabra y cada número con esta lista.

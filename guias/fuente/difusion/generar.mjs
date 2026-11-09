@@ -1,4 +1,4 @@
-// Piezas de LinkedIn: carrusel de 7 imágenes, su PDF y una imagen única.
+// Piezas de LinkedIn: carrusel de 7 imágenes, su PDF, una imagen única y una imagen con la comparativa de planes.
 // Uso, desde la carpeta del repositorio:  node guias/fuente/difusion/generar.mjs
 // Los textos van en este archivo. Las fotos son cuadros reales de los videos de prueba.
 import fs from 'node:fs';
@@ -18,17 +18,28 @@ const fuente = peso => {
 };
 
 const FORMAS = [
-  { n: 1, titulo: 'Gemini + Hyperframes + avatar de Google Vids', texto: 'Láminas animadas en HTML, imágenes de Gemini y un avatar que habla.', imagen: 'Gemini', voz: 'Avatar de Vids', donde: 'Web del estudio', foto: 'forma-1.jpg' },
-  { n: 2, titulo: 'Lámina + avatar de Google Vids', texto: 'Tu lámina ya hecha como fondo, con un avatar encima.', imagen: 'Tu lámina', voz: 'Avatar de Vids', donde: 'Google Vids', foto: 'forma-2.jpg' },
-  { n: 3, titulo: 'HTML puro + voz de ElevenLabs', texto: 'Láminas animadas con voz, sin una persona en pantalla.', imagen: 'HTML', voz: 'ElevenLabs', donde: 'Web del estudio', foto: 'forma-3.jpg' },
+  { n: 1, titulo: 'Gemini + Hyperframes + avatar de Google Vids', texto: 'Escenas animadas en HTML, imágenes de Gemini y un avatar que habla.', imagen: 'Gemini', voz: 'Avatar de Vids', donde: 'Web del estudio', foto: 'forma-1.jpg' },
+  { n: 2, titulo: 'Imagen + avatar de Google Vids', texto: 'Tu imagen ya hecha como fondo, con un avatar encima.', imagen: 'La tuya', voz: 'Avatar de Vids', donde: 'Google Vids', foto: 'forma-2.jpg' },
+  { n: 3, titulo: 'HTML puro + voz de ElevenLabs', texto: 'Escenas animadas con voz, sin una persona en pantalla.', imagen: 'HTML', voz: 'ElevenLabs', donde: 'Web del estudio', foto: 'forma-3.jpg' },
   { n: 4, titulo: 'Solo Google Vids', texto: 'Imagen, avatar y montaje en la misma herramienta.', imagen: 'Google Vids', voz: 'Avatar de Vids', donde: 'Google Vids', foto: 'forma-4.jpg' },
 ];
 const APRENDIDO = [
   'La IA escribe. Un programa valida el formato y el diseño.',
-  'Una sola medida de avatar y logo mantiene todas las láminas iguales.',
+  'Una sola medida de avatar y logo mantiene todas las escenas iguales.',
   'Las pantallas dibujadas por IA pueden inventar textos: revísalas siempre.',
   'Cada avatar gasta cupo: revisa el guion antes de generarlo.',
 ];
+
+// Límites publicados por Google y ElevenLabs en noviembre de 2026. Revísalos antes de reutilizar esta tabla.
+const COMPARATIVA = [
+  ['Avatares en Google Vids', '6 al mes', '25 al mes', 'AI Ultra: hasta 500 al mes'],
+  ['Imágenes en Google Vids', '50 puntos al mes', '30 al mes', 'AI Ultra: hasta 1000 al mes'],
+  ['Voz en off de Google Vids', '1 punto por uso', 'Ilimitada', 'Ilimitada'],
+  ['Uso de Gemini', 'Límite estándar', '4 veces más', 'AI Ultra: 5 o 20 veces más que AI Pro'],
+  ['Voz en ElevenLabs', 'Cerca de 10 min al mes', 'No incluida', 'Business: cerca de 6000 min al mes'],
+  ['Hyperframes', 'Gratis y de código abierto', 'No aplica', 'No aplica'],
+];
+const CORTOS = ['Escenas animadas con avatar', 'Tu imagen como fondo', 'Escenas y voz, sin persona', 'Todo en una herramienta'];
 
 const CSS = `
 ${[400, 600, 700, 800].map(fuente).join('\n')}
@@ -60,15 +71,34 @@ p { margin: 0; font-size: 38px; line-height: 1.3; }
 .tarjetas { display: grid; gap: 14px; }
 .tarjetas div { display: flex; align-items: center; gap: 18px; padding: 16px 18px; border-radius: 14px; background: #fff; color: #121214; font-size: 25px; font-weight: 700; line-height: 1.2; }
 .tarjetas .numero { width: 50px; height: 50px; font-size: 26px; }
+.comparativa { width: 1080px; height: 1350px; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
+.comparativa header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding: 48px 56px 40px; background: #121214; color: #fff; }
+.comparativa h1 { margin: 0 0 12px; font-size: 62px; }
+.comparativa header p { font-size: 27px; color: #c4c7ce; }
+.comparativa .logo { flex: 0 0 auto; width: 200px; padding: 10px 14px; border-radius: 12px; }
+.cuatro { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 30px 56px 0; }
+.cuatro > div { display: flex; align-items: center; gap: 16px; padding: 16px; border-radius: 16px; background: #f4f4f7; }
+.cuatro .numero { width: 58px; height: 58px; font-size: 29px; }
+.cuatro b { display: block; font-size: 25px; line-height: 1.2; }
+.cuatro small { display: block; margin-top: 4px; font-size: 21px; color: #4a4d55; }
+.comparativa h2 { margin: 30px 56px 14px; font-size: 34px; }
+.comparativa table { width: calc(100% - 112px); margin: 0 56px; border-collapse: collapse; font-size: 22px; line-height: 1.25; }
+.comparativa th { padding: 13px 14px; background: #a6c61a; color: #121214; text-align: left; font-size: 22px; }
+.comparativa td { padding: 12px 14px; border-bottom: 1px solid #e3e4e8; vertical-align: top; }
+.comparativa td:nth-child(3) { background: #f3f8dc; font-weight: 600; }
+.comparativa td:first-child { font-weight: 700; }
+.comparativa footer { margin-top: auto; padding: 26px 56px; background: #121214; color: #fff; }
+.comparativa footer b { display: block; font-size: 27px; line-height: 1.25; }
+.comparativa footer span { display: block; margin-top: 8px; font-size: 20px; color: #c4c7ce; }
 `;
 
 const pie = n => `<div class="pie"><span>Centro de Informática · USS</span><span>${n} / 7</span></div>`;
 const piezas = [
   `<section class="pieza oscura">
     <img class="logo" src="${LOGO}" alt="USS Centro de Informática">
-    <h1>4 formas de crear una clase en video con IA</h1>
-    <p class="gris">Lo que documentamos en el Estudio de clases.</p>
-    <div class="cuadro" style="box-shadow:none"><img src="${foto('portada.jpg')}" alt="Cuadro de una clase en video con avatar"></div>
+    <h1>4 formas de crear videos con IA</h1>
+    <p class="gris">Qué combinar: imágenes, voz y avatar.</p>
+    <div class="cuadro" style="box-shadow:none"><img src="${foto('portada.jpg')}" alt="Cuadro de un video con avatar"></div>
     ${pie(1)}
   </section>`,
   ...FORMAS.map((f, i) => `<section class="pieza">
@@ -86,16 +116,25 @@ const piezas = [
   </section>`,
   `<section class="pieza oscura">
     <div class="centro">
-      <h1 style="margin-top:0">¿Cuál usarías en tus clases?</h1>
-      <p class="gris">No hay una forma ganadora: depende de la clase, del tiempo y de tu plan.</p>
+      <h1 style="margin-top:0">¿Cuál usarías en tus videos?</h1>
+      <p class="gris">No hay una forma ganadora: depende del video, del tiempo y de tu plan.</p>
     </div>
     <img class="logo" src="${LOGO}" alt="USS Centro de Informática" style="margin-bottom:64px">
     ${pie(7)}
   </section>`,
 ];
 const unica = `<section class="unica">
-  <div><img class="logo" src="${LOGO}" alt="USS Centro de Informática"><h1>4 formas de crear una clase en video con IA</h1></div>
+  <div><img class="logo" src="${LOGO}" alt="USS Centro de Informática"><h1>4 formas de crear videos con IA</h1></div>
   <div class="tarjetas">${FORMAS.map(f => `<div><span class="numero">${f.n}</span>${f.titulo.replace(' de Google Vids', ' de Vids')}</div>`).join('')}</div>
+</section>`;
+
+const comparativa = `<section class="comparativa">
+  <header><div><h1>4 formas de crear videos con IA</h1><p>Hechas con versiones gratuitas y planes limitados</p></div><img class="logo" src="${LOGO}" alt="USS Centro de Informática"></header>
+  <div class="cuatro">${FORMAS.map((f, i) => `<div><span class="numero">${f.n}</span><span><b>${f.titulo.replace(' de Google Vids', ' de Vids')}</b><small>${CORTOS[i]}</small></span></div>`).join('')}</div>
+  <h2>Versiones limitadas frente a planes superiores</h2>
+  <table><tr><th>Recurso</th><th>Gratis</th><th>AI Pro estudiante</th><th>Plan superior</th></tr>
+    ${COMPARATIVA.map(f => `<tr>${f.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table>
+  <footer><b>La tecnología da posibilidades. El criterio humano marca la diferencia.</b><span>Límites publicados en noviembre de 2026. Pueden cambiar.</span></footer>
 </section>`;
 
 const pagina = cuerpo => `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Piezas de LinkedIn</title><style>${CSS}</style></head><body>${cuerpo}</body></html>`;
@@ -116,6 +155,11 @@ try {
   await p.setContent(pagina(unica), { waitUntil: 'load' });
   await p.evaluate(() => document.fonts.ready);
   await (await p.$('.unica')).screenshot({ path: path.join(SALIDA, 'imagen-unica.png') });
+  await p.setContent(pagina(comparativa), { waitUntil: 'load' });
+  await p.evaluate(() => document.fonts.ready);
+  await (await p.$('.comparativa')).screenshot({ path: path.join(SALIDA, 'imagen-comparativa.png') });
+  const sobra = await p.$eval('.comparativa', x => x.scrollHeight - x.clientHeight);
+  if (sobra > 0) console.log(`[!] La comparativa se pasa por ${sobra} px`);
   console.log(`[OK] ${path.relative(process.cwd(), SALIDA)}${desbordes.length ? ` · se desbordan: ${desbordes}` : ''}`);
 } finally {
   await navegador.close();

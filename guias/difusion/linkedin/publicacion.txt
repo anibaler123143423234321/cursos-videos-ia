@@ -1,21 +1,46 @@
-¿Una clase en video con IA se hace con una sola herramienta? Nuestra respuesta fue no.
+¿Un video con inteligencia artificial se crea utilizando una sola herramienta?
+Nuestra respuesta fue clara: no necesariamente.
 
-En el Centro de Informática de la Universidad Señor de Sipán probamos varias combinaciones para crear clases en video y documentamos 4 formas:
+Exploramos, probamos y documentamos 4 formas diferentes de crear videos con IA, combinando herramientas según el resultado que buscábamos. Y lo hicimos con versiones gratuitas y con Google AI Pro estudiante, no con los planes de mayor capacidad.
 
-1. Gemini + Hyperframes + avatar de Google Vids: láminas animadas en HTML, imágenes de Gemini y un avatar que habla.
-2. Lámina + avatar de Google Vids: tu lámina ya hecha como fondo, con un avatar encima.
-3. HTML puro + voz de ElevenLabs: láminas animadas con voz, sin una persona en pantalla.
-4. Solo Google Vids: imagen, avatar y montaje en la misma herramienta.
+🎬 Las 4 alternativas que desarrollamos:
 
-Lo que aprendimos:
+1. Gemini + Hyperframes + avatar de Google Vids
+Escenas animadas mediante HTML, imágenes creadas con Gemini y un avatar que presenta el contenido.
 
-• La IA escribe, pero un programa valida el formato y el diseño.
-• Una sola medida de avatar y logo mantiene todas las láminas iguales.
-• Las pantallas dibujadas por IA pueden inventar textos: siempre hay revisión humana.
-• Cada avatar gasta cupo, así que el guion se revisa antes de generarlo.
+2. Imagen + avatar de Google Vids
+Una imagen previamente diseñada como fondo y un avatar sobre ella para darle vida al contenido.
 
-No hay una forma ganadora. Depende de la clase, del tiempo y de tu plan.
+3. HTML puro + voz de ElevenLabs
+Escenas animadas mediante código HTML y voces generadas con IA, sin mostrar una persona en pantalla.
 
-¿Cuál usarías en tus clases?
+4. Solo Google Vids
+Imágenes, avatar y montaje del video desde una misma herramienta.
 
-#InteligenciaArtificial #EducaciónSuperior #GoogleVids #Hyperframes #USS
+📊 Versiones limitadas frente a planes superiores:
+
+• Avatares en Google Vids: 6 al mes en cuenta gratuita y 25 con AI Pro estudiante. Google AI Ultra llega hasta 500.
+• Imágenes en Google Vids: 50 puntos al mes en cuenta gratuita y 30 imágenes con AI Pro estudiante. AI Ultra llega hasta 1000.
+• Voz en off de Google Vids: 1 punto por uso en cuenta gratuita e ilimitada desde AI Pro.
+• Voz en ElevenLabs: cerca de 10 minutos al mes en el plan gratuito. No viene con AI Pro, y el plan Business llega a cerca de 6000.
+• Hyperframes: es gratuito, de código abierto y funciona en tu propia computadora.
+
+En avatares, imágenes y ElevenLabs, incluso los planes superiores tienen un tope. Lo que cambia es la capacidad.
+
+💡 ¿Qué aprendimos durante el proceso?
+
+• La IA puede generar contenido, pero necesitamos validar el formato, la estructura y el diseño.
+• Mantener las mismas dimensiones para el avatar y el logotipo da uniformidad visual entre escenas.
+• Las pantallas generadas por IA pueden contener textos incorrectos o inventados. La revisión humana sigue siendo indispensable.
+• En una versión limitada, cada avatar cuenta. Revisar el guion antes de generar permite aprovechar mejor el cupo.
+
+Nuestra conclusión:
+No existe una única forma de crear videos con inteligencia artificial. La mejor alternativa dependerá del objetivo, el tiempo disponible, el resultado esperado y el plan a nuestro alcance.
+
+La tecnología nos da posibilidades, pero el criterio humano sigue marcando la diferencia.
+
+¿Cuál de estas cuatro alternativas utilizarías para crear tus próximos videos?
+
+Límites publicados en noviembre de 2026. Pueden cambiar.
+
+#InteligenciaArtificial #CreaciónDeVideos #GoogleVids #Hyperframes #ElevenLabs #InnovaciónDigital #USS

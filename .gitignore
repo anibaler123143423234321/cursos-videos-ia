@@ -32,3 +32,4 @@ clases-mac/clases/*/hyperframes/renders/
 clases-windows/clases/*/hyperframes/renders/
 clases-*/clases/*/hyperframes/assets/*avatar.*
 clases-*/clases/*/hyperframes/.hyperframes/
+.claude/
